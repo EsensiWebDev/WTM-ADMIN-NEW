@@ -11,7 +11,7 @@ export default function HeroSection() {
     <>
       <section>
         <div className="pb-24 pt-12 md:pb-32 lg:pb-56 lg:pt-44">
-          <div className="relative mx-auto flex max-w-6xl flex-col px-6 lg:block">
+          <div className="relative mx-auto flex max-w-7xl flex-col px-6 lg:block">
             <div className="mx-auto max-w-lg text-center lg:ml-0 lg:w-1/2 lg:text-left">
               <h1 className="mt-8 max-w-2xl text-balance text-5xl font-medium md:text-6xl lg:mt-16 xl:text-7xl">
                 Ship 10x Faster with NS
@@ -51,7 +51,7 @@ export default function HeroSection() {
         </div>
       </section>
       <section className="bg-background pb-16 md:pb-32">
-        <div className="group relative m-auto max-w-6xl px-6">
+        <div className="group relative m-auto max-w-7xl px-6">
           <div className="flex flex-col items-center md:flex-row">
             <div className="md:max-w-44 md:border-r md:pr-6">
               <p className="text-end text-sm">Powering the best teams</p>

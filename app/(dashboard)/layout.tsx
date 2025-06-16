@@ -9,7 +9,9 @@ const DashboardLayout = ({
   return (
     <>
       <HeroHeader />
-      <main className="overflow-x-hidden pt-19">{children}</main>
+      <main className="@container/main px-6 mx-auto max-w-7xl transition-all duration-300 overflow-x-hidden pt-30 pb-12">
+        {children}
+      </main>
     </>
   );
 };
