@@ -1,6 +1,5 @@
 import { SuperAdmin } from "@/app/(dashboard)/account/user-management/data-super-admin";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 // Fetch super admin users
 export function useSuperAdminUsers() {

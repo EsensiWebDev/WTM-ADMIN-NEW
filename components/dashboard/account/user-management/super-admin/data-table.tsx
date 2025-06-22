@@ -14,6 +14,7 @@ import {
 } from "@tanstack/react-table";
 
 import { DataTablePagination } from "@/components/data-table/pagination";
+import { usePaginationSearchParams } from "@/components/data-table/search-params.pagination";
 import {
   Table,
   TableBody,
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import React, { useState } from "react";
+import { useState } from "react";
 import { DataTableToolbar } from "./data-table-toolbar";
 
 interface DataTableProps<TData, TValue> {
@@ -38,12 +39,14 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [pagination, setPagination] = usePaginationSearchParams();
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -51,6 +54,7 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
+      pagination,
       sorting,
       columnFilters,
       columnVisibility,
