@@ -1,7 +1,7 @@
 "use client";
 
 import { Table } from "@tanstack/react-table";
-import { PlusCircle, X } from "lucide-react";
+import { CirclePlus, X } from "lucide-react";
 
 import { DataTableFacetedFilter } from "@/components/data-table/faceted-filter";
 import { DataTableViewOptions } from "@/components/data-table/view-option";
@@ -12,13 +12,12 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
-  CheckCircle,
   Circle,
-  CircleOff,
   HelpCircle,
   Timer,
 } from "lucide-react";
-import AddSuperAdmin from "./modal-add";
+import { useState } from "react";
+import { UserForm } from "./form";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -63,6 +62,7 @@ export const promo_groups = [
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
+  const [isOpen, setIsOpen] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
@@ -103,7 +103,16 @@ export function DataTableToolbar<TData>({
       </div>
       <div className="flex items-center gap-2">
         <DataTableViewOptions table={table} />
-        <AddSuperAdmin />
+        <Button size={"sm"} onClick={() => setIsOpen(true)}>
+          <CirclePlus /> Add
+        </Button>
+        <UserForm
+          open={isOpen}
+          onOpenChange={setIsOpen}
+          onSuccess={() => {
+            // The query will automatically refetch due to invalidation
+          }}
+        />
       </div>
     </div>
   );

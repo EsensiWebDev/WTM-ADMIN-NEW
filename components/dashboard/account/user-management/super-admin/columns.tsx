@@ -2,7 +2,7 @@
 
 import { deleteUser } from "@/app/(dashboard)/account/user-management/actions";
 import { SuperAdmin } from "@/app/(dashboard)/account/user-management/data-super-admin";
-import { UserForm } from "@/components/dashboard/account/user-management/user-form";
+import { UserForm } from "@/components/dashboard/account/user-management/super-admin/form";
 import { DataTableColumnHeader } from "@/components/data-table/column-header";
 import {
   AlertDialog,

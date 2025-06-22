@@ -44,7 +44,7 @@ const userFormSchema = z.object({
   promo_group: z.string().min(1, "Promo group is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(1, "Phone number is required"),
-  status: z.boolean().default(true),
+  status: z.boolean(),
 });
 
 type UserFormData = z.infer<typeof userFormSchema>;
@@ -66,7 +66,7 @@ export function UserForm({
   const isEditing = !!user;
   const queryClient = useQueryClient();
 
-  const form = useForm<UserFormData>({
+  const form = useForm({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: user?.name || "",

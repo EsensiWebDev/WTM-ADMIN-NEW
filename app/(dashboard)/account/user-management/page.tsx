@@ -1,17 +1,13 @@
 "use client";
 
-import { columns } from "@/components/dashboard/account/user-management/columns";
-import { UserForm } from "@/components/dashboard/account/user-management/user-form";
-import { DataTable } from "@/components/data-table/data-table";
+import { columns } from "@/components/dashboard/account/user-management/super-admin/columns";
+import { DataTable } from "@/components/dashboard/account/user-management/super-admin/data-table";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSuperAdminUsers } from "@/hooks/use-users";
-import { IconPlus } from "@tabler/icons-react";
-import { useState } from "react";
 
 const UserManagement = () => {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { data: users, isLoading, error, refetch } = useSuperAdminUsers();
 
   if (isLoading) {
@@ -46,10 +42,6 @@ const UserManagement = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">User Management</h1>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <IconPlus className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
       </div>
 
       <Tabs
@@ -81,14 +73,6 @@ const UserManagement = () => {
           </div>
         </TabsContent>
       </Tabs>
-
-      <UserForm
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onSuccess={() => {
-          // The query will automatically refetch due to invalidation
-        }}
-      />
     </div>
   );
 };
