@@ -3,7 +3,7 @@
 import { deleteUser } from "@/app/(dashboard)/account/user-management/actions";
 import { SuperAdmin } from "@/app/(dashboard)/account/user-management/data-super-admin";
 import { UserForm } from "@/components/dashboard/account/user-management/super-admin/form";
-import { DataTableColumnHeader } from "@/components/data-table/column-header";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
+import { CheckCircle, Text, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -51,6 +52,7 @@ import { toast } from "sonner";
 export const columns: ColumnDef<SuperAdmin>[] = [
   {
     id: "select",
+    size: 32,
     header: ({ table }) => (
       <div className="flex items-center justify-center">
         <Checkbox
@@ -76,6 +78,7 @@ export const columns: ColumnDef<SuperAdmin>[] = [
     enableHiding: false,
   },
   {
+    id: "name",
     accessorKey: "name",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Agent Name" />
@@ -83,9 +86,17 @@ export const columns: ColumnDef<SuperAdmin>[] = [
     cell: ({ row }) => {
       return row.original.name;
     },
+    meta: {
+      label: "Name",
+      placeholder: "Search name...",
+      variant: "text",
+      icon: Text,
+    },
+    enableColumnFilter: true,
     enableHiding: false,
   },
   {
+    id: "agent",
     accessorKey: "agent",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Agent Company" />
@@ -93,8 +104,18 @@ export const columns: ColumnDef<SuperAdmin>[] = [
     cell: ({ row }) => {
       return row.original.agent;
     },
+    meta: {
+      label: "Agent",
+      variant: "multiSelect",
+      options: [
+        { label: "Active", value: "active", icon: CheckCircle },
+        { label: "Inactive", value: "inactive", icon: XCircle },
+      ],
+    },
+    enableColumnFilter: true,
   },
   {
+    id: "Promo Group",
     accessorKey: "promo_group",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Promo Group" />
@@ -126,12 +147,23 @@ export const columns: ColumnDef<SuperAdmin>[] = [
     },
   },
   {
+    id: "Email",
     accessorKey: "email",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="E-mail" />
     ),
+    meta: {
+      label: "Email",
+      variant: "multiSelect",
+      options: [
+        { label: "Active", value: "active", icon: CheckCircle },
+        { label: "Inactive", value: "inactive", icon: XCircle },
+      ],
+    },
+    enableColumnFilter: true,
   },
   {
+    id: "Phone",
     accessorKey: "phone",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Phone Number" />
@@ -139,6 +171,7 @@ export const columns: ColumnDef<SuperAdmin>[] = [
   },
   {
     id: "actions",
+    size: 32,
     cell: ({ row }) => {
       const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
       const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

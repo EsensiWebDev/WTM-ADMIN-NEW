@@ -1,42 +1,17 @@
-"use client";
-
-import { columns } from "@/components/dashboard/account/user-management/super-admin/columns";
-import { DataTable } from "@/components/dashboard/account/user-management/super-admin/data-table";
-import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSuperAdminUsers } from "@/hooks/use-users";
+import { Suspense } from "react";
+import { userSuperAdmin } from "./data-super-admin";
+import TableSuperAdmin from "./table-super-admin";
 
-const UserManagement = () => {
-  const { data: users, isLoading, error, refetch } = useSuperAdminUsers();
+export const getData = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return userSuperAdmin.splice(1, 5);
+};
 
-  if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <div className="flex items-center justify-center h-64">
-          <div className="flex items-center gap-2">
-            <LoadingSpinner />
-            <span className="text-lg">Loading users...</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
+const UserManagement = async () => {
+  // const { data: users, isLoading, error, refetch } = useSuperAdminUsers();
 
-  if (error) {
-    return (
-      <div className="space-y-8">
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center space-y-4">
-            <div className="text-lg text-red-600">Error loading users</div>
-            <Button onClick={() => refetch()}>Try Again</Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const promise = getData();
 
   return (
     <div className="space-y-8">
@@ -55,7 +30,10 @@ const UserManagement = () => {
           <TabsTrigger value="support">support</TabsTrigger>
         </TabsList>
         <TabsContent value="super_admin">
-          <DataTable data={users || []} columns={columns} />
+          {/* <DataTable data={users || []} columns={columns} /> */}
+          <Suspense fallback="Loading...">
+            <TableSuperAdmin promise={promise} />
+          </Suspense>
         </TabsContent>
         <TabsContent value="agent">
           <div className="aspect-video w-full flex-1 rounded-lg border border-dashed justify-center flex items-center text-xl">
