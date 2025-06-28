@@ -1,3 +1,4 @@
+import type { SearchParams } from "@/types";
 import AgentControlTable from "./agent-control-table";
 
 export interface AgentControlTableResponse {
@@ -7,6 +8,10 @@ export interface AgentControlTableResponse {
   email: string;
   phone_number: string;
   status: string;
+}
+
+interface AgentControlPageProps {
+  searchParams: Promise<SearchParams>;
 }
 
 export const getData = async () => {
@@ -32,7 +37,9 @@ export const getData = async () => {
   return data;
 };
 
-const AgentControl = async () => {
+const AgentControlPage = async (props: AgentControlPageProps) => {
+  const searchParams = await props.searchParams;
+
   const promises = Promise.all([getData()]);
 
   return (
@@ -60,4 +67,4 @@ const AgentControl = async () => {
   );
 };
 
-export default AgentControl;
+export default AgentControlPage;
