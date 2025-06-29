@@ -9,7 +9,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useDataTable } from "@/hooks/use-data-table";
 import type { DataTableRowAction } from "@/types/data-table";
-import React from "react";
+import React, { useTransition } from "react";
 import CreateAgentControlDialog from "../dialog/create-agent-control-dialog";
 import { DeleteAgentControlDialog } from "../dialog/delete-agent-control-dialog";
 import { DetailAgentControlDialog } from "../dialog/detail-agent-control-dialog";
@@ -26,6 +26,7 @@ interface AgentControlTableProps {
 }
 
 const AgentControlTable = ({ promises }: AgentControlTableProps) => {
+  const [isPending, startTransition] = useTransition();
   const [data, companyOptions] = React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<AgentControlTableResponse> | null>(null);
@@ -46,15 +47,18 @@ const AgentControlTable = ({ promises }: AgentControlTableProps) => {
     getRowId: (originalRow) => originalRow.id,
     shallow: false,
     clearOnDefault: true,
+    startTransition,
   });
 
   return (
     <>
-      <DataTable table={table}>
-        <DataTableToolbar table={table}>
-          <CreateAgentControlDialog />
-        </DataTableToolbar>
-      </DataTable>
+      <div className="relative">
+        <DataTable table={table} isPending={isPending}>
+          <DataTableToolbar table={table} isPending={isPending}>
+            <CreateAgentControlDialog />
+          </DataTableToolbar>
+        </DataTable>
+      </div>
       <DetailAgentControlDialog
         open={rowAction?.variant === "detail"}
         onOpenChange={() => setRowAction(null)}

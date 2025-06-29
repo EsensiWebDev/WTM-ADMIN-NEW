@@ -10,7 +10,7 @@ export const getData = async ({
 }: {
   searchParams: SearchParams;
 }) => {
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const data = [
     {
@@ -35,7 +35,7 @@ export const getData = async ({
 };
 
 export const getCompanyOptions = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   const data = [
     {
@@ -73,7 +73,6 @@ const AgentControlPage = async (props: AgentControlPageProps) => {
 
       <div className="w-full">
         <React.Suspense
-          key={JSON.stringify(searchParams)}
           fallback={
             <DataTableSkeleton
               columnCount={7}

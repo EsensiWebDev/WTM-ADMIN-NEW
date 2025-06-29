@@ -1,7 +1,7 @@
 "use client";
 
 import type { Column, Table } from "@tanstack/react-table";
-import { X } from "lucide-react";
+import { Loader, X } from "lucide-react";
 import * as React from "react";
 
 import { DataTableDateFilter } from "@/components/data-table/data-table-date-filter";
@@ -14,12 +14,14 @@ import { cn } from "@/lib/utils";
 
 interface DataTableToolbarProps<TData> extends React.ComponentProps<"div"> {
   table: Table<TData>;
+  isPending?: boolean;
 }
 
 export function DataTableToolbar<TData>({
   table,
   children,
   className,
+  isPending = false,
   ...props
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -68,7 +70,11 @@ export function DataTableToolbar<TData>({
             Reset
           </Button>
         )}
+        {isPending && (
+          <Loader className="size-4 animate-spin" aria-hidden="true" />
+        )}
       </div>
+
       <div className="flex items-center gap-2">
         {children}
         <DataTableViewOptions table={table} />

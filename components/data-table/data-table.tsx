@@ -12,10 +12,12 @@ import {
 } from "@/components/ui/table";
 import { getCommonPinningStyles } from "@/lib/data-table";
 import { cn } from "@/lib/utils";
+import { LoadingSpinner } from "../ui/loading-spinner";
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>;
   actionBar?: React.ReactNode;
+  isPending?: boolean;
 }
 
 export function DataTable<TData>({
@@ -23,6 +25,7 @@ export function DataTable<TData>({
   actionBar,
   children,
   className,
+  isPending = false,
   ...props
 }: DataTableProps<TData>) {
   return (
@@ -31,7 +34,17 @@ export function DataTable<TData>({
       {...props}
     >
       {children}
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-md border relative">
+        {isPending && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+            <div className="flex items-center gap-2 rounded-lg bg-background p-4 shadow-lg">
+              <LoadingSpinner className="h-4 w-4" />
+              <span className="text-sm text-muted-foreground">
+                Applying filters...
+              </span>
+            </div>
+          </div>
+        )}
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
