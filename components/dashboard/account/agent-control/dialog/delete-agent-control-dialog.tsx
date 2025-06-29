@@ -6,6 +6,8 @@ import { Loader, Trash } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { deleteAgent } from "@/app/(dashboard)/account/agent-control/actions";
+import { AgentControlTableResponse } from "@/app/(dashboard)/account/agent-control/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,9 +30,6 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { AgentControlTableResponse } from "./page";
-
-// import { deleteTasks } from "../_lib/actions";
 
 interface DeleteAgentControlDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
@@ -50,17 +49,15 @@ export function DeleteAgentControlDialog({
 
   function onDelete() {
     startDeleteTransition(async () => {
-      // const { error } = await deleteTasks({
-      //   ids: tasks.map((task) => task.id),
-      // });
+      const agentId = agentControl[0].id;
 
-      // if (error) {
-      //   toast.error(error);
-      //   return;
-      // }
+      toast.promise(deleteAgent(agentId), {
+        // loading: "Deleting agent...",
+        success: (data) => data.message,
+        error: "Failed to delete agent",
+      });
 
       props.onOpenChange?.(false);
-      toast.success("Tasks deleted");
       onSuccess?.();
     });
   }
@@ -82,7 +79,8 @@ export function DeleteAgentControlDialog({
             <DialogDescription>
               This action cannot be undone. This will permanently delete your{" "}
               <span className="font-medium">{agentControl.length}</span>
-              {agentControl.length === 1 ? " task" : " tasks"} from our servers.
+              {agentControl.length === 1 ? " agent" : " agents"} from our
+              servers.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:space-x-0">
@@ -125,7 +123,7 @@ export function DeleteAgentControlDialog({
           <DrawerDescription>
             This action cannot be undone. This will permanently delete your{" "}
             <span className="font-medium">{agentControl.length}</span>
-            {agentControl.length === 1 ? " task" : " tasks"} from our servers.
+            {agentControl.length === 1 ? " agent" : " agents"} from our servers.
           </DrawerDescription>
         </DrawerHeader>
         <DrawerFooter className="gap-2 sm:space-x-0">

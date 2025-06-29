@@ -1,3 +1,5 @@
+import { updateAgentStatus } from "@/app/(dashboard)/account/agent-control/actions";
+import { AgentControlTableResponse } from "@/app/(dashboard)/account/agent-control/types";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,8 +23,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { CircleAlert, Ellipsis, EyeIcon, Text } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import { updateAgentStatus } from "./actions";
-import { AgentControlTableResponse } from "./page";
 
 interface GetAgentControlTableColumnsProps {
   setRowAction: React.Dispatch<
@@ -136,9 +136,9 @@ export function getAgentControlTableColumns({
               Status
             </Label>
             <Select
+              disabled={isUpdatePending}
               defaultValue={row.original.status}
               onValueChange={(value) => {
-                console.log({ id: row.original.id, value });
                 startUpdateTransition(() => {
                   toast.promise(updateAgentStatus(row.original.id, value), {
                     loading: "Updating agent status...",

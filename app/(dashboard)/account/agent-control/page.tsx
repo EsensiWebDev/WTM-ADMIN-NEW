@@ -1,18 +1,5 @@
-import type { SearchParams } from "@/types";
-import AgentControlTable from "./agent-control-table";
-
-export interface AgentControlTableResponse {
-  id: string;
-  name: string;
-  company: string;
-  email: string;
-  phone_number: string;
-  status: string;
-}
-
-interface AgentControlPageProps {
-  searchParams: Promise<SearchParams>;
-}
+import AgentControlTable from "@/components/dashboard/account/agent-control/table/agent-control-table";
+import { AgentControlPageProps, AgentControlTableResponse } from "./types";
 
 export const getData = async () => {
   const data = [
