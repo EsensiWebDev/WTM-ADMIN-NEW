@@ -68,7 +68,7 @@ const AgentControlPage = async (props: AgentControlPageProps) => {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">User Management</h1>
+        <h1 className="text-3xl font-bold">Agent Control</h1>
       </div>
 
       <div className="w-full">
