@@ -2,7 +2,6 @@ import { BookingSummary } from "@/app/(dashboard)/booking-management/booking-sum
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,26 +27,9 @@ export function getBookingSummaryTableColumns({
 }: GetBookingSummaryTableColumnsProps): ColumnDef<BookingSummary>[] {
   return [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-          className="translate-y-0.5"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="translate-y-0.5"
-        />
-      ),
+      id: "no",
+      header: "No",
+      cell: ({ row }) => row.index + 1,
       enableSorting: false,
       enableHiding: false,
       size: 40,

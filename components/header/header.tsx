@@ -11,8 +11,9 @@ const menuItems = [
     name: "Account",
     href: "#link",
     childs: [
-      { name: "User Management", href: "/account/user-management" },
+      { name: "User Management", href: "/account/user-management/super-admin" },
       { name: "Agent Control", href: "/account/agent-control" },
+      { name: "Role Based Access", href: "/account/role-based-access" },
     ],
   },
   {

@@ -71,7 +71,6 @@ const RoomAvailabilityTable = ({ promises }: RoomAvailabilityTableProps) => {
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                variant={"outline"}
                 className={cn(
                   "justify-start text-left font-normal",
                   !date && "text-muted-foreground"
@@ -79,7 +78,7 @@ const RoomAvailabilityTable = ({ promises }: RoomAvailabilityTableProps) => {
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? format(date, "MMM yyyy") : <span>Select Period</span>}
-                <ChevronsUpDown className="ml-auto opacity-50" />
+                <ChevronsUpDown className="ml-auto text-white opacity-100" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">

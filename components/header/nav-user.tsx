@@ -42,7 +42,7 @@ export const NavUser = ({
       <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-30 rounded-lg">
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href={"/settings"}>
+            <Link href={"/settings/account-setting"}>
               <Settings />
               Settings
             </Link>

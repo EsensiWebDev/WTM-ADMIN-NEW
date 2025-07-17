@@ -7,7 +7,6 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useDataTable } from "@/hooks/use-data-table";
 import type { DataTableRowAction } from "@/types/data-table";
 import React, { useTransition } from "react";
-import CreateReportDialog from "../dialog/create-report-dialog";
 import { DeleteReportDialog } from "../dialog/delete-report-dialog";
 import { DetailReportDialog } from "../dialog/detail-report-dialog";
 import EditReportDialog from "../dialog/edit-report-dialog";
@@ -52,7 +51,7 @@ const ReportTable = ({ promises }: ReportTableProps) => {
       <div className="relative">
         <DataTable table={table} isPending={isPending}>
           <DataTableToolbar table={table} isPending={isPending}>
-            <CreateReportDialog />
+            {/* <CreateReportDialog /> */}
           </DataTableToolbar>
         </DataTable>
       </div>

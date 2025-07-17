@@ -59,7 +59,7 @@ const CreateSuperAdminDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button size="sm">
           <Plus />
           New Super Admin
         </Button>

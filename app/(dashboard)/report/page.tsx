@@ -2,6 +2,7 @@ import { ChartAreaInteractive } from "@/components/dashboard/report/chart-area-i
 import { SectionCards } from "@/components/dashboard/report/section-cards";
 import ReportTable from "@/components/dashboard/report/table/report-table";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { Separator } from "@/components/ui/separator";
 import React from "react";
 import { getCompanyOptions, getData } from "./fetch";
 import { ReportPageProps } from "./types";
@@ -17,8 +18,6 @@ const ReportPage = async (props: ReportPageProps) => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Report</h1>
       </div>
-      <SectionCards />
-      <ChartAreaInteractive />
       <React.Suspense
         fallback={
           <DataTableSkeleton
@@ -38,6 +37,9 @@ const ReportPage = async (props: ReportPageProps) => {
       >
         <ReportTable promises={promises} />
       </React.Suspense>
+      <Separator />
+      <SectionCards />
+      <ChartAreaInteractive />
     </div>
   );
 };

@@ -1,0 +1,46 @@
+"use server";
+
+import { CreatePromoGroupSchema, EditPromoGroupSchema } from "./types";
+
+// Define a standard response type
+interface ActionResponse {
+  success: boolean;
+  message: string;
+}
+
+export async function deletePromoGroup(
+  promoId: string
+): Promise<ActionResponse> {
+  console.log("Delete Promo");
+  // Simulate API call delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Simulate success response
+  return { success: true, message: `Promo deleted` };
+}
+
+export async function createPromoGroup(
+  input: CreatePromoGroupSchema
+): Promise<ActionResponse> {
+  console.log("Create Promo:");
+  console.log({ input });
+
+  // Simulate API call delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Simulate success response
+  return { success: true, message: `Promo created` };
+}
+
+export async function editPromoGroup(
+  input: EditPromoGroupSchema & { id: string }
+): Promise<ActionResponse> {
+  console.log("Edit Promo:");
+  console.log({ input });
+
+  // Simulate API call delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Simulate success response
+  return { success: true, message: `Promo edited` };
+}

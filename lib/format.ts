@@ -15,3 +15,29 @@ export function formatDate(
     return "";
   }
 }
+
+// Formats date as '18 February 2025 | 13:35:46 WIB' (Asia/Jakarta)
+export function formatDateTimeWIB(date: Date | string | number | undefined) {
+  if (!date) return "";
+  try {
+    const d = new Date(date);
+    // Date part
+    const datePart = d.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Jakarta",
+    });
+    // Time part
+    const timePart = d.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Jakarta",
+    });
+    return `${datePart} | ${timePart} WIB`;
+  } catch (_err) {
+    return "";
+  }
+}

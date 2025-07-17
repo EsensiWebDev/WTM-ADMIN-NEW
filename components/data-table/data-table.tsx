@@ -50,7 +50,7 @@ export function DataTable<TData>({
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="!bg-[#D0D6DB]">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
