@@ -1,23 +1,14 @@
 import { updateRoomAvailability } from "@/app/(dashboard)/hotel-listing/room-availability/actions";
 import { RoomAvailabilityHotel } from "@/app/(dashboard)/hotel-listing/room-availability/types";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Loader } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 
@@ -190,6 +181,10 @@ export const UpdateRoomAvailabilityDrawer = ({
     });
   }
 
+  function onCancel() {
+    setOpen(false);
+  }
+
   return (
     <Drawer {...props}>
       <DrawerHeader>
@@ -213,37 +208,20 @@ export const UpdateRoomAvailabilityDrawer = ({
           {/* Legend and Save Button */}
           <div className="flex items-center justify-between">
             <AvailabilityLegend />
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm">Save Changes</Button>
-              </DialogTrigger>
-              <DialogContent aria-describedby="update-room-availability-dialog">
-                <DialogHeader>
-                  <DialogTitle>Confirm Changes</DialogTitle>
-                  <DialogDescription>
-                    Are you absolutely sure to save the changes?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="gap-2 sm:space-x-0">
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button
-                    aria-label="Delete selected rows"
-                    onClick={onUpdate}
-                    disabled={isUpdatePending}
-                  >
-                    {isUpdatePending && (
-                      <Loader
-                        className="mr-2 size-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                    )}
-                    Apply Changes
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            {/* Trigger Button */}
+            <Button size="sm" onClick={() => setOpen(true)}>
+              Save Changes
+            </Button>
+            {/* Confirmation Dialog */}
+            <ConfirmationDialog
+              open={open}
+              onOpenChange={setOpen}
+              onConfirm={onUpdate}
+              onCancel={onCancel}
+              isLoading={isUpdatePending}
+              title="Save Room Availability"
+              description="Are you sure you want to save the changes to room availability?"
+            />
           </div>
         </div>
       </DrawerContent>

@@ -123,6 +123,16 @@ export function getHotelTableColumns({
           <CloudOff className="size-5 text-red-500" aria-hidden="true" />
         );
       },
+      meta: {
+        label: "API",
+        placeholder: "Search API...",
+        variant: "multiSelect",
+        options: [
+          { label: "API", value: "api" },
+          { label: "Non API", value: "non_api" },
+        ],
+      },
+      enableColumnFilter: true,
       enableHiding: false,
       enableSorting: false,
       size: 50,

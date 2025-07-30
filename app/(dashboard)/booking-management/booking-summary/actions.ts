@@ -3,13 +3,34 @@
 import { CreateBookingSummarySchema } from "@/components/dashboard/booking-management/booking-summary/dialog/create-booking-summary-dialog";
 import { EditBookingSummarySchema } from "@/components/dashboard/booking-management/booking-summary/dialog/edit-booking-summary-dialog";
 
-export async function updateBookingStatus(bookingId: string, status: string) {
+export async function updateBookingStatus(
+  bookingId: string,
+  status: string,
+  reason?: string
+) {
   console.log("Update Booking Status");
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  console.table({ bookingId, status, reason });
+
   // Simulate success response
   return { success: true, message: `Booking status updated to ${status}` };
+}
+
+export async function updatePaymentStatus(
+  bookingId: string,
+  paymentStatus: string
+) {
+  console.log("Update Payment Status");
+  // Simulate API call delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Simulate success response
+  return {
+    success: true,
+    message: `Payment status updated to ${paymentStatus}`,
+  };
 }
 
 export async function deleteBooking(bookingId: string) {

@@ -25,7 +25,7 @@ const HotelPage = async (props: HotelPageProps) => {
       </div>
 
       <Tabs defaultValue="all" className="w-[400px]">
-        <TabsList>
+        <TabsList className="gap-1">
           <Link href={"?tab=all"} scroll={false}>
             <TabsTrigger value="all">All</TabsTrigger>
           </Link>

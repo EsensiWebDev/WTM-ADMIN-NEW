@@ -1,24 +1,12 @@
-import {
-  ChevronsUpDown,
-  Sparkles,
-  BadgeCheck,
-  CreditCard,
-  Bell,
-  LogOut,
-  ChevronDown,
-} from "lucide-react";
-import { Button } from "../ui/button";
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import Link from "next/link";
 
 export const NavDropdown = ({
   menu,
@@ -35,7 +23,7 @@ export const NavDropdown = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="inline-flex items-center justify-center text-muted-foreground hover:text-accent-foreground duration-150 cursor-pointer">
+        <button className="inline-flex items-center justify-center text-white hover:text-gray-200 duration-150 cursor-pointer">
           <span>{menu.name}</span>
           <ChevronDown className="ml-2 size-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
         </button>

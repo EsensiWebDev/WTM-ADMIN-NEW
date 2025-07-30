@@ -62,7 +62,7 @@ export function DataTableToolbar<TData>({
             aria-label="Reset filters"
             variant="outline"
             size="sm"
-            className="border-dashed"
+            className="border-dashed bg-white"
             onClick={onReset}
           >
             <X />
@@ -101,7 +101,7 @@ function DataTableToolbarFilter<TData>({
               placeholder={columnMeta.placeholder ?? columnMeta.label}
               value={(column.getFilterValue() as string) ?? ""}
               onChange={(event) => column.setFilterValue(event.target.value)}
-              className="h-8 w-40 lg:w-56"
+              className="h-8 w-40 lg:w-56 bg-white"
             />
           );
 
@@ -148,6 +148,7 @@ function DataTableToolbarFilter<TData>({
             <DataTableFacetedFilter
               column={column}
               title={columnMeta.label ?? column.id}
+              placeholder={columnMeta.placeholder}
               options={columnMeta.options ?? []}
               multiple={columnMeta.variant === "multiSelect"}
             />

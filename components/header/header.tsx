@@ -3,6 +3,7 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { Logo } from "../logo";
 import { NavDropdown } from "./nav-dropdown";
 import { NavUser } from "./nav-user";
 
@@ -45,7 +46,7 @@ export const HeroHeader = () => {
     <header>
       <nav
         data-state={menuState && "active"}
-        className="bg-background/50 fixed z-20 w-full border-b backdrop-blur-3xl"
+        className="bg-primary fixed z-20 w-full border-b backdrop-blur-3xl"
       >
         <div className="mx-auto max-w-7xl px-6 transition-all duration-300">
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
@@ -57,6 +58,13 @@ export const HeroHeader = () => {
               >
                 <Logo />
               </Link> */}
+              <Link
+                href="/"
+                aria-label="home"
+                className="flex items-center space-x-2"
+              >
+                <Logo />
+              </Link>
 
               <button
                 onClick={() => setMenuState(!menuState)}
@@ -83,7 +91,7 @@ export const HeroHeader = () => {
                       <li key={index}>
                         <Link
                           href={item.href}
-                          className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                          className="text-white hover:text-accent-foreground block duration-150"
                         >
                           <span>{item.name}</span>
                         </Link>

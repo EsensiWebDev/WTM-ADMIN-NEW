@@ -35,7 +35,7 @@ const TabsPageChanger = memo(
 
     return (
       <Tabs defaultValue={defaultTabs}>
-        <TabsList>{renderedTabs}</TabsList>
+        <TabsList className="gap-1">{renderedTabs}</TabsList>
       </Tabs>
     );
   }
