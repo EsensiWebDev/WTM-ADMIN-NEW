@@ -11,6 +11,7 @@ import {
 import { DataTableRowAction } from "@/types/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Ellipsis, Text } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 interface GetPromoGroupTableColumnsProps {
@@ -66,10 +67,8 @@ export function getPromoGroupTableColumns({
               >
                 Details
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: "update" })}
-              >
-                Edit
+              <DropdownMenuItem asChild>
+                <Link href={`/promo-group/${row.original.id}/edit`}>Edit</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

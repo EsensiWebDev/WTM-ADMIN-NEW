@@ -1,6 +1,6 @@
 "use server";
 
-import { CreatePromoGroupSchema, EditPromoGroupSchema } from "./types";
+import { CreatePromoGroupSchema, EditPromoGroupSchema, Member } from "./types";
 
 // Define a standard response type
 interface ActionResponse {
@@ -43,4 +43,18 @@ export async function editPromoGroup(
 
   // Simulate success response
   return { success: true, message: `Promo edited` };
+}
+
+export async function editPromoGroupMembers(
+  id: string,
+  members: Member[]
+): Promise<ActionResponse> {
+  console.log("Edit Promo Members:");
+  console.log({ id, members });
+
+  // Simulate API call delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Simulate success response
+  return { success: true, message: `Members has been edited` };
 }

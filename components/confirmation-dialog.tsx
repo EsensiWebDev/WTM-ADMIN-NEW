@@ -7,7 +7,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AlertTriangle, Loader } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AlertTriangle, Loader, type LucideIcon } from "lucide-react";
 
 interface ConfirmationDialogProps {
   open: boolean;
@@ -19,6 +20,8 @@ interface ConfirmationDialogProps {
   description?: string;
   children?: React.ReactNode; // Custom content (e.g., reason textarea)
   confirmDisabled?: boolean;
+  icon?: LucideIcon;
+  iconClassName?: string;
 }
 
 /**
@@ -34,16 +37,20 @@ export function ConfirmationDialog({
   description = "Are you sure you want to save the changes?",
   children,
   confirmDisabled,
+  icon: Icon = AlertTriangle,
+  iconClassName,
 }: ConfirmationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{null}</DialogTrigger>
       <DialogContent showCloseButton={false}>
         <div className="flex flex-col items-center text-center gap-1">
-          <AlertTriangle
-            className="mb-2 size-10 text-yellow-500"
-            aria-hidden="true"
-          />
+          {Icon && (
+            <Icon
+              className={cn("mb-2 size-10 text-yellow-500", iconClassName)}
+              aria-hidden="true"
+            />
+          )}
           <DialogTitle>{title}</DialogTitle>
           <div className="my-2 w-full">
             <div className="border-t border-muted-foreground/20 w-full" />
