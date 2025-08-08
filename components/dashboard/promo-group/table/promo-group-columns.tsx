@@ -27,10 +27,10 @@ export function getPromoGroupTableColumns({
     {
       id: "no",
       header: "No",
-      cell: ({ row }) => row.index + 1,
+      cell: ({ row }) => <div className="text-center">{row.index + 1}</div>,
       enableSorting: false,
       enableHiding: false,
-      size: 40,
+      size: 30,
     },
     {
       id: "name",
@@ -46,9 +46,11 @@ export function getPromoGroupTableColumns({
         icon: Text,
       },
       enableColumnFilter: true,
+      size: 2200,
     },
     {
       id: "actions",
+      header: "Actions",
       cell: function Cell({ row }) {
         return (
           <DropdownMenu>
