@@ -16,7 +16,7 @@ import { HotelInfoUpload } from "./info-upload";
 import { RoomCardInput } from "./room-card-input";
 
 interface CreateHotelFormProps {
-  hotel: HotelDetail;
+  hotel?: HotelDetail;
 }
 
 // Default room template
@@ -50,20 +50,39 @@ const validateForm = (
 };
 
 export function CreateHotelForm({ hotel }: CreateHotelFormProps) {
+  // Default empty values for new hotel creation
+  const defaultHotelInfo: HotelInfoProps = {
+    name: "",
+    location: "",
+    rating: 0,
+    description: "",
+    facilities: [],
+    nearby: [],
+    price: 0,
+    isPromoted: false,
+    promoText: "",
+  };
+
   // Form state
   const [images, setImages] = useState<ImageFile[]>([]);
-  const [rooms, setRooms] = useState<Room[]>(hotel.rooms);
-  const [hotelInfo, setHotelInfo] = useState<HotelInfoProps>({
-    name: hotel.name,
-    location: hotel.location,
-    rating: hotel.rating,
-    description: hotel.description,
-    facilities: hotel.facilities,
-    nearby: hotel.nearby,
-    price: hotel.price,
-    isPromoted: hotel.isPromoted || false,
-    promoText: hotel.promoText || "",
-  });
+  const [rooms, setRooms] = useState<Room[]>(
+    hotel?.rooms || [createDefaultRoom()]
+  );
+  const [hotelInfo, setHotelInfo] = useState<HotelInfoProps>(
+    hotel
+      ? {
+          name: hotel.name,
+          location: hotel.location,
+          rating: hotel.rating,
+          description: hotel.description,
+          facilities: hotel.facilities,
+          nearby: hotel.nearby,
+          price: hotel.price,
+          isPromoted: hotel.isPromoted || false,
+          promoText: hotel.promoText || "",
+        }
+      : defaultHotelInfo
+  );
 
   // Transition state for form submission
   const [isPending, startTransition] = useTransition();
@@ -192,17 +211,7 @@ export function CreateHotelForm({ hotel }: CreateHotelFormProps) {
           // Reset form
           setImages([]);
           setRooms([createDefaultRoom()]);
-          setHotelInfo({
-            name: "",
-            location: "",
-            rating: 0,
-            description: "",
-            facilities: [],
-            nearby: [],
-            price: 0,
-            isPromoted: false,
-            promoText: "",
-          });
+          setHotelInfo(defaultHotelInfo);
 
           // Show success message with more details
           toast.success(

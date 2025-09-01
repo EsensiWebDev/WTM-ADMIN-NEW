@@ -2,8 +2,11 @@ import { CreateHotelForm } from "@/components/dashboard/hotel-listing/create/cre
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { fetchHotelDetail } from "./fetch";
 
-const CreateHotelPage = () => {
+const CreateHotelPage = async () => {
+  const hotel = await fetchHotelDetail();
+
   return (
     <div className="space-y-8">
       <Button variant={"ghost"} asChild>
@@ -13,7 +16,7 @@ const CreateHotelPage = () => {
         </Link>
       </Button>
 
-      <CreateHotelForm />
+      <CreateHotelForm hotel={hotel} />
     </div>
   );
 };
