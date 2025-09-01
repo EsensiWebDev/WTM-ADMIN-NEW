@@ -1,14 +1,6 @@
 import { updatePromoGroup } from "@/app/(dashboard)/account/agent-overview/agent-management/actions";
 import { Agent } from "@/app/(dashboard)/account/agent-overview/agent-management/types";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -21,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DataTableRowAction } from "@/types/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { Ellipsis, Text } from "lucide-react";
+import { Text } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { toast } from "sonner";
@@ -150,39 +142,39 @@ export function getAgentTableColumns({
       },
       enableColumnFilter: false,
     },
-    {
-      id: "actions",
-      cell: function Cell({ row }) {
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                aria-label="Open menu"
-                variant="ghost"
-                className="flex size-8 p-0 data-[state=open]:bg-muted"
-              >
-                <Ellipsis className="size-4" aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: "update" })}
-              >
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onSelect={() => setRowAction({ row, variant: "delete" })}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-      size: 40,
-    },
+    // {
+    //   id: "actions",
+    //   cell: function Cell({ row }) {
+    //     return (
+    //       <DropdownMenu>
+    //         <DropdownMenuTrigger asChild>
+    //           <Button
+    //             aria-label="Open menu"
+    //             variant="ghost"
+    //             className="flex size-8 p-0 data-[state=open]:bg-muted"
+    //           >
+    //             <Ellipsis className="size-4" aria-hidden="true" />
+    //           </Button>
+    //         </DropdownMenuTrigger>
+    //         <DropdownMenuContent align="end" className="w-40">
+    //           <DropdownMenuItem
+    //             onSelect={() => setRowAction({ row, variant: "update" })}
+    //           >
+    //             Edit
+    //           </DropdownMenuItem>
+    //           <DropdownMenuSeparator />
+    //           <DropdownMenuItem
+    //             variant="destructive"
+    //             onSelect={() => setRowAction({ row, variant: "delete" })}
+    //           >
+    //             Delete
+    //           </DropdownMenuItem>
+    //         </DropdownMenuContent>
+    //       </DropdownMenu>
+    //     );
+    //   },
+    //   size: 40,
+    // },
   ];
 }
 

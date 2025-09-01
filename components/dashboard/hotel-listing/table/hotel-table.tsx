@@ -16,6 +16,7 @@ import Link from "next/link";
 import React, { useTransition } from "react";
 import { DeleteHotelDialog } from "../dialog/delete-hotel-dialog";
 import EditHotelDialog from "../dialog/edit-hotel-dialog";
+import ImportCsvDialog from "../dialog/import-csv-dialog";
 import { getHotelTableColumns } from "./hotel-columns";
 
 interface HotelTableProps {
@@ -89,12 +90,16 @@ const HotelTable = ({ promises }: HotelTableProps) => {
           )}
         >
           <DataTableToolbar table={table} isPending={isPending}>
-            <Button size="sm" asChild>
-              <Link href={"/hotel-listing/create"}>
-                <Plus />
-                New Hotel
-              </Link>
-            </Button>
+            <div className="flex gap-2">
+              <ImportCsvDialog />
+
+              <Button size="sm" asChild>
+                <Link href={"/hotel-listing/create"}>
+                  <Plus />
+                  Add Listing
+                </Link>
+              </Button>
+            </div>
             {/* <CreateHotelDialog /> */}
           </DataTableToolbar>
         </DataTable>

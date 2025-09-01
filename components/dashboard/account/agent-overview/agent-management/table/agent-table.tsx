@@ -4,8 +4,10 @@ import { getAgentData } from "@/app/(dashboard)/account/agent-overview/agent-man
 import { Agent } from "@/app/(dashboard)/account/agent-overview/agent-management/types";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { Button } from "@/components/ui/button";
 import { useDataTable } from "@/hooks/use-data-table";
 import type { DataTableRowAction } from "@/types/data-table";
+import { IconCloudDownload } from "@tabler/icons-react";
 import React, { useTransition } from "react";
 import CreateAgentDialog from "../dialog/create-agent-dialog";
 import { DeleteAgentDialog } from "../dialog/delete-agent-dialog";
@@ -43,6 +45,10 @@ const AgentTable = ({ promises }: AgentTableProps) => {
       <div className="relative">
         <DataTable table={table} isPending={isPending}>
           <DataTableToolbar table={table} isPending={isPending}>
+            <Button variant={"outline"} className="border-primary">
+              <IconCloudDownload />
+              Download
+            </Button>
             <CreateAgentDialog />
           </DataTableToolbar>
         </DataTable>

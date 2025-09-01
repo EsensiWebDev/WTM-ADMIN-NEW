@@ -2,13 +2,6 @@ import { updateAgentStatus } from "@/app/(dashboard)/account/agent-overview/agen
 import { AgentControl } from "@/app/(dashboard)/account/agent-overview/agent-control/types";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -19,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { DataTableRowAction, Option } from "@/types/data-table";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { Ellipsis, EyeIcon, Text } from "lucide-react";
+import { EyeIcon, Text } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "../../../../confirmation-dialog";
@@ -197,40 +190,40 @@ export function getAgentControlTableColumns({
       enableHiding: false,
       enableSorting: false,
     },
-    {
-      id: "actions",
-      cell: function Cell({ row }) {
-        const [isUpdatePending, startUpdateTransition] = React.useTransition();
+    // {
+    //   id: "actions",
+    //   cell: function Cell({ row }) {
+    //     const [isUpdatePending, startUpdateTransition] = React.useTransition();
 
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                aria-label="Open menu"
-                variant="ghost"
-                className="flex size-8 p-0 data-[state=open]:bg-muted"
-              >
-                <Ellipsis className="size-4" aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: "update" })}
-              >
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onSelect={() => setRowAction({ row, variant: "delete" })}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-      size: 40,
-    },
+    //     return (
+    //       <DropdownMenu>
+    //         <DropdownMenuTrigger asChild>
+    //           <Button
+    //             aria-label="Open menu"
+    //             variant="ghost"
+    //             className="flex size-8 p-0 data-[state=open]:bg-muted"
+    //           >
+    //             <Ellipsis className="size-4" aria-hidden="true" />
+    //           </Button>
+    //         </DropdownMenuTrigger>
+    //         <DropdownMenuContent align="end" className="w-40">
+    //           <DropdownMenuItem
+    //             onSelect={() => setRowAction({ row, variant: "update" })}
+    //           >
+    //             Edit
+    //           </DropdownMenuItem>
+    //           <DropdownMenuSeparator />
+    //           <DropdownMenuItem
+    //             variant="destructive"
+    //             onSelect={() => setRowAction({ row, variant: "delete" })}
+    //           >
+    //             Delete
+    //           </DropdownMenuItem>
+    //         </DropdownMenuContent>
+    //       </DropdownMenu>
+    //     );
+    //   },
+    //   size: 40,
+    // },
   ];
 }
