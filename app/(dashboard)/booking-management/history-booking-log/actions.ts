@@ -2,13 +2,14 @@
 
 import { formatDate } from "@/lib/format";
 import { SearchParams } from "@/types";
+import * as XLSX from "xlsx";
 import { HistoryBookingLog } from "./types";
 
 type ExportFormat = "csv" | "excel";
 
 interface ExportResult {
   success: boolean;
-  data?: string;
+  data?: string | Uint8Array;
   filename?: string;
   totalRecords?: number;
   mimeType?: string;
@@ -55,16 +56,6 @@ function isDateInRange(
   if (range.end && checkDate > range.end) return false;
 
   return true;
-}
-
-// Helper function to escape XML content
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
 }
 
 // Helper function to validate export format
@@ -254,109 +245,126 @@ export async function exportHistoryBookingLog(
     // Convert data to the requested format
     if (format === "excel") {
       try {
-        // Create Excel-compatible XML format for better compatibility
-        const excelHeaders = [
-          "Booking ID",
-          "Confirm Date",
-          "Agent Name",
-          "Booking Status",
-          "Payment Status",
-          "Check-in Date",
-          "Check-out Date",
-          "Hotel Name",
-          "Room Type",
-          "Room Nights",
-          "Capacity",
-        ];
+        // Create a new workbook
+        const workbook = XLSX.utils.book_new();
 
-        const excelRows = filteredData.map((item) => {
-          try {
-            return [
-              escapeXml(item.booking_id || ""),
-              escapeXml(
+        // Prepare data for XLSX with headers
+        const worksheetData = [
+          // Headers
+          [
+            "Booking ID",
+            "Confirm Date",
+            "Agent Name",
+            "Booking Status",
+            "Payment Status",
+            "Check-in Date",
+            "Check-out Date",
+            "Hotel Name",
+            "Room Type",
+            "Room Nights",
+            "Capacity",
+          ],
+          // Data rows
+          ...filteredData.map((item) => {
+            try {
+              return [
+                item.booking_id || "",
                 formatDate(item.confirm_date, {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
-                }) || ""
-              ),
-              escapeXml(item.agent_name || ""),
-              escapeXml(item.booking_status || ""),
-              escapeXml(item.payment_status || ""),
-              escapeXml(
+                }) || "",
+                item.agent_name || "",
+                item.booking_status || "",
+                item.payment_status || "",
                 formatDate(item.date_in, {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
-                }) || ""
-              ),
-              escapeXml(
+                }) || "",
                 formatDate(item.date_out, {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
-                }) || ""
-              ),
-              escapeXml(item.hotel_name || ""),
-              escapeXml(item.room_type || ""),
-              escapeXml(item.room_night?.toString() || "0"),
-              escapeXml(item.capacity || ""),
-            ];
-          } catch (err) {
-            console.error("Error processing row:", item, err);
-            // Return empty row if processing fails
-            return new Array(excelHeaders.length).fill("");
+                }) || "",
+                item.hotel_name || "",
+                item.room_type || "",
+                item.room_night || 0,
+                item.capacity || "",
+              ];
+            } catch (err) {
+              console.error("Error processing row:", item, err);
+              // Return empty row if processing fails
+              return new Array(11).fill("");
+            }
+          }),
+        ];
+
+        // Create worksheet from data
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+        // Set column widths for better readability
+        const columnWidths = [
+          { wch: 12 }, // Booking ID
+          { wch: 15 }, // Confirm Date
+          { wch: 20 }, // Agent Name
+          { wch: 15 }, // Booking Status
+          { wch: 15 }, // Payment Status
+          { wch: 15 }, // Check-in Date
+          { wch: 15 }, // Check-out Date
+          { wch: 25 }, // Hotel Name
+          { wch: 20 }, // Room Type
+          { wch: 12 }, // Room Nights
+          { wch: 15 }, // Capacity
+        ];
+
+        worksheet["!cols"] = columnWidths;
+
+        // Style the header row
+        const headerRange = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+        for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+          const headerCell = XLSX.utils.encode_cell({ r: 0, c: col });
+          if (worksheet[headerCell]) {
+            worksheet[headerCell].s = {
+              font: { bold: true, color: { rgb: "FFFFFF" } },
+              fill: { bgColor: { indexed: 64 }, fgColor: { rgb: "366092" } },
+              alignment: { horizontal: "center", vertical: "center" },
+            };
           }
+        }
+
+        // Add the worksheet to workbook
+        XLSX.utils.book_append_sheet(
+          workbook,
+          worksheet,
+          "History Booking Log"
+        );
+
+        // Set workbook properties
+        workbook.Props = {
+          Title: "History Booking Log Export",
+          Subject: "Booking Management Export",
+          Author: "WTM Admin System",
+          CreatedDate: new Date(),
+        };
+
+        // Generate Excel file as buffer
+        const excelBuffer = XLSX.write(workbook, {
+          type: "array",
+          bookType: "xlsx",
+          compression: true,
         });
 
-        // Create Excel XML format with better structure
-        const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" 
-          xmlns:o="urn:schemas-microsoft-com:office:office" 
-          xmlns:x="urn:schemas-microsoft-com:office:excel" 
-          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" 
-          xmlns:html="http://www.w3.org/TR/REC-html40">
-<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
-  <Title>History Booking Log Export</Title>
-  <Created>${new Date().toISOString()}</Created>
-</DocumentProperties>
-<Styles>
-  <Style ss:ID="Header">
-    <Font ss:Bold="1"/>
-    <Interior ss:Color="#CCCCCC" ss:Pattern="Solid"/>
-  </Style>
-</Styles>
-<Worksheet ss:Name="History Booking Log">
-<Table ss:ExpandedColumnCount="${excelHeaders.length}" ss:ExpandedRowCount="${
-          filteredData.length + 1
-        }">`;
-
-        const xmlHeaderRow = `<Row><Cell ss:StyleID="Header"><Data ss:Type="String">${excelHeaders.join(
-          '</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">'
-        )}</Data></Cell></Row>`;
-
-        const xmlDataRows = excelRows
-          .map(
-            (row) =>
-              `<Row><Cell><Data ss:Type="String">${row.join(
-                '</Data></Cell><Cell><Data ss:Type="String">'
-              )}</Data></Cell></Row>`
-          )
-          .join("");
-
-        const xmlFooter = `</Table>
-</Worksheet>
-</Workbook>`;
-
-        const excelContent = xmlHeader + xmlHeaderRow + xmlDataRows + xmlFooter;
+        // Convert buffer to Uint8Array for better compatibility
+        const uint8Array = new Uint8Array(excelBuffer);
 
         return {
           success: true,
-          data: excelContent,
-          filename: `history-booking-log-${timestamp}-${timeString}.xls`,
+          data: uint8Array,
+          filename: `history-booking-log-${timestamp}-${timeString}.xlsx`,
           totalRecords: filteredData.length,
-          mimeType: "application/vnd.ms-excel",
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         };
       } catch (excelError) {
         console.error("Error generating Excel format:", excelError);

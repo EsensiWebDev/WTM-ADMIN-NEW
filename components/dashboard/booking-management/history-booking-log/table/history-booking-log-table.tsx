@@ -82,10 +82,22 @@ const HistoryBookingLogTable = ({ promises }: HistoryBookingLogTableProps) => {
         const result = await exportHistoryBookingLog(params, format);
 
         if (result.success && result.data) {
-          // Create and download the file
-          const blob = new Blob([result.data], {
-            type: result.mimeType || "text/csv;charset=utf-8;",
-          });
+          let blob: Blob;
+
+          // Handle different data types (string for CSV, Uint8Array for Excel)
+          if (typeof result.data === "string") {
+            // CSV format
+            blob = new Blob([result.data], {
+              type: result.mimeType || "text/csv;charset=utf-8;",
+            });
+          } else {
+            // Excel format (Uint8Array)
+            blob = new Blob([result.data], {
+              type:
+                result.mimeType ||
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+          }
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
