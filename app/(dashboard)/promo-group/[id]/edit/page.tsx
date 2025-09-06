@@ -1,10 +1,10 @@
 import { MembersCard } from "@/components/dashboard/promo-group/members-card";
 import PromoDetailsCard from "@/components/dashboard/promo-group/promo-details-card";
 import { Button } from "@/components/ui/button";
+import { IconChevronLeft } from "@tabler/icons-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompanyOptions, getMembers, getPromoGroup } from "../../fetch";
-
 
 const PromoGroupEditPage = async ({
   params,
@@ -31,7 +31,10 @@ const PromoGroupEditPage = async ({
       </div>
       <div className="flex items-center justify-between">
         <Button asChild>
-          <Link href="/promo-group">Select Promo Group</Link>
+          <Link href="/promo-group">
+            <IconChevronLeft />
+            Back
+          </Link>
         </Button>
       </div>
 
@@ -41,7 +44,7 @@ const PromoGroupEditPage = async ({
           allMembers={allMembers}
           companyOptions={companyOptions}
         />
-        <PromoDetailsCard promos={promoGroup.promos} />
+        <PromoDetailsCard promos={promoGroup.promos} promoGroupId={id} />
       </div>
     </div>
   );

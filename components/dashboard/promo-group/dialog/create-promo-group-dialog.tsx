@@ -59,14 +59,14 @@ const CreatePromoGroupDialog = () => {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus />
-          Create Promo Group
+          Add Promo Group
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Create Promo Group</DialogTitle>
+          <DialogTitle>Add Promo Group</DialogTitle>
           <DialogDescription>
-            Fill in the details below to create a new promo group
+            Fill in the details below to add a new promo group
           </DialogDescription>
         </DialogHeader>
         <PromoGroupForm form={form} onSubmit={onSubmit}>
@@ -78,7 +78,7 @@ const CreatePromoGroupDialog = () => {
             </DialogClose>
             <Button disabled={isPending}>
               {isPending && <Loader className="animate-spin" />}
-              Create
+              Add
             </Button>
           </DialogFooter>
         </PromoGroupForm>

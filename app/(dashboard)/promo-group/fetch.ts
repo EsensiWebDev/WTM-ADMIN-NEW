@@ -32,6 +32,69 @@ const promos: Promo[] = [
     end_date: "2024-03-20T23:59:59.000Z",
     status: true,
   },
+  {
+    id: "p4",
+    code: "AUTUMN2024",
+    name: "Autumn Sale Promo",
+    duration: 15,
+    start_date: "2024-10-01T00:00:00.000Z",
+    end_date: "2024-10-15T23:59:59.000Z",
+    status: true,
+  },
+  {
+    id: "p5",
+    code: "SUMMER2025",
+    name: "Summer Sale Promo",
+    duration: 30,
+    start_date: "2025-06-01T00:00:00.000Z",
+    end_date: "2025-06-30T23:59:59.000Z",
+    status: true,
+  },
+  {
+    id: "p6",
+    code: "WINTER2025",
+    name: "Winter Special Promo",
+    duration: 45,
+    start_date: "2025-12-01T00:00:00.000Z",
+    end_date: "2026-01-15T23:59:59.000Z",
+    status: false,
+  },
+  {
+    id: "p7",
+    code: "SPRING2025",
+    name: "Spring Discount Promo",
+    duration: 20,
+    start_date: "2025-03-01T00:00:00.000Z",
+    end_date: "2025-03-20T23:59:59.000Z",
+    status: true,
+  },
+  {
+    id: "p8",
+    code: "AUTUMN2025",
+    name: "Autumn Sale Promo",
+    duration: 15,
+    start_date: "2025-10-01T00:00:00.000Z",
+    end_date: "2025-10-15T23:59:59.000Z",
+    status: true,
+  },
+  {
+    id: "p9",
+    code: "SUMMER2026",
+    name: "Summer Sale Promo",
+    duration: 30,
+    start_date: "2026-06-01T00:00:00.000Z",
+    end_date: "2026-06-30T23:59:59.000Z",
+    status: true,
+  },
+  {
+    id: "p10",
+    code: "WINTER2026",
+    name: "Winter Special Promo",
+    duration: 45,
+    start_date: "2026-12-01T00:00:00.000Z",
+    end_date: "2027-01-15T23:59:59.000Z",
+    status: false,
+  },
 ];
 
 // Mock members
@@ -113,4 +176,26 @@ export const getMemberOptions = async (
 ): Promise<Option[]> => {
   const list = await getMembers(companyLabel);
   return list.map((m) => ({ label: m.name, value: m.id }));
+};
+
+// Get all available promos
+export const getAllPromos = async (): Promise<Promo[]> => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return promos;
+};
+
+// Search promos with query (for AsyncSelect)
+export const searchPromos = async (query?: string): Promise<Promo[]> => {
+  await new Promise((resolve) => setTimeout(resolve, 300)); // Shorter delay for search
+
+  if (!query) {
+    return promos;
+  }
+
+  const searchQuery = query.toLowerCase();
+  return promos.filter(
+    (promo) =>
+      promo.name.toLowerCase().includes(searchQuery) ||
+      promo.code.toLowerCase().includes(searchQuery)
+  );
 };

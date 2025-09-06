@@ -64,11 +64,6 @@ export function getPromoGroupTableColumns({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: "detail" })}
-              >
-                Details
-              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/promo-group/${row.original.id}/edit`}>Edit</Link>
               </DropdownMenuItem>
