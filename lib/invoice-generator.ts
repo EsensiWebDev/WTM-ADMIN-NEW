@@ -1,4 +1,4 @@
-import { HistoryBooking } from "@/app/(protected)/history-booking/types";
+import { HistoryBookingLog } from "@/app/(dashboard)/booking-management/history-booking-log/types";
 import {
   ComprehensiveInvoiceData,
   InvoiceCompany,
@@ -61,10 +61,28 @@ export class InvoiceGenerator {
   ];
 
   /**
+   * Map HistoryBookingLog booking status to invoice booking status
+   */
+  private static mapBookingStatus(
+    status: "confirmed" | "rejected" | "in review"
+  ): "approved" | "waiting" | "rejected" {
+    switch (status) {
+      case "confirmed":
+        return "approved";
+      case "in review":
+        return "waiting";
+      case "rejected":
+        return "rejected";
+      default:
+        return "waiting";
+    }
+  }
+
+  /**
    * Generate comprehensive invoice data from basic booking information
    */
   static generateFromBooking(
-    booking: HistoryBooking,
+    booking: HistoryBookingLog
   ): ComprehensiveInvoiceData {
     const checkInDate = this.generateCheckInDate();
     const checkOutDate = this.generateCheckOutDate(checkInDate);
@@ -86,8 +104,8 @@ export class InvoiceGenerator {
 
     return {
       // Basic booking information
-      bookingId: booking.bookingId,
-      guestName: booking.guestName,
+      bookingId: booking.booking_id,
+      guestName: booking.agent_name, // Using agent_name as guest name since guestName doesn't exist
       bookingDate: this.generateBookingDate(),
       checkInDate,
       checkOutDate,
@@ -111,14 +129,14 @@ export class InvoiceGenerator {
       discountRate,
 
       // Status information
-      bookingStatus: booking.bookingStatus,
-      paymentStatus: booking.paymentStatus,
+      bookingStatus: this.mapBookingStatus(booking.booking_status),
+      paymentStatus: booking.payment_status,
 
       // Invoice metadata
       invoiceNumber: this.generateInvoiceNumber(),
       invoiceDate: new Date().toISOString(),
       dueDate: this.generateDueDate(),
-      notes: booking.notes || this.generateNotes(),
+      notes: this.generateNotes(), // booking doesn't have notes property
 
       // Additional hotel details
       hotelRating: this.generateHotelRating(),
@@ -128,18 +146,20 @@ export class InvoiceGenerator {
 
       // Company and customer information
       company: this.COMPANY_INFO,
-      customer: this.generateCustomerInfo(booking.guestName),
+      customer: this.generateCustomerInfo(booking.agent_name),
       lineItems: this.generateLineItems(
         roomType,
         numberOfNights,
         basePrice,
-        serviceFee,
+        serviceFee
       ),
 
       // Payment information
       paymentMethod: this.generatePaymentMethod(),
       paymentDueDate:
-        booking.paymentStatus === "unpaid" ? this.generateDueDate() : undefined,
+        booking.payment_status === "unpaid"
+          ? this.generateDueDate()
+          : undefined,
       termsAndConditions: this.generateTermsAndConditions(),
     };
   }
@@ -147,7 +167,7 @@ export class InvoiceGenerator {
   /**
    * Generate a simple invoice data structure
    */
-  static generateSimpleInvoice(booking: HistoryBooking): InvoiceData {
+  static generateSimpleInvoice(booking: HistoryBookingLog): InvoiceData {
     const comprehensive = this.generateFromBooking(booking);
 
     // Return simplified version
@@ -185,7 +205,7 @@ export class InvoiceGenerator {
   private static generateCheckInDate(): string {
     const today = new Date();
     const futureDate = new Date(
-      today.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000,
+      today.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000
     );
     return futureDate.toISOString().split("T")[0];
   }
@@ -222,7 +242,7 @@ export class InvoiceGenerator {
   private static generateBookingDate(): string {
     const today = new Date();
     const pastDate = new Date(
-      today.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000,
+      today.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000
     );
     return pastDate.toISOString();
   }
@@ -329,7 +349,7 @@ export class InvoiceGenerator {
     roomType: string,
     nights: number,
     basePrice: number,
-    serviceFee: number,
+    serviceFee: number
   ): InvoiceLineItem[] {
     return [
       {
