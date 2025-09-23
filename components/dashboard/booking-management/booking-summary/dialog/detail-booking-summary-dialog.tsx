@@ -46,6 +46,7 @@ import { DataTableRowAction } from "@/types/data-table";
 import {
   IconApi,
   IconApiOff,
+  IconCloudUpload,
   IconFileDownload,
   IconFileText,
   IconNote,
@@ -435,10 +436,18 @@ const getDetailBookingColumns = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={handleViewReceipt}>
-              <IconFileText className="mr-2 h-4 w-4" />
-              View Receipt
-            </DropdownMenuItem>
+            {row.original.payment_status === "paid" && (
+              <DropdownMenuItem onClick={handleViewReceipt}>
+                <IconFileText className="mr-2 h-4 w-4" />
+                View Receipt
+              </DropdownMenuItem>
+            )}
+            {row.original.payment_status === "unpaid" && (
+              <DropdownMenuItem onClick={handleViewReceipt}>
+                <IconCloudUpload className="mr-2 h-4 w-4" />
+                Upload Receipt
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={handleViewInvoice}>
               <IconFileDownload className="mr-2 h-4 w-4" />
               View Invoice
