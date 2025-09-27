@@ -63,9 +63,9 @@ export function HotelForm({ hotel }: CreateHotelFormProps) {
     description: "",
     facilities: [],
     nearby: [],
-    price: 0,
-    isPromoted: false,
-    promoText: "",
+    instagram: "",
+    tiktok: "",
+    website: "",
   };
 
   // Form state
@@ -82,9 +82,9 @@ export function HotelForm({ hotel }: CreateHotelFormProps) {
           description: hotel.description,
           facilities: hotel.facilities,
           nearby: hotel.nearby,
-          price: hotel.price,
-          isPromoted: hotel.isPromoted || false,
-          promoText: hotel.promoText || "",
+          instagram: hotel.instagram || "",
+          tiktok: hotel.tiktok || "",
+          website: hotel.website || "",
         }
       : defaultHotelInfo
   );
@@ -208,7 +208,6 @@ export function HotelForm({ hotel }: CreateHotelFormProps) {
             hotelInfo: {
               ...hotelInfo,
               rating: Number(hotelInfo.rating),
-              price: Number(hotelInfo.price),
             },
             rooms: rooms.map((room) => ({
               ...room,

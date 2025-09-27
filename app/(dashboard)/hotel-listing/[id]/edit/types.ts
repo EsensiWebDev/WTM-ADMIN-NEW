@@ -32,12 +32,9 @@ export interface HotelDetail {
   description: string;
   facilities: string[];
   images: string[];
-  isPromoted?: boolean; // true if hotel is promoted
   location: string;
   name: string;
   nearby: NearbyPlace[]; // nearby places
-  price: number;
-  promoText?: string;
   rating: number;
   rooms: Room[];
 }
@@ -77,12 +74,9 @@ export interface HotelGalleryProps {
 export interface HotelInfoProps {
   description: string;
   facilities: string[];
-  isPromoted?: boolean;
   location: string;
   name: string;
   nearby: NearbyPlace[];
-  price: number;
-  promoText?: string;
   rating: number;
 }
 

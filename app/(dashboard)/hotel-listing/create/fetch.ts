@@ -14,9 +14,6 @@ const mockHotel: HotelDetail = {
   name: "Ibis Hotel & Convention",
   location: "Kuta, Badung - Bali",
   rating: 5,
-  isPromoted: true,
-  promoText: "15% Discount for 3 Days 2 Nights",
-  price: 2800000,
   description:
     "Lorem ipsum dolor sit amet consectetur. Diam lectus massa velit aliquet pretium suspendisse pharetra et. Etiam pretium eu dictum rutrum turpis egestas eget euismod vulputate. Aenean massa pellentesque facilisi laoreet eu dui in rhoncus eu.",
   facilities: [

@@ -1,7 +1,6 @@
 "use client";
 
 import { HotelInfoProps } from "@/app/(dashboard)/hotel-listing/create/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, MapPin } from "lucide-react";
 import { useState } from "react";
@@ -113,9 +112,6 @@ export function HotelInfo({
   name,
   location,
   rating,
-  isPromoted,
-  promoText,
-  price,
   description,
   facilities,
   nearby,
@@ -130,26 +126,9 @@ export function HotelInfo({
         </div>
         <div className="flex flex-col gap-1">
           <br />
-          {isPromoted && (
-            <Badge
-              variant="outline"
-              className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700"
-            >
-              3D2YIBIS4U
-            </Badge>
-          )}
-          {promoText && (
-            <span className="text-xs font-medium text-green-600">
-              {promoText}
-            </span>
-          )}
         </div>
         <div className="flex flex-col items-end justify-end gap-1">
-          <p className="text-muted-foreground text-sm">Start from</p>
-          <p className="text-xl font-bold">
-            Rp {price.toLocaleString("id-ID")}
-          </p>
-          <p className="text-muted-foreground text-sm">per room, per night</p>
+          {/* Removed "start from" display */}
         </div>
       </div>
 

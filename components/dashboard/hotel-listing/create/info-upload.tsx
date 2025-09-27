@@ -4,6 +4,11 @@ import { HotelInfoProps } from "@/app/(dashboard)/hotel-listing/create/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  IconBrandInstagramFilled,
+  IconBrandTiktokFilled,
+  IconWorld,
+} from "@tabler/icons-react";
 import { MapPin, PlusCircle, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -113,12 +118,12 @@ export function HotelInfoUpload({
   name,
   location,
   rating,
-  isPromoted,
-  promoText,
-  price,
   description,
   facilities,
   nearby,
+  instagram,
+  tiktok,
+  website,
   onChange,
 }: HotelInfoUploadProps) {
   // Local state
@@ -128,11 +133,9 @@ export function HotelInfoUpload({
   const [hotelDescription, setHotelDescription] = useState(description);
   const [hotelNearby, setHotelNearby] = useState([...nearby]);
   const [hotelFacilities, setHotelFacilities] = useState([...facilities]);
-  const [hotelPrice, setHotelPrice] = useState<number>(price);
-  const [hotelIsPromoted, setHotelIsPromoted] = useState<boolean>(
-    isPromoted || false
-  );
-  const [hotelPromoText, setHotelPromoText] = useState<string>(promoText || "");
+  const [hotelInstagram, setHotelInstagram] = useState(instagram || "");
+  const [hotelTiktok, setHotelTiktok] = useState(tiktok || "");
+  const [hotelWebsite, setHotelWebsite] = useState(website || "");
 
   // Memoized current hotel data
   const currentHotelData = useMemo(
@@ -143,9 +146,9 @@ export function HotelInfoUpload({
       description: hotelDescription,
       facilities: hotelFacilities,
       nearby: hotelNearby,
-      price: hotelPrice,
-      isPromoted: hotelIsPromoted,
-      promoText: hotelPromoText,
+      instagram: hotelInstagram,
+      tiktok: hotelTiktok,
+      website: hotelWebsite,
     }),
     [
       hotelName,
@@ -154,9 +157,9 @@ export function HotelInfoUpload({
       hotelDescription,
       hotelFacilities,
       hotelNearby,
-      hotelPrice,
-      hotelIsPromoted,
-      hotelPromoText,
+      hotelInstagram,
+      hotelTiktok,
+      hotelWebsite,
     ]
   );
 
@@ -222,44 +225,6 @@ export function HotelInfoUpload({
             onChange={(e) => setHotelLocation(e.target.value)}
           />
         </div>
-
-        {/* Promotion Settings */}
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="is-promoted"
-              checked={hotelIsPromoted}
-              onChange={(e) => setHotelIsPromoted(e.target.checked)}
-              className="rounded border-gray-300"
-            />
-            <label htmlFor="is-promoted" className="text-sm font-medium">
-              Promote this hotel
-            </label>
-          </div>
-          {hotelIsPromoted && (
-            <Input
-              id="promo-text"
-              placeholder="Enter promotion text"
-              value={hotelPromoText}
-              onChange={(e) => setHotelPromoText(e.target.value)}
-              className="bg-gray-200"
-            />
-          )}
-        </div>
-
-        {/* Price */}
-        <div className="flex flex-col items-end justify-end gap-1">
-          <p className="text-muted-foreground text-sm">Start from</p>
-          <Input
-            id="hotel-price"
-            placeholder="Enter price"
-            value={hotelPrice}
-            className="bg-gray-200 text-right"
-            onChange={(e) => setHotelPrice(Number(e.target.value) || 0)}
-          />
-          <p className="text-muted-foreground text-sm">per room, per night</p>
-        </div>
       </div>
 
       {/* Hotel Details */}
@@ -273,6 +238,45 @@ export function HotelInfoUpload({
             value={hotelDescription}
             onChange={(e) => setHotelDescription(e.target.value)}
           />
+
+          {/* Social Media and Website Links */}
+          <div className="flex flex-col gap-3 mt-4">
+            <h3 className="text-md font-semibold">Social Media & Website</h3>
+            <div className="flex items-center gap-2">
+              <div className="bg-primary rounded-full p-1">
+                <IconBrandInstagramFilled className="h-5 w-5 text-white" />
+              </div>
+              <Input
+                placeholder="Instagram Link"
+                value={hotelInstagram}
+                className="bg-gray-200"
+                onChange={(e) => setHotelInstagram(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="bg-primary rounded-full p-1">
+                <IconBrandTiktokFilled className="h-5 w-5 text-white" />
+              </div>
+              <Input
+                placeholder="TikTok Link"
+                value={hotelTiktok}
+                className="bg-gray-200"
+                onChange={(e) => setHotelTiktok(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="bg-primary rounded-full p-1">
+                <IconWorld className="h-5 w-5 text-white" />
+              </div>
+              <Input
+                placeholder="Website Link"
+                value={hotelWebsite}
+                className="bg-gray-200"
+                onChange={(e) => setHotelWebsite(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Nearby Places */}
