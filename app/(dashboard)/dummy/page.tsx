@@ -1,8 +1,13 @@
-import { HeroHeader } from "@/components/header/header";
 import HeroSection from "@/components/hero-section";
+import authOptions from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
 import React from "react";
 
-const Page = () => {
+const Page = async () => {
+  const session = await getServerSession(authOptions);
+
+  console.log({ session });
+
   return (
     <div>
       <HeroSection />

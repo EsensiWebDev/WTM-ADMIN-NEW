@@ -1,6 +1,5 @@
 "use client";
 
-import { loginAction } from "@/app/login/action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,13 +14,14 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
+  username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -37,7 +37,7 @@ export function LoginForm({
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -45,17 +45,26 @@ export function LoginForm({
   function onSubmit(input: LoginSchema) {
     startTransition(async () => {
       try {
-        const formData = new FormData();
-        formData.append("email", input.email);
-        formData.append("password", input.password);
+        const result = await signIn("credentials", {
+          redirect: false,
+          username: input.username,
+          password: input.password,
+        });
 
-        const result = await loginAction(formData);
+        if (result?.error) {
+          const message =
+            result.error === "CredentialsSignin"
+              ? "Invalid username or password"
+              : result.error;
+          toast.error(message || "Login failed. Please try again.");
+          return;
+        }
 
-        if (result.success) {
-          toast.success(result.message || "Login successful");
+        if (result?.ok) {
+          toast.success("Login successful");
           router.push("/account/user-management/super-admin");
         } else {
-          toast.error(result.message || "Login failed. Please try again.");
+          toast.error("Login failed. Please try again.");
         }
       } catch (err) {
         console.error("Login error:", err);
@@ -70,24 +79,24 @@ export function LoginForm({
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your credentials below to login to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  {...form.register("email")}
+                  id="username"
+                  type="text"
+                  placeholder="Enter your username"
+                  {...form.register("username")}
                   disabled={isPending}
                 />
-                {form.formState.errors.email && (
+                {form.formState.errors.username && (
                   <p className="text-sm text-red-600">
-                    {form.formState.errors.email.message}
+                    {form.formState.errors.username.message}
                   </p>
                 )}
               </div>

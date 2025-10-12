@@ -2,6 +2,7 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import React from "react";
 import { Logo } from "../logo";
 import { NavDropdown } from "./nav-dropdown";
@@ -34,14 +35,21 @@ const menuItems = [
   { name: "Promo Group", href: "/promo-group" },
 ];
 
-const user = {
-  name: "Riza Kurniawanda",
-  email: "riza@gmail.com",
-  avatar: "/avatars/shadcn.jpg",
-};
-
 export const HeroHeader = () => {
   const [menuState, setMenuState] = React.useState(false);
+  const { data: session, status } = useSession();
+
+  const navUser = React.useMemo(() => {
+    if (!session?.user) return null;
+
+    return {
+      name: session.user.name ?? null,
+      email: session.user.username ?? null,
+      username: session.user.username ?? null,
+      avatar: session.user.photo_url ?? null,
+    };
+  }, [session?.user]);
+
   return (
     <header>
       <nav
@@ -129,7 +137,7 @@ export const HeroHeader = () => {
                 </ul>
               </div>
               <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                <NavUser user={user} />
+                {status === "loading" ? null : <NavUser user={navUser} />}
               </div>
             </div>
           </div>
