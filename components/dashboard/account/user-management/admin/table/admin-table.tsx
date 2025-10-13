@@ -18,7 +18,8 @@ interface AdminTableProps {
 
 const AdminTable = ({ promises }: AdminTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pageCount }] = React.use(promises);
+  const [response] = React.use(promises);
+  const { data, pagination } = response;
 
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<Admin> | null>(null);
@@ -31,7 +32,7 @@ const AdminTable = ({ promises }: AdminTableProps) => {
   const { table } = useDataTable({
     data,
     columns,
-    pageCount,
+    pageCount: pagination?.total_pages || 0,
     getRowId: (originalRow) => originalRow.id,
     shallow: false,
     clearOnDefault: true,

@@ -1,33 +1,15 @@
-import { SearchParams } from "@/types";
-import { AdminTableResponse } from "./types";
+import { ApiResponse, SearchParams } from "@/types";
+import { Admin } from "./types";
+import { apiCall, buildQueryParams } from "@/lib/utils";
 
 export const getAdminData = async ({
   searchParams,
 }: {
   searchParams: SearchParams;
-}): Promise<AdminTableResponse> => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+}): Promise<ApiResponse<Admin[]>> => {
+  const queryString = buildQueryParams(searchParams);
+  const url = `/users/by-role/admin${queryString ? `?${queryString}` : ""}`;
+  const apiResponse = await apiCall<Admin[]>(url);
 
-  const data = [
-    {
-      id: "1",
-      name: "kelvin admin",
-      email: "kelvin_admin@wtmdigital.com",
-      phone: "081234567800",
-      status: true,
-    },
-    {
-      id: "2",
-      name: "budi admin",
-      email: "budi_admin@wtmdigital.com",
-      phone: "081234567800",
-      status: true,
-    },
-  ];
-
-  return {
-    success: true,
-    data,
-    pageCount: 2,
-  };
+  return apiResponse;
 };

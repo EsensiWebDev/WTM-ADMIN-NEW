@@ -4,14 +4,12 @@ export interface Admin {
   id: string;
   name: string;
   email: string;
-  phone: string;
+  phone_number: string;
   status: boolean;
-}
-
-export interface AdminTableResponse {
-  success: boolean;
-  data: Admin[];
-  pageCount: number;
+  promo_group_id: number;
+  promo_group_name: string;
+  agent_company_name: string;
+  kakao_talk_id: string;
 }
 
 export interface AdminPageProps {
