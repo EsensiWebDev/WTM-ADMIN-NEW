@@ -24,7 +24,7 @@ export const editSupportSchema = z.object({
   name: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
-  status: z.boolean().optional(),
+  is_active: z.boolean().optional(),
 });
 
 export type EditSupportSchema = z.infer<typeof editSupportSchema>;
@@ -43,7 +43,7 @@ const EditSupportDialog = ({ support, ...props }: EditSupportDialogProps) => {
       name: support?.name ?? "",
       email: support?.email,
       phone: support?.phone_number,
-      status: support?.status,
+      is_active: support?.status,
     },
   });
 
@@ -55,7 +55,7 @@ const EditSupportDialog = ({ support, ...props }: EditSupportDialogProps) => {
         ...input,
       });
       if (!success) {
-        toast.error("Failed to edit support");
+        toast.error(message ?? "Failed to edit support");
         return;
       }
       form.reset(input);

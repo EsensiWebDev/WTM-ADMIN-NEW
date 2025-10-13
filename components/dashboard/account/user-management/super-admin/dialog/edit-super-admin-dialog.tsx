@@ -58,7 +58,7 @@ const EditSuperAdminDialog = ({
         ...input,
       });
       if (!success) {
-        toast.error("Failed to edit super admin");
+        toast.error(message ?? "Failed to edit super admin");
         return;
       }
       form.reset(input);

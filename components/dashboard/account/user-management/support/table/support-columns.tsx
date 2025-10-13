@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataTableRowAction } from "@/types/data-table";
@@ -109,13 +108,13 @@ export function getSupportTableColumns({
               >
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
+              {/* <DropdownMenuSeparator /> */}
+              {/* <DropdownMenuItem
                 variant="destructive"
                 onSelect={() => setRowAction({ row, variant: "delete" })}
               >
                 Delete
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         );

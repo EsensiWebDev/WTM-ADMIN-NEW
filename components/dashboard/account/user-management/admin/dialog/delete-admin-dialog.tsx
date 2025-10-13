@@ -4,7 +4,6 @@ import type { Row } from "@tanstack/react-table";
 import { Loader, Trash } from "lucide-react";
 import * as React from "react";
 
-import { deleteAdmin } from "@/app/(dashboard)/account/user-management/admin/actions";
 import { Admin } from "@/app/(dashboard)/account/user-management/admin/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,11 +48,11 @@ export function DeleteAdminDialog({
   function onDelete() {
     startDeleteTransition(async () => {
       const adminId = admin[0].id;
-      toast.promise(deleteAdmin(adminId), {
-        loading: "Deleting admin...",
-        success: (data) => data.message,
-        error: "Failed to delete admin",
-      });
+      // toast.promise(deleteAdmin(adminId), {
+      //   loading: "Deleting admin...",
+      //   success: (data) => data.message,
+      //   error: "Failed to delete admin",
+      // });
       props.onOpenChange?.(false);
       onSuccess?.();
     });

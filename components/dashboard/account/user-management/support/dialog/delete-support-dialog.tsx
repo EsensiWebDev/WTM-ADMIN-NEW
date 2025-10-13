@@ -4,7 +4,6 @@ import type { Row } from "@tanstack/react-table";
 import { Loader, Trash } from "lucide-react";
 import * as React from "react";
 
-import { deleteSupport } from "@/app/(dashboard)/account/user-management/support/actions";
 import { Support } from "@/app/(dashboard)/account/user-management/support/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,11 +48,11 @@ export function DeleteSupportDialog({
   function onDelete() {
     startDeleteTransition(async () => {
       const supportId = support[0].id;
-      toast.promise(deleteSupport(supportId), {
-        loading: "Deleting support...",
-        success: (data) => data.message,
-        error: "Failed to delete support",
-      });
+      // toast.promise(deleteSupport(supportId), {
+      //   loading: "Deleting support...",
+      //   success: (data) => data.message,
+      //   error: "Failed to delete support",
+      // });
       props.onOpenChange?.(false);
       onSuccess?.();
     });

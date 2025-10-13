@@ -47,7 +47,7 @@ const CreateSupportDialog = () => {
     startTransition(async () => {
       const { success, message } = await createSupport(input);
       if (!success) {
-        toast.error("Failed to create support");
+        toast.error(message ?? "Failed to create support");
         return;
       }
       form.reset();

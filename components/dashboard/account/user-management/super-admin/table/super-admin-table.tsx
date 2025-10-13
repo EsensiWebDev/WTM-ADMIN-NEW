@@ -8,7 +8,6 @@ import { useDataTable } from "@/hooks/use-data-table";
 import type { DataTableRowAction } from "@/types/data-table";
 import React, { useTransition } from "react";
 import CreateSuperAdminDialog from "../dialog/create-super-admin-dialog";
-import { DeleteSuperAdminDialog } from "../dialog/delete-super-admin-dialog";
 import EditSuperAdminDialog from "../dialog/edit-super-admin-dialog";
 import { getSuperAdminTableColumns } from "./super-admin-columns";
 
@@ -55,13 +54,6 @@ const SuperAdminTable = ({ promises }: SuperAdminTableProps) => {
           superAdmin={rowAction?.row.original ?? null}
         />
       )}
-      <DeleteSuperAdminDialog
-        open={rowAction?.variant === "delete"}
-        onOpenChange={() => setRowAction(null)}
-        superAdmin={rowAction?.row.original ? [rowAction.row.original] : []}
-        showTrigger={false}
-        onSuccess={() => rowAction?.row.toggleSelected(false)}
-      />
     </>
   );
 };

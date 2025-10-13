@@ -24,7 +24,7 @@ export const editAdminSchema = z.object({
   name: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
-  status: z.boolean().optional(),
+  is_active: z.boolean().optional(),
 });
 
 export type EditAdminSchema = z.infer<typeof editAdminSchema>;
@@ -43,7 +43,7 @@ const EditAdminDialog = ({ admin, ...props }: EditAdminDialogProps) => {
       name: admin?.name ?? "",
       email: admin?.email,
       phone: admin?.phone_number,
-      status: admin?.status,
+      is_active: admin?.status,
     },
   });
 
@@ -55,7 +55,7 @@ const EditAdminDialog = ({ admin, ...props }: EditAdminDialogProps) => {
         ...input,
       });
       if (!success) {
-        toast.error("Failed to edit admin");
+        toast.error(message ?? "Failed to edit admin");
         return;
       }
       form.reset(input);

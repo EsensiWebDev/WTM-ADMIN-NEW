@@ -4,7 +4,6 @@ import type { Row } from "@tanstack/react-table";
 import { Loader, Trash } from "lucide-react";
 import * as React from "react";
 
-import { deleteSuperAdmin } from "@/app/(dashboard)/account/user-management/super-admin/actions";
 import { SuperAdmin } from "@/app/(dashboard)/account/user-management/super-admin/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,11 +48,11 @@ export function DeleteSuperAdminDialog({
   function onDelete() {
     startDeleteTransition(async () => {
       const adminId = superAdmin[0].id;
-      toast.promise(deleteSuperAdmin(adminId), {
-        loading: "Deleting super admin...",
-        success: (data) => data.message,
-        error: "Failed to delete super admin",
-      });
+      // toast.promise(deleteSuperAdmin(adminId), {
+      //   loading: "Deleting super admin...",
+      //   success: (data) => data.message,
+      //   error: "Failed to delete super admin",
+      // });
       props.onOpenChange?.(false);
       onSuccess?.();
     });

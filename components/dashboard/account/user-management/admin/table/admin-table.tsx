@@ -8,7 +8,6 @@ import { useDataTable } from "@/hooks/use-data-table";
 import type { DataTableRowAction } from "@/types/data-table";
 import React, { useTransition } from "react";
 import CreateAdminDialog from "../dialog/create-admin-dialog";
-import { DeleteAdminDialog } from "../dialog/delete-admin-dialog";
 import EditAdminDialog from "../dialog/edit-admin-dialog";
 import { getAdminTableColumns } from "./admin-columns";
 
@@ -55,13 +54,6 @@ const AdminTable = ({ promises }: AdminTableProps) => {
           admin={rowAction?.row.original ?? null}
         />
       )}
-      <DeleteAdminDialog
-        open={rowAction?.variant === "delete"}
-        onOpenChange={() => setRowAction(null)}
-        admin={rowAction?.row.original ? [rowAction.row.original] : []}
-        showTrigger={false}
-        onSuccess={() => rowAction?.row.toggleSelected(false)}
-      />
     </>
   );
 };

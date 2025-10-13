@@ -8,7 +8,6 @@ import { useDataTable } from "@/hooks/use-data-table";
 import type { DataTableRowAction } from "@/types/data-table";
 import React, { useTransition } from "react";
 import CreateSupportDialog from "../dialog/create-support-dialog";
-import { DeleteSupportDialog } from "../dialog/delete-support-dialog";
 import EditSupportDialog from "../dialog/edit-support-dialog";
 import { getSupportTableColumns } from "./support-columns";
 
@@ -55,13 +54,6 @@ const SupportTable = ({ promises }: SupportTableProps) => {
           support={rowAction?.row.original ?? null}
         />
       )}
-      <DeleteSupportDialog
-        open={rowAction?.variant === "delete"}
-        onOpenChange={() => setRowAction(null)}
-        support={rowAction?.row.original ? [rowAction.row.original] : []}
-        showTrigger={false}
-        onSuccess={() => rowAction?.row.toggleSelected(false)}
-      />
     </>
   );
 };
