@@ -1,6 +1,6 @@
+import { apiCall, buildQueryParams } from "@/lib/utils";
 import { ApiResponse, SearchParams } from "@/types";
 import { Admin } from "./types";
-import { apiCall, buildQueryParams } from "@/lib/utils";
 
 export const getAdminData = async ({
   searchParams,
@@ -8,7 +8,7 @@ export const getAdminData = async ({
   searchParams: SearchParams;
 }): Promise<ApiResponse<Admin[]>> => {
   const queryString = buildQueryParams(searchParams);
-  const url = `/users/by-role/admin${queryString ? `?${queryString}` : ""}`;
+  const url = `/users?role=admin${queryString ? `&${queryString}` : ""}`;
   const apiResponse = await apiCall<Admin[]>(url);
 
   return apiResponse;

@@ -1,9 +1,8 @@
+import { bffFetch } from "@/lib/bff-client";
+import { ApiResponse, SearchParams } from "@/types";
 import { clsx, type ClassValue } from "clsx";
 import * as React from "react";
 import { twMerge } from "tailwind-merge";
-import { bffFetch } from "@/lib/bff-client";
-import { ApiResponse } from "@/types";
-import { SearchParams } from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,9 +47,7 @@ export async function apiCall<TData>(
   if (!response.ok) {
     const error = await response.json();
 
-    throw new Error(
-      error.message || `API call failed with status ${response.status}`
-    );
+    return error;
   }
 
   const apiResponse: ApiResponse<TData> = await response.json();

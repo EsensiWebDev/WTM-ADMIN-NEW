@@ -18,7 +18,7 @@ interface SuperAdminTableProps {
 const SuperAdminTable = ({ promises }: SuperAdminTableProps) => {
   const [isPending, startTransition] = useTransition();
   const [response] = React.use(promises);
-  const { data, pagination } = response;
+  const { status, data, pagination } = response;
 
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<SuperAdmin> | null>(null);
@@ -37,6 +37,10 @@ const SuperAdminTable = ({ promises }: SuperAdminTableProps) => {
     clearOnDefault: true,
     startTransition,
   });
+
+  if (status !== 200) {
+    return <div>Failed to load data</div>;
+  }
 
   return (
     <>

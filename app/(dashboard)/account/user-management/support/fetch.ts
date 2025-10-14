@@ -1,6 +1,6 @@
+import { apiCall, buildQueryParams } from "@/lib/utils";
 import { ApiResponse, SearchParams } from "@/types";
 import { Support } from "./types";
-import { apiCall, buildQueryParams } from "@/lib/utils";
 
 export const getSupportData = async ({
   searchParams,
@@ -8,7 +8,7 @@ export const getSupportData = async ({
   searchParams: SearchParams;
 }): Promise<ApiResponse<Support[]>> => {
   const queryString = buildQueryParams(searchParams);
-  const url = `/users/by-role/support${queryString ? `?${queryString}` : ""}`;
+  const url = `/users?role=support${queryString ? `&${queryString}` : ""}`;
   const apiResponse = await apiCall<Support[]>(url);
 
   return apiResponse;
