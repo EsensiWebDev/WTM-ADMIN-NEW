@@ -37,6 +37,13 @@ export async function createAgent(input: CreateAgentSchema) {
       promo_group_id: Number(input.promo_group_id),
     };
 
+    console.log({ body });
+
+    return {
+      success: false,
+      message: "Failed to create agent",
+    };
+
     const response = await apiCall("users", {
       method: "POST",
       body: JSON.stringify(body),
