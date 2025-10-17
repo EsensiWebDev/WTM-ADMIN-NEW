@@ -35,6 +35,23 @@ const monthYearParser = createParser({
   },
 });
 
+export const SelectPeriod = ({
+  date,
+  setDate,
+}: {
+  date: Date;
+  setDate: React.Dispatch<React.SetStateAction<Date>>;
+}) => {
+  return (
+    <MonthPicker
+      selectedMonth={date}
+      onMonthSelect={setDate}
+      // minDate={new Date("2023-01-01")}
+      // maxDate={new Date("2024-12-31")}
+    />
+  );
+};
+
 const RoomAvailabilityTable = ({ promises }: RoomAvailabilityTableProps) => {
   const [isPending, startTransition] = useTransition();
   const [{ data, pageCount }] = React.use(promises);
@@ -82,7 +99,7 @@ const RoomAvailabilityTable = ({ promises }: RoomAvailabilityTableProps) => {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <MonthPicker onMonthSelect={setDate} selectedMonth={date} />
+              <SelectPeriod date={date} setDate={setDate} />
             </PopoverContent>
           </Popover>
         </DataTableToolbar>
@@ -95,7 +112,8 @@ const RoomAvailabilityTable = ({ promises }: RoomAvailabilityTableProps) => {
         }
         roomAvailabilityHotel={rowAction?.row.original ?? null}
         onOpenChange={() => setRowAction(null)}
-        period={date ? format(date, "MM-yyyy") : null}
+        date={date}
+        setDate={setDate}
       />
     </div>
   );

@@ -2,15 +2,18 @@ import { updateRoomAvailability } from "@/app/(dashboard)/hotel-listing/room-ava
 import { RoomAvailabilityHotel } from "@/app/(dashboard)/hotel-listing/room-availability/types";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns/format";
+import { CalendarIcon, ChevronsUpDown } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
+import { SelectPeriod } from "../table/room-availability-table";
 
 // --- Subcomponents ---
 
@@ -135,24 +138,28 @@ function AvailabilityTable({
   );
 }
 
-// --- Main Drawer Component ---
+// --- Main Dialog Component ---
 
 interface UpdateRoomAvailabilityDrawerProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
   roomAvailabilityHotel: RoomAvailabilityHotel | null;
-  period: string | null;
   showTrigger?: boolean;
   onSuccess?: () => void;
   isEdit?: boolean;
+  date: Date;
+  setDate: React.Dispatch<React.SetStateAction<Date>>;
 }
 
 export const UpdateRoomAvailabilityDrawer = ({
   roomAvailabilityHotel,
-  period,
   onSuccess,
   isEdit = false,
+  date,
+  setDate,
   ...props
 }: UpdateRoomAvailabilityDrawerProps) => {
+  const period = date ? format(date, "MM-yyyy") : null;
+
   // State
   const [isUpdatePending, startUpdateTransition] = React.useTransition();
   const [open, setOpen] = React.useState(false);
@@ -222,16 +229,40 @@ export const UpdateRoomAvailabilityDrawer = ({
   }
 
   return (
-    <Drawer {...props}>
-      <DrawerHeader>
-        <DrawerTitle className="sr-only">Update Room Availability</DrawerTitle>
-      </DrawerHeader>
-      <DrawerContent aria-describedby="update-room-availability-drawer">
-        <div className="max-w-full lg:max-w-7xl mx-auto px-6 pt-10 pb-12 space-y-8">
-          {/* Hotel Name */}
-          <h3 className="text-2xl font-semibold text-center">
-            {localHotel?.name}
-          </h3>
+    <Dialog {...props}>
+      <DialogContent
+        aria-describedby="update-room-availability-dialog"
+        className="sm:max-w-7xl max-h-[85vh] overflow-hidden p-0 gap-0"
+      >
+        <DialogTitle className="sr-only">Update Room Availability</DialogTitle>
+        <div
+          id="update-room-availability-dialog"
+          className="max-h-[85vh] overflow-y-auto px-6 pt-10 pb-12 space-y-8"
+        >
+          <div className="flex items-center justify-between">
+            {/* Hotel Name */}
+            <h3 className="text-2xl font-semibold text-left">
+              {localHotel?.name}
+            </h3>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "MMM yyyy") : <span>Select Period</span>}
+                  <ChevronsUpDown className="ml-auto text-white opacity-100" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <SelectPeriod date={date} setDate={setDate} />
+              </PopoverContent>
+            </Popover>
+          </div>
 
           {/* Availability Table */}
           <AvailabilityTable
@@ -243,17 +274,19 @@ export const UpdateRoomAvailabilityDrawer = ({
           />
 
           {/* Legend and Save Button */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <AvailabilityLegend />
             {/* Trigger Button */}
             {isEdit && (
-              <Button
-                size="sm"
-                onClick={() => setOpen(true)}
-                disabled={!hasChanges}
-              >
-                Save Changes
-              </Button>
+              <div className="flex items-center justify-end">
+                <Button
+                  size="sm"
+                  onClick={() => setOpen(true)}
+                  disabled={!hasChanges}
+                >
+                  Save Changes
+                </Button>
+              </div>
             )}
             {/* Confirmation Dialog */}
             {isEdit && (
@@ -269,7 +302,7 @@ export const UpdateRoomAvailabilityDrawer = ({
             )}
           </div>
         </div>
-      </DrawerContent>
-    </Drawer>
+      </DialogContent>
+    </Dialog>
   );
 };
