@@ -158,6 +158,38 @@ export function ChartAreaInteractive() {
     });
   }, [range]);
 
+  // Check if there's no data to display
+  const hasNoData = newFilteredData.length === 0;
+
+  // Format the date range for display in the card description
+  const formatDateRange = React.useMemo(() => {
+    if (!range?.from && !range?.to) {
+      return "Total for the last 3 months";
+    }
+
+    if (range?.from && range?.to) {
+      // Check if it's a single day
+      if (range.from.toDateString() === range.to.toDateString()) {
+        return `Total for ${format(range.from, "dd MMM yyyy")}`;
+      }
+      // Multiple days
+      return `Total from ${format(range.from, "dd MMM yyyy")} to ${format(
+        range.to,
+        "dd MMM yyyy"
+      )}`;
+    }
+
+    if (range?.from) {
+      return `Total from ${format(range.from, "dd MMM yyyy")}`;
+    }
+
+    if (range?.to) {
+      return `Total until ${format(range.to, "dd MMM yyyy")}`;
+    }
+
+    return "Total for the last 3 months";
+  }, [range]);
+
   // Function to set date range based on preset
   const setPresetRange = (days: number) => {
     const today = new Date();
@@ -199,10 +231,15 @@ export function ChartAreaInteractive() {
       <CardHeader>
         <CardTitle>Total Bookings</CardTitle>
         <CardDescription>
-          <span className="hidden @[540px]/card:block">
-            Total for the last 3 months
+          <span className="hidden @[540px]/card:block">{formatDateRange}</span>
+          <span className="@[540px]/card:hidden">
+            {range?.from && range?.to
+              ? `${format(range.from, "dd MMM")} - ${format(
+                  range.to,
+                  "dd MMM"
+                )}`
+              : "Last 3 months"}
           </span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
         <CardAction>
           <Popover open={open} onOpenChange={setOpen}>
@@ -259,83 +296,89 @@ export function ChartAreaInteractive() {
         </CardAction>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          <AreaChart data={newFilteredData}>
-            <defs>
-              <linearGradient id="fillConfirmed" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-confirmed)"
-                  stopOpacity={1.0}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-confirmed)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillRejected" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-rejected)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-rejected)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                });
-              }}
-            />
-            <ChartTooltip
-              cursor={false}
-              defaultIndex={isMobile ? -1 : 10}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    });
-                  }}
-                  indicator="dot"
-                />
-              }
-            />
-            <Area
-              dataKey="rejected"
-              type="natural"
-              fill="url(#fillRejected)"
-              stroke="var(--color-rejected)"
-              stackId="a"
-            />
-            <Area
-              dataKey="confirmed"
-              type="natural"
-              fill="url(#fillConfirmed)"
-              stroke="var(--color-confirmed)"
-              stackId="a"
-            />
-          </AreaChart>
-        </ChartContainer>
+        {hasNoData ? (
+          <div className="aspect-auto h-[250px] w-full flex items-center justify-center">
+            <p className="text-muted-foreground">No data</p>
+          </div>
+        ) : (
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[250px] w-full"
+          >
+            <AreaChart data={newFilteredData}>
+              <defs>
+                <linearGradient id="fillConfirmed" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-confirmed)"
+                    stopOpacity={1.0}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-confirmed)"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+                <linearGradient id="fillRejected" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-rejected)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-rejected)"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  });
+                }}
+              />
+              <ChartTooltip
+                cursor={false}
+                defaultIndex={isMobile ? -1 : 10}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) => {
+                      return new Date(value).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      });
+                    }}
+                    indicator="dot"
+                  />
+                }
+              />
+              <Area
+                dataKey="rejected"
+                type="natural"
+                fill="url(#fillRejected)"
+                stroke="var(--color-rejected)"
+                stackId="a"
+              />
+              <Area
+                dataKey="confirmed"
+                type="natural"
+                fill="url(#fillConfirmed)"
+                stroke="var(--color-confirmed)"
+                stackId="a"
+              />
+            </AreaChart>
+          </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );
