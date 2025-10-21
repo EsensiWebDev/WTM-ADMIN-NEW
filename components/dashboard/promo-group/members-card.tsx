@@ -1,7 +1,7 @@
 "use client";
 
 import { editPromoGroupMembers } from "@/app/(dashboard)/promo-group/actions";
-import { Member } from "@/app/(dashboard)/promo-group/types";
+import { PromoGroupMembers } from "@/app/(dashboard)/promo-group/types";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +13,8 @@ import AddAgentCompanyDialog from "./dialog/add-agent-company-dialog";
 import AddMemberPromoGroupDialog from "./dialog/add-member-promo-group-dialog";
 
 interface MembersCardProps {
-  members: Member[];
-  allMembers: Member[];
+  members: PromoGroupMembers[];
+  allMembers: PromoGroupMembers[];
   companyOptions: Option[];
 }
 
@@ -23,7 +23,8 @@ export function MembersCard({
   allMembers,
   companyOptions,
 }: MembersCardProps) {
-  const [localMembers, setLocalMembers] = React.useState<Member[]>(members);
+  const [localMembers, setLocalMembers] =
+    React.useState<PromoGroupMembers[]>(members);
 
   const [openSaveDialog, setOpenSaveDialog] = React.useState(false);
   const [isSavePending, startSaveTransition] = React.useTransition();
@@ -43,7 +44,7 @@ export function MembersCard({
     });
   };
 
-  const onRemoveMember = (id: string) => {
+  const onRemoveMember = (id: number) => {
     setLocalMembers((prevMembers) =>
       prevMembers.filter((member) => member.id !== id)
     );
@@ -98,7 +99,7 @@ export function MembersCard({
               <span className="text-sm">
                 {index + 1}.{" "}
                 <span className="font-semibold">{member.name}</span> |{" "}
-                {member.company}
+                {member.agent_company}
               </span>
               <Button
                 variant="ghost"

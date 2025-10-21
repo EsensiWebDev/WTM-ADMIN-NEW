@@ -1,7 +1,6 @@
 "use client";
 
 import { editPromoGroupPromos } from "@/app/(dashboard)/promo-group/actions";
-import { Promo } from "@/app/(dashboard)/promo/types";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
@@ -13,19 +12,27 @@ import { Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import AddPromoDialog from "./dialog/add-promo-dialog";
+import { PromoGroupPromos } from "@/app/(dashboard)/promo-group/types";
 
 interface PromoDetailsCardProps {
-  promos: Promo[];
+  promos: PromoGroupPromos[];
   promoGroupId: string;
+  pageCount: number;
 }
 
-const PromoDetailsCard = ({ promos, promoGroupId }: PromoDetailsCardProps) => {
-  const [localPromos, setLocalPromos] = useState<Promo[]>(promos);
+const PromoDetailsCard = ({
+  promos,
+  promoGroupId,
+  pageCount,
+}: PromoDetailsCardProps) => {
+  const [localPromos, setLocalPromos] = useState<PromoGroupPromos[]>(promos);
   const [isPending, startTransition] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [promoToDelete, setPromoToDelete] = useState<Promo | null>(null);
+  const [promoToDelete, setPromoToDelete] = useState<PromoGroupPromos | null>(
+    null
+  );
   const [isDeleting, setIsDeleting] = useState(false);
-  const columns = useMemo<ColumnDef<Promo>[]>(
+  const columns = useMemo<ColumnDef<PromoGroupPromos>[]>(
     () => [
       {
         id: "no",
@@ -39,14 +46,14 @@ const PromoDetailsCard = ({ promos, promoGroupId }: PromoDetailsCardProps) => {
         id: "id",
         accessorKey: "id",
         header: "Promo ID",
-        cell: ({ row }) => row.original.id,
+        cell: ({ row }) => row.original.promo_id,
         enableHiding: false,
       },
       {
         id: "name",
         accessorKey: "name",
         header: "Promo Name",
-        cell: ({ row }) => row.original.name,
+        cell: ({ row }) => row.original.promo_name,
         meta: {
           label: "Promo Name",
           placeholder: "Search Promo Name Here...",
@@ -60,7 +67,7 @@ const PromoDetailsCard = ({ promos, promoGroupId }: PromoDetailsCardProps) => {
         accessorKey: "start_date",
         header: "Promo Start Date",
         cell: ({ row }) => {
-          const date = new Date(row.original.start_date);
+          const date = new Date(row.original.promo_start_date);
           return formatDate(date);
         },
       },
@@ -69,7 +76,7 @@ const PromoDetailsCard = ({ promos, promoGroupId }: PromoDetailsCardProps) => {
         accessorKey: "end_date",
         header: "Promo End Date",
         cell: ({ row }) => {
-          const date = new Date(row.original.end_date);
+          const date = new Date(row.original.promo_end_date);
           return formatDate(date);
         },
       },
@@ -95,15 +102,15 @@ const PromoDetailsCard = ({ promos, promoGroupId }: PromoDetailsCardProps) => {
   );
 
   const { table } = useDataTable({
-    data: localPromos,
+    data: localPromos || [],
     columns,
-    pageCount: Math.ceil(localPromos.length / 10), // Assuming 10 items per page
-    getRowId: (originalRow) => originalRow.id,
+    pageCount,
+    getRowId: (originalRow) => String(originalRow.promo_id),
     shallow: false,
     clearOnDefault: true,
   });
 
-  const handleAddPromo = async (promo: Promo) => {
+  const handleAddPromo = async (promo: PromoGroupPromos) => {
     const newPromos = [...localPromos, promo];
     setLocalPromos(newPromos);
 
@@ -128,7 +135,7 @@ const PromoDetailsCard = ({ promos, promoGroupId }: PromoDetailsCardProps) => {
     }
   };
 
-  const handleDeleteClick = (promo: Promo) => {
+  const handleDeleteClick = (promo: PromoGroupPromos) => {
     setPromoToDelete(promo);
     setDeleteDialogOpen(true);
   };
@@ -137,7 +144,9 @@ const PromoDetailsCard = ({ promos, promoGroupId }: PromoDetailsCardProps) => {
     if (!promoToDelete) return;
 
     setIsDeleting(true);
-    const updatedPromos = localPromos.filter((p) => p.id !== promoToDelete.id);
+    const updatedPromos = localPromos.filter(
+      (p) => p.promo_id !== promoToDelete.promo_id
+    );
     const previousPromos = [...localPromos];
 
     // Optimistically update local state
@@ -195,7 +204,7 @@ const PromoDetailsCard = ({ promos, promoGroupId }: PromoDetailsCardProps) => {
         onCancel={handleDeleteCancel}
         isLoading={isDeleting}
         title="Are you sure you want to remove this promo?"
-        description={`Are you sure you want to remove "${promoToDelete?.name}" from this promo group? This action cannot be undone.`}
+        description={`Are you sure you want to remove "${promoToDelete?.promo_name}" from this promo group? This action cannot be undone.`}
       />
     </div>
   );

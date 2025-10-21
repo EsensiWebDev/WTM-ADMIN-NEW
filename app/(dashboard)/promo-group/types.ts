@@ -1,17 +1,23 @@
 import { SearchParams } from "@/types";
 import { Promo } from "../promo/types";
 
-export interface Member {
-  id: string;
-  name: string;
-  company: string;
-}
-
 export interface PromoGroup {
   id: string;
   name: string;
-  members: Member[];
-  promos: Promo[];
+}
+
+export interface PromoGroupPromos {
+  promo_code: string;
+  promo_end_date: string;
+  promo_id: number;
+  promo_name: string;
+  promo_start_date: string;
+}
+
+export interface PromoGroupMembers {
+  id: number;
+  name: string;
+  agent_company: string;
 }
 
 export interface PromoGroupTableResponse {
@@ -33,6 +39,6 @@ export interface CreatePromoGroupSchema {
 export interface EditPromoGroupSchema {
   id: string;
   name: string;
-  members: Member[];
+  members: PromoGroupMembers[];
   promos: Promo[];
 }

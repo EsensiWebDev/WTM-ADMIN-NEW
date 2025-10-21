@@ -1,6 +1,6 @@
 "use client";
 
-import { Member } from "@/app/(dashboard)/promo-group/types";
+import { PromoGroupMembers } from "@/app/(dashboard)/promo-group/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,8 +29,8 @@ type AddAgentCompanySchema = z.infer<typeof addAgentCompanySchema>;
 
 interface AddAgentCompanyDialogProps {
   companyOptions: Option[];
-  members: Member[];
-  onAddMany: (members: Member[]) => void;
+  members: PromoGroupMembers[];
+  onAddMany: (members: PromoGroupMembers[]) => void;
 }
 
 const AddAgentCompanyDialog = ({

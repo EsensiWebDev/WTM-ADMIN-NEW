@@ -1,6 +1,6 @@
 "use client";
 
-import { Member } from "@/app/(dashboard)/promo-group/types";
+import { PromoGroupMembers } from "@/app/(dashboard)/promo-group/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,9 +31,9 @@ export type AddMemberPromoGroupSchemaType = z.infer<
 >;
 
 interface AddMemberPromoGroupDialogProps {
-  onAdd: (member: Member) => void;
+  onAdd: (member: PromoGroupMembers) => void;
   companyOptions: Option[];
-  members: Member[];
+  members: PromoGroupMembers[];
 }
 
 const AddMemberPromoGroupDialog = ({

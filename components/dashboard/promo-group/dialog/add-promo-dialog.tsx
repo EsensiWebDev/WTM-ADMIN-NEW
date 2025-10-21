@@ -54,7 +54,7 @@ const AddPromoDialog = ({ onAdd, currentPromos }: AddPromoDialogProps) => {
 
   // Filter out promos that are already in the current group
   const currentPromoIds = React.useMemo(
-    () => new Set(currentPromos.map((p) => p.id)),
+    () => new Set((currentPromos || []).map((p) => p.id)),
     [currentPromos]
   );
 
@@ -62,7 +62,7 @@ const AddPromoDialog = ({ onAdd, currentPromos }: AddPromoDialogProps) => {
   const promoFetcher = React.useCallback(
     async (query?: string): Promise<Promo[]> => {
       const allPromos = await searchPromos(query);
-      return allPromos.filter((promo) => !currentPromoIds.has(promo.id));
+      return allPromos.data.filter((promo) => !currentPromoIds.has(promo.id));
     },
     [currentPromoIds]
   );
@@ -71,8 +71,8 @@ const AddPromoDialog = ({ onAdd, currentPromos }: AddPromoDialogProps) => {
   const filterFn = React.useCallback((promo: Promo, query: string) => {
     const searchQuery = query.toLowerCase();
     return (
-      promo.name.toLowerCase().includes(searchQuery) ||
-      promo.code.toLowerCase().includes(searchQuery)
+      promo.promo_name.toLowerCase().includes(searchQuery) ||
+      promo.promo_code.toLowerCase().includes(searchQuery)
     );
   }, []);
 
@@ -80,7 +80,9 @@ const AddPromoDialog = ({ onAdd, currentPromos }: AddPromoDialogProps) => {
     startTransition(async () => {
       // Fetch the selected promo from the server to ensure we have the latest data
       const allPromos = await searchPromos();
-      const selectedPromo = allPromos.find((p) => p.id === input.promoId);
+      const selectedPromo = allPromos.data.find(
+        (p) => String(p.id) === input.promoId
+      );
 
       if (!selectedPromo) {
         toast.error("Promo data unavailable");
@@ -128,22 +130,22 @@ const AddPromoDialog = ({ onAdd, currentPromos }: AddPromoDialogProps) => {
                       filterFn={filterFn}
                       renderOption={(promo) => (
                         <div className="flex flex-col items-start">
-                          <div className="font-medium">{promo.name}</div>
+                          <div className="font-medium">{promo.promo_name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {promo.code} •{" "}
-                            {formatDate(new Date(promo.start_date))} -{" "}
-                            {formatDate(new Date(promo.end_date))}
+                            {promo.promo_code} •{" "}
+                            {formatDate(new Date(promo.promo_start_date))} -{" "}
+                            {formatDate(new Date(promo.promo_end_date))}
                           </div>
                         </div>
                       )}
-                      getOptionValue={(promo) => promo.id}
+                      getOptionValue={(promo) => String(promo.id)}
                       getDisplayValue={(promo) => (
                         <div className="flex flex-col items-start">
-                          <div className="font-medium">{promo.name}</div>
+                          <div className="font-medium">{promo.promo_name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {promo.code} •{" "}
-                            {formatDate(new Date(promo.start_date))} -{" "}
-                            {formatDate(new Date(promo.end_date))}
+                            {promo.promo_code} •{" "}
+                            {formatDate(new Date(promo.promo_start_date))} -{" "}
+                            {formatDate(new Date(promo.promo_end_date))}
                           </div>
                         </div>
                       )}

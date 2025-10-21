@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { IconChevronLeft } from "@tabler/icons-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCompanyOptions, getMembers, getPromoGroup } from "../../fetch";
+import {
+  getCompanyOptions,
+  getPromoGroupMembersById,
+  getPromoGroupPromosById,
+} from "../../fetch";
 
 const PromoGroupEditPage = async ({
   params,
@@ -13,21 +17,19 @@ const PromoGroupEditPage = async ({
 }) => {
   const { id } = await params;
   const [promoGroup, companyOptions, allMembers] = await Promise.all([
-    getPromoGroup(id),
+    getPromoGroupPromosById(id, { limit: "10" }),
     getCompanyOptions(),
-    getMembers(),
+    getPromoGroupMembersById(id, { limit: "10" }),
   ]);
 
   if (!promoGroup) {
     return notFound();
   }
 
-  // return <div>PromoGroupEditPage {id}</div>;
-
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{promoGroup.name}</h1>
+        <h1 className="text-3xl font-bold">DUMMY TEXT NAME</h1>
       </div>
       <div className="flex items-center justify-between">
         <Button asChild>
@@ -40,11 +42,15 @@ const PromoGroupEditPage = async ({
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <MembersCard
-          members={promoGroup.members}
-          allMembers={allMembers}
+          members={[]}
+          allMembers={allMembers.data}
           companyOptions={companyOptions}
         />
-        <PromoDetailsCard promos={promoGroup.promos} promoGroupId={id} />
+        <PromoDetailsCard
+          promos={promoGroup.data}
+          promoGroupId={id}
+          pageCount={promoGroup.pagination?.total_pages || 1}
+        />
       </div>
     </div>
   );

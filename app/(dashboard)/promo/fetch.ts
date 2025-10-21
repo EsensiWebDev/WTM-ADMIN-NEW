@@ -11,7 +11,7 @@ export const getData = async ({
   searchParams: SearchParams;
 }): Promise<ApiResponse<Promo[]>> => {
   const queryString = buildQueryParams(searchParams);
-  const url = `/bookings${queryString ? `?${queryString}` : ""}`;
+  const url = `/promos${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<Promo[]>(url);
 
   return apiResponse;

@@ -1,6 +1,6 @@
 "use client";
 
-import { getData } from "@/app/(dashboard)/promo-group/fetch";
+import { getPromoGroups } from "@/app/(dashboard)/promo-group/fetch";
 import { PromoGroup } from "@/app/(dashboard)/promo-group/types";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
@@ -13,12 +13,12 @@ import EditPromoGroupDialog from "../dialog/edit-promo-group-dialog";
 import { getPromoGroupTableColumns } from "./promo-group-columns";
 
 interface PromoGroupTableProps {
-  promises: Promise<[Awaited<ReturnType<typeof getData>>]>;
+  promises: Promise<[Awaited<ReturnType<typeof getPromoGroups>>]>;
 }
 
 const PromoGroupTable = ({ promises }: PromoGroupTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pageCount }] = React.use(promises);
+  const [{ data, pagination }] = React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<PromoGroup> | null>(null);
 
@@ -33,7 +33,7 @@ const PromoGroupTable = ({ promises }: PromoGroupTableProps) => {
   const { table } = useDataTable({
     data,
     columns,
-    pageCount,
+    pageCount: pagination?.total_pages || 1,
     getRowId: (originalRow) => originalRow.id,
     shallow: false,
     clearOnDefault: true,

@@ -1,14 +1,14 @@
 import PromoGroupTable from "@/components/dashboard/promo-group/table/promo-group-table";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import React from "react";
-import { getData } from "./fetch";
+import { getPromoGroups } from "./fetch";
 import { PromoPageProps } from "./types";
 
 const PromoGroupPage = async (props: PromoPageProps) => {
   const searchParams = await props.searchParams;
 
   const promises = Promise.all([
-    getData({
+    getPromoGroups({
       searchParams,
     }),
   ]);

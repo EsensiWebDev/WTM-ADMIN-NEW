@@ -1,7 +1,12 @@
 "use server";
 
 import { Promo } from "../promo/types";
-import { CreatePromoGroupSchema, EditPromoGroupSchema, Member } from "./types";
+import {
+  CreatePromoGroupSchema,
+  EditPromoGroupSchema,
+  PromoGroupMembers,
+  PromoGroupPromos,
+} from "./types";
 
 // Define a standard response type
 interface ActionResponse {
@@ -48,7 +53,7 @@ export async function editPromoGroup(
 
 export async function editPromoGroupMembers(
   id: string,
-  members: Member[]
+  members: PromoGroupMembers[]
 ): Promise<ActionResponse> {
   console.log("Edit Promo Members:");
   console.log({ id, members });
@@ -62,7 +67,7 @@ export async function editPromoGroupMembers(
 
 export async function editPromoGroupPromos(
   id: string,
-  promos: Promo[]
+  promos: PromoGroupPromos[]
 ): Promise<ActionResponse> {
   console.log("Edit Promo Group Promos:");
   console.log({ id, promos });
