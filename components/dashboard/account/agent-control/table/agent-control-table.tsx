@@ -40,7 +40,7 @@ const AgentControlTable = ({ promises }: AgentControlTableProps) => {
   );
 
   const { table } = useDataTable({
-    data,
+    data: data || [],
     columns,
     pageCount,
     getRowId: (originalRow) => originalRow.id,

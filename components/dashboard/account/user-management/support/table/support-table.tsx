@@ -29,7 +29,7 @@ const SupportTable = ({ promises }: SupportTableProps) => {
   );
 
   const { table } = useDataTable({
-    data,
+    data: data || [],
     columns,
     pageCount: pagination?.total_pages || 1,
     getRowId: (originalRow) => originalRow.id,

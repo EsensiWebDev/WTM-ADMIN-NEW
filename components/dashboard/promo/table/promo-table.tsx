@@ -31,7 +31,7 @@ const PromoTable = ({ promises }: PromoTableProps) => {
   );
 
   const { table } = useDataTable({
-    data,
+    data: data || [],
     columns,
     pageCount: pagination?.total_pages || 1,
     getRowId: (originalRow) => String(originalRow.id),

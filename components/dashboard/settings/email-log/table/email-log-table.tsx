@@ -38,7 +38,7 @@ const EmailLogTable = ({ promises }: EmailLogTableProps) => {
   );
 
   const { table } = useDataTable({
-    data,
+    data: data || [],
     columns,
     pageCount: page_count,
     getRowId: (originalRow) => `${originalRow.date}_${originalRow.hotel_name}`,

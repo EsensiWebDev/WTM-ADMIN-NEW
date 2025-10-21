@@ -29,7 +29,7 @@ const AdminTable = ({ promises }: AdminTableProps) => {
   );
 
   const { table } = useDataTable({
-    data,
+    data: data || [],
     columns,
     pageCount: pagination?.total_pages || 0,
     getRowId: (originalRow) => originalRow.id,

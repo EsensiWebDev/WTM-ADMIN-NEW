@@ -40,7 +40,7 @@ const BookingSummaryTable = ({ promises }: BookingSummaryTableProps) => {
   );
 
   const { table } = useDataTable({
-    data,
+    data: data || [],
     columns,
     pageCount: pagination?.total_pages || 1,
     getRowId: (originalRow) => String(originalRow.booking_id),

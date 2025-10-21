@@ -33,7 +33,7 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
   const columns = React.useMemo(() => getRoleBasedAccessTableColumns(), []);
 
   const { table } = useDataTable({
-    data,
+    data: data || [],
     columns,
     pageCount: 1,
     getRowId: (originalRow) => originalRow.id,
