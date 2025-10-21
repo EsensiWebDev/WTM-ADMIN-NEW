@@ -13,8 +13,8 @@ export interface Hotel {
   name: string;
   region: string;
   email: string;
-  approval_status: string;
-  api_status: boolean;
+  status: string;
+  is_api: boolean;
   rooms: Room[];
 }
 

@@ -104,7 +104,7 @@ export function getHotelTableColumns({
       cell: ({ row }) => {
         return (
           <Badge variant="default" className="capitalize">
-            {row.original.approval_status}
+            {row.original.status}
           </Badge>
         );
       },
@@ -118,7 +118,7 @@ export function getHotelTableColumns({
         <DataTableColumnHeader column={column} title="API Status" />
       ),
       cell: ({ row }) => {
-        return row.original.api_status ? (
+        return row.original.is_api ? (
           <Cloud className="size-5 text-green-500" aria-hidden="true" />
         ) : (
           <CloudOff className="size-5 text-red-500" aria-hidden="true" />
