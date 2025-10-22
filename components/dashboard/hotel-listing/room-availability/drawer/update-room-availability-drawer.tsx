@@ -13,12 +13,11 @@ import {
 } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns/format";
 import { CalendarIcon, ChevronsUpDown } from "lucide-react";
 import React, { useCallback } from "react";
 import { toast } from "sonner";
-
-// --- Subcomponents ---
 
 function AvailabilityLegend() {
   return (
@@ -178,6 +177,7 @@ export const UpdateRoomAvailabilityDrawer = ({
   setDate,
   ...props
 }: UpdateRoomAvailabilityDrawerProps) => {
+  const queryClient = useQueryClient();
   // State
   const [isUpdatePending, startUpdateTransition] = React.useTransition();
   const [open, setOpen] = React.useState(false);
@@ -225,9 +225,8 @@ export const UpdateRoomAvailabilityDrawer = ({
       return;
     }
     startUpdateTransition(async () => {
-      const hotelId = String(1);
       toast.promise(
-        updateRoomAvailability(hotelId, date.toISOString(), localHotel),
+        updateRoomAvailability(format(date, "yyyy-MM"), localHotel),
         {
           success: (data) => data.message,
           error: "Failed to update room availability",
@@ -236,6 +235,10 @@ export const UpdateRoomAvailabilityDrawer = ({
       setOpen(false);
       props.onOpenChange?.(false);
       onSuccess?.();
+      queryClient.invalidateQueries({
+        queryKey: ["room-availability", format(date, "yyyy-MM")],
+        exact: true,
+      });
     });
   }
 
