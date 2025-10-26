@@ -11,6 +11,9 @@ export async function apiCall<TData>(
   const response = await bffFetch(endpoint, options);
 
   if (!response.ok) {
+    // Force user to logout
+    // redirect("/logout");
+
     // Try to parse error response as JSON, but fallback to a default error structure
     try {
       const errorData = await response.json();
