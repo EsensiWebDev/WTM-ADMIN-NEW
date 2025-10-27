@@ -28,9 +28,8 @@ export const createAgentSchema = z.object({
   phone: z.string(),
   is_active: z.boolean(),
   kakao_talk_id: z.string().min(1).max(25),
-  username: z.string().min(1).max(25),
-  agent_selfie_photo: z.instanceof(File).optional(),
-  identity_card: z.instanceof(File).optional(),
+  photo_selfie: z.instanceof(File).optional(),
+  photo_id_card: z.instanceof(File).optional(),
   certificate: z.instanceof(File).optional(),
   name_card: z.instanceof(File).optional(),
 });
@@ -51,9 +50,8 @@ const CreateAgentDialog = () => {
       phone: "",
       is_active: true,
       kakao_talk_id: "",
-      username: "",
-      agent_selfie_photo: undefined,
-      identity_card: undefined,
+      photo_selfie: undefined,
+      photo_id_card: undefined,
       certificate: undefined,
       name_card: undefined,
     },
@@ -61,15 +59,15 @@ const CreateAgentDialog = () => {
 
   function onSubmit(input: CreateAgentSchema) {
     // Check if required file fields are present
-    if (
-      !input.agent_selfie_photo ||
-      !input.identity_card ||
-      !input.certificate ||
-      !input.name_card
-    ) {
-      toast.error("Please upload all required documents");
-      return;
-    }
+    // if (
+    //   !input.photo_selfie ||
+    //   !input.photo_id_card ||
+    //   !input.certificate ||
+    //   !input.name_card
+    // ) {
+    //   toast.error("Please upload all required documents");
+    //   return;
+    // }
 
     startTransition(async () => {
       const { success, message } = await createAgent(input);

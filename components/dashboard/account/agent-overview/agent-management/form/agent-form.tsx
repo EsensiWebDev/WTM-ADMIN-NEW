@@ -126,20 +126,7 @@ export function AgentForm<T extends FieldValues>({
         />
         <FormField
           control={form.control}
-          name={"username" as FieldPath<T>}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter username" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name={"agent_selfie_photo" as FieldPath<T>}
+          name={"photo_selfie" as FieldPath<T>}
           render={({ field: { ref, name, onBlur, onChange } }) => (
             <FormItem>
               <FormLabel>Agent Selfie Photo</FormLabel>
@@ -162,7 +149,7 @@ export function AgentForm<T extends FieldValues>({
         />
         <FormField
           control={form.control}
-          name={"identity_card" as FieldPath<T>}
+          name={"photo_id_card" as FieldPath<T>}
           render={({ field: { ref, name, onBlur, onChange } }) => (
             <FormItem>
               <FormLabel>Identity Card</FormLabel>

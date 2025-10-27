@@ -103,7 +103,12 @@ export async function bffFetch(
   } else {
     normalizedHeaders.delete("Cookie");
   }
-  normalizedHeaders.set("Content-Type", "application/json");
+
+  // Only set Content-Type to application/json if it's not already set
+  // This allows FormData to work properly as the browser will set the correct Content-Type with boundary
+  if (!normalizedHeaders.has("Content-Type")) {
+    normalizedHeaders.set("Content-Type", "application/json");
+  }
 
   let response = await fetch(url, {
     ...init,
