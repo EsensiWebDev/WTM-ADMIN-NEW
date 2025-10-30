@@ -1,6 +1,6 @@
 "use client";
 
-import { getData } from "@/app/(dashboard)/promo/fetch";
+import { getData, getPromoById } from "@/app/(dashboard)/promo/fetch";
 import { Promo } from "@/app/(dashboard)/promo/types";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
@@ -11,6 +11,7 @@ import CreatePromoDialog from "../dialog/create-promo-dialog";
 import DeletePromoDialog from "../dialog/delete-promo-dialog";
 import EditPromoDialog from "../dialog/edit-promo-dialog";
 import { getPromoTableColumns } from "./promo-columns";
+import { useQuery } from "@tanstack/react-query";
 
 interface PromoTableProps {
   promises: Promise<[Awaited<ReturnType<typeof getData>>]>;
@@ -40,6 +41,18 @@ const PromoTable = ({ promises }: PromoTableProps) => {
     startTransition,
   });
 
+  const {
+    data: promoDetail,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["promo-details", String(rowAction?.row.original.id)],
+    queryFn: () => getPromoById(String(rowAction?.row.original.id)),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 2,
+    enabled: rowAction?.variant === "detail" || rowAction?.variant === "update",
+  });
+
   return (
     <>
       <div className="relative">
@@ -49,11 +62,13 @@ const PromoTable = ({ promises }: PromoTableProps) => {
           </DataTableToolbar>
         </DataTable>
       </div>
-      {rowAction?.variant === "update" && (
+      {!isLoading && !isError && rowAction?.variant === "update" && (
         <EditPromoDialog
           open={rowAction?.variant === "update"}
           onOpenChange={() => setRowAction(null)}
-          promo={rowAction?.row.original ?? null}
+          promo={promoDetail?.data || null}
+          isLoading={isLoading}
+          isError={isError}
         />
       )}
       <DeletePromoDialog

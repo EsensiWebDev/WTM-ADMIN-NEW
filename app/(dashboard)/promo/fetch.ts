@@ -1,7 +1,7 @@
 "use server";
 
 import { Option } from "@/types/data-table";
-import { Promo } from "./types";
+import { Promo, PromoDetailId } from "./types";
 
 import { apiCall } from "@/lib/api";
 import { buildQueryParams } from "@/lib/utils";
@@ -16,6 +16,15 @@ export const getData = async ({
   const queryString = buildQueryParams(searchParams);
   const url = `/promos${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<Promo[]>(url);
+
+  return apiResponse;
+};
+
+export const getPromoById = async (
+  id: string
+): Promise<ApiResponse<PromoDetailId>> => {
+  const url = `/promos/${id}`;
+  const apiResponse = await apiCall<PromoDetailId>(url);
 
   return apiResponse;
 };

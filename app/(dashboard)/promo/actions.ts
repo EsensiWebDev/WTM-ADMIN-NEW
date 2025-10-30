@@ -153,14 +153,12 @@ export async function editPromo(input: EditPromoSchema & { id: string }) {
       promo_type: Number(input.promo_type),
       room_types: [
         {
-          room_type_id: input.room_type_id,
+          room_type_id: Number(input.room_type_id),
           total_night: input.total_night,
         },
       ],
       start_date: input.start_date,
     };
-
-    console.log({ body });
 
     const response = await apiCall(`promos/${input.id}`, {
       method: "PUT",

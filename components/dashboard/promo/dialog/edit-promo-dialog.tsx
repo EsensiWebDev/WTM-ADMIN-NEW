@@ -1,7 +1,7 @@
 "use client";
 
 import { editPromo } from "@/app/(dashboard)/promo/actions";
-import { Promo } from "@/app/(dashboard)/promo/types";
+import { PromoDetailId } from "@/app/(dashboard)/promo/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +19,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { PromoForm } from "../form/promo-form";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const editPromoSchema = z.object({
   description: z.string().min(1, "Description is required"),
@@ -26,39 +28,28 @@ export const editPromoSchema = z.object({
   promo_name: z.string().min(1, "Promo name is required"),
   promo_code: z.string().min(1, "Promo code is required"),
   promo_type: z.string().min(1, "Promo type is required"),
-  room_type_id: z.coerce.number().min(1, "Room type is required"),
+  room_type_id: z.string().min(1, "Room type is required"),
   total_night: z.number().min(1, "Total night is required"),
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().min(1, "End date is required"),
   is_active: z.boolean(),
+  hotel_name: z.string().min(1, "Hotel name is required"),
 });
 
 export type EditPromoSchema = z.infer<typeof editPromoSchema>;
 
 interface EditPromoDialogProps {
-  promo: Promo | null;
+  promo: PromoDetailId | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isLoading: boolean;
+  isError: boolean;
 }
 
-const promoTypeConversion = (promoType: string | undefined) => {
-  if (!promoType) return "1";
-
-  switch (promoType.toLowerCase()) {
-    case "discount":
-      return "1";
-    case "fixed price":
-      return "2";
-    case "room upgrade":
-      return "3";
-    case "benefits":
-      return "4";
-    default:
-      return "1";
-  }
-};
-
-const promoDetailConversion = (promoType: string, promoDetail: any) => {
+const promoDetailConversion = (
+  promoType: string,
+  promoDetail: PromoDetailId["detail"]
+) => {
   if (!promoType) return "";
 
   switch (promoType) {
@@ -79,29 +70,32 @@ const EditPromoDialog = ({
   promo,
   open,
   onOpenChange,
+  isLoading,
+  isError,
 }: EditPromoDialogProps) => {
+  const queryClient = useQueryClient();
   const [isPending, startTransition] = React.useTransition();
 
   const form = useForm<EditPromoSchema>({
     resolver: zodResolver(editPromoSchema),
     defaultValues: {
-      description: promo?.promo_description || "",
+      description: promo?.description || "",
       detail:
         promoDetailConversion(
-          promoTypeConversion(promo?.promo_type),
-          promo?.promo_detail
+          String(promo?.promo_type_id),
+          promo?.detail as PromoDetailId["detail"]
         ) || "",
-      promo_name: promo?.promo_name || "",
-      promo_code: promo?.promo_code || "",
-      promo_type: promoTypeConversion(promo?.promo_type) || "1",
-      total_night: 0,
-      start_date: promo?.promo_start_date
-        ? new Date(promo.promo_start_date).toISOString()
+      promo_name: promo?.name || "",
+      promo_code: promo?.code || "",
+      promo_type: String(promo?.promo_type_id) || "1",
+      total_night: promo?.promo_room_types[0]?.total_nights || 1,
+      start_date: promo?.start_date
+        ? new Date(promo.start_date).toISOString()
         : "",
-      end_date: promo?.promo_end_date
-        ? new Date(promo.promo_end_date).toISOString()
-        : "",
+      end_date: promo?.end_date ? new Date(promo.end_date).toISOString() : "",
       is_active: promo?.is_active || true,
+      room_type_id: String(promo?.promo_room_types[0]?.room_type_id) || "1",
+      hotel_name: String(promo?.promo_room_types[0]?.hotel_id) || "",
     },
   });
 
@@ -119,6 +113,11 @@ const EditPromoDialog = ({
       form.reset();
       onOpenChange(false);
       toast.success("Promo updated successfully");
+
+      queryClient.invalidateQueries({
+        queryKey: ["promo-details", String(promo.id)],
+        exact: true,
+      });
     });
   }
 
@@ -131,19 +130,33 @@ const EditPromoDialog = ({
             Update the details below to modify the promo
           </DialogDescription>
         </DialogHeader>
-        <PromoForm form={form} onSubmit={onSubmit}>
-          <DialogFooter className="gap-2 pt-2 sm:space-x-0">
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
+
+        {isLoading && (
+          <div className="flex items-center">
+            <LoadingSpinner className="mr-2 h-4 w-4" />
+            Loading promo...
+          </div>
+        )}
+
+        {isError && (
+          <div className="flex items-center">Error load promo...</div>
+        )}
+
+        {!isLoading && !isError && (
+          <PromoForm form={form} onSubmit={onSubmit}>
+            <DialogFooter className="gap-2 pt-2 sm:space-x-0">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button disabled={isPending}>
+                {isPending && <Loader className="animate-spin" />}
+                Update
               </Button>
-            </DialogClose>
-            <Button disabled={isPending}>
-              {isPending && <Loader className="animate-spin" />}
-              Update
-            </Button>
-          </DialogFooter>
-        </PromoForm>
+            </DialogFooter>
+          </PromoForm>
+        )}
       </DialogContent>
     </Dialog>
   );
