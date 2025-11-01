@@ -21,10 +21,9 @@ import z from "zod";
 
 const profileSchema = z.object({
   username: z.string().min(1, "Username is required"),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  agentCompany: z.string().min(1, "Agent company is required"),
-  phoneNumber: z
+  full_name: z.string().min(1, "Full name is required"),
+  agent_company: z.string().min(1, "Agent company is required"),
+  phone: z
     .string()
     .min(1, "Phone number is required")
     .regex(
@@ -33,7 +32,7 @@ const profileSchema = z.object({
     ),
 });
 
-type ProfileSchema = z.infer<typeof profileSchema>;
+export type ProfileSchema = z.infer<typeof profileSchema>;
 
 interface EditProfileFormProps {
   defaultValues: AccountProfile;
@@ -46,16 +45,15 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       username: defaultValues.username,
-      firstName: defaultValues.firstName,
-      lastName: defaultValues.lastName,
-      agentCompany: defaultValues.agentCompany,
-      phoneNumber: defaultValues.phoneNumber,
+      full_name: defaultValues.full_name,
+      agent_company: "DUMMY",
+      phone: defaultValues.phone,
     },
   });
 
   function onSubmit(values: ProfileSchema) {
     setIsLoading(true);
-    toast.promise(updateAccountProfile(values), {
+    toast.promise(updateAccountProfile(values, defaultValues.email), {
       loading: "Saving profile changes...",
       success: (data) => {
         setIsLoading(false);
@@ -92,11 +90,11 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
               />
               <FormField
                 control={form.control}
-                name="firstName"
+                name="full_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium">
-                      First Name
+                      Full Name
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="Enter first name" {...field} />
@@ -107,22 +105,7 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
               />
               <FormField
                 control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium">
-                      Last Name
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter last name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="agentCompany"
+                name="agent_company"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
                     <FormLabel className="text-sm font-medium">
@@ -137,7 +120,7 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
               />
               <FormField
                 control={form.control}
-                name="phoneNumber"
+                name="phone"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
                     <FormLabel className="text-sm font-medium">

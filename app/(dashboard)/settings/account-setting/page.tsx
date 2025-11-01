@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { fetchAccountProfile } from "./fetch";
 
 const AccountSettingPage = async () => {
-  const accountProfile = await fetchAccountProfile();
+  const { data: accountProfile } = await fetchAccountProfile();
 
   return (
     <div className="flex gap-12">
@@ -22,7 +22,7 @@ const AccountSettingPage = async () => {
         <div className="mb-2 font-medium">Profile photo</div>
         <div className="relative">
           <Avatar className="h-36 w-36 rounded-lg">
-            <AvatarImage src={accountProfile.profileImage} alt="Profile" />
+            <AvatarImage src={accountProfile.photo_profile} alt="Profile" />
             <AvatarFallback className="rounded-lg">CN</AvatarFallback>
           </Avatar>
           <Button

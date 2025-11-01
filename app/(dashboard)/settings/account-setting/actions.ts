@@ -1,18 +1,58 @@
 "use server";
 
 import { PasswordChangeSchema } from "@/components/dashboard/settings/account-setting/account-setting-form";
+import { ProfileSchema } from "@/components/dashboard/settings/account-setting/edit-profile-form";
 import { apiCall } from "@/lib/api";
 import { revalidatePath } from "next/cache";
-import { AccountProfile, AccountSettingResponse } from "./types";
+import { AccountSettingResponse } from "./types";
 
 // Simulate updating account profile
 export async function updateAccountProfile(
-  input: AccountProfile
+  input: ProfileSchema,
+  email: string
 ): Promise<AccountSettingResponse> {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  // Simulate success response
-  return { success: true, message: "Profile updated successfully" };
+  try {
+    const body = {
+      full_name: input.full_name,
+      phone: input.phone,
+      email,
+    };
+
+    const response = await apiCall(`profile`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to update profile",
+      };
+    }
+
+    revalidatePath("/setting/account-setting", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Profile has been successfully updated",
+    };
+  } catch (error) {
+    console.error("Error updating profile:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to update profile",
+    };
+  }
 }
 
 // Simulate changing password
@@ -30,8 +70,6 @@ export async function changePassword(
       method: "PUT",
       body: JSON.stringify(body),
     });
-
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
