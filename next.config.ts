@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
       {
         hostname: "ik.imagekit.io",
       },
+      {
+        hostname: "54.255.206.242",
+      },
     ],
   },
 };

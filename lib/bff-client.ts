@@ -106,7 +106,10 @@ export async function bffFetch(
 
   // Only set Content-Type to application/json if it's not already set
   // This allows FormData to work properly as the browser will set the correct Content-Type with boundary
-  if (!normalizedHeaders.has("Content-Type")) {
+  if (
+    !normalizedHeaders.has("Content-Type") &&
+    !(init?.body instanceof FormData)
+  ) {
     normalizedHeaders.set("Content-Type", "application/json");
   }
 

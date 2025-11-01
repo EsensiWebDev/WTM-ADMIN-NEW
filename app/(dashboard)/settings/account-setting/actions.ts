@@ -102,3 +102,60 @@ export async function changePassword(
     };
   }
 }
+
+export async function updateAccountProfilePhoto(
+  formData: FormData
+): Promise<AccountSettingResponse> {
+  try {
+    const file = formData.get("photo_profile");
+
+    if (!file || !(file instanceof File)) {
+      return {
+        success: false,
+        message: "Please provide a valid image file.",
+      };
+    }
+
+    const body = new FormData();
+
+    body.append("file_type", "photo");
+    body.append("photo", file);
+
+    const response = await apiCall("profile/file", {
+      method: "PUT",
+      body,
+    });
+
+    console.log({ response });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to update profile photo",
+      };
+    }
+
+    revalidatePath("/setting/account-setting", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Profile photo updated successfully",
+    };
+  } catch (error) {
+    console.error("Error updating profile photo:", error);
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update profile photo",
+    };
+  }
+}
