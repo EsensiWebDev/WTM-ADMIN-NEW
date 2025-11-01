@@ -1,8 +1,9 @@
-import {
-  AccountProfile,
-  AccountSettingResponse,
-  PasswordChange,
-} from "./types";
+"use server";
+
+import { PasswordChangeSchema } from "@/components/dashboard/settings/account-setting/account-setting-form";
+import { apiCall } from "@/lib/api";
+import { revalidatePath } from "next/cache";
+import { AccountProfile, AccountSettingResponse } from "./types";
 
 // Simulate updating account profile
 export async function updateAccountProfile(
@@ -16,23 +17,50 @@ export async function updateAccountProfile(
 
 // Simulate changing password
 export async function changePassword(
-  input: PasswordChange
+  input: PasswordChangeSchema,
+  username: string
 ): Promise<AccountSettingResponse> {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    const body = {
+      ...input,
+      username,
+    };
 
-  // Simulate validation
-  if (input.newPassword !== input.confirmPassword) {
-    return { success: false, message: "New passwords do not match" };
-  }
+    const response = await apiCall(`profile/setting`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
 
-  if (input.newPassword.length < 8) {
+    console.log({ response });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to change password",
+      };
+    }
+
+    revalidatePath("/setting/account-setting", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Password has been successfully changed",
+    };
+  } catch (error) {
+    console.error("Error changing password:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
     return {
       success: false,
-      message: "Password must be at least 8 characters long",
+      message:
+        error instanceof Error ? error.message : "Failed to change password",
     };
   }
-
-  // Simulate success response
-  return { success: true, message: "Password changed successfully" };
 }

@@ -7,12 +7,6 @@ export interface AccountProfile {
   profileImage?: string;
 }
 
-export interface PasswordChange {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
 export interface AccountSettingResponse {
   success: boolean;
   message: string;
