@@ -122,7 +122,7 @@ export function getAgentControlTableColumns({
       size: 40,
     },
     {
-      id: "agent_name",
+      id: "search",
       accessorKey: "name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Agent Name" />
