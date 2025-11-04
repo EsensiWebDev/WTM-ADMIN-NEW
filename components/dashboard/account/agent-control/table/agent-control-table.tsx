@@ -24,7 +24,7 @@ interface AgentControlTableProps {
 
 const AgentControlTable = ({ promises }: AgentControlTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pageCount }, companyOptions] = React.use(promises);
+  const [{ data, pagination }, companyOptions] = React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<AgentControl> | null>(null);
 
@@ -40,8 +40,8 @@ const AgentControlTable = ({ promises }: AgentControlTableProps) => {
   const { table } = useDataTable({
     data: data || [],
     columns,
-    pageCount,
-    getRowId: (originalRow) => originalRow.id,
+    pageCount: pagination?.total_pages || 1,
+    getRowId: (originalRow) => String(originalRow.id),
     shallow: false,
     clearOnDefault: true,
     startTransition,
