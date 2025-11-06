@@ -9,7 +9,6 @@ import { SearchParams } from "@/types";
 import { revalidatePath } from "next/cache";
 import { getAgentData } from "./fetch";
 import { Agent } from "./types";
-import { getAgentData } from "./fetch";
 
 export async function updatePromoGroup(
   agentId: number,
