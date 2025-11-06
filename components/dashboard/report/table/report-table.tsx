@@ -14,7 +14,6 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useTransition } from "react";
 import { DetailReportDialog } from "../dialog/detail-report-dialog";
 import { getReportTableColumns } from "./report-columns";
-import { useQuery } from "@tanstack/react-query";
 
 interface ReportTableProps {
   promises: Promise<
