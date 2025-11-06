@@ -386,7 +386,9 @@ const getDetailBookingColumns = ({
           <NotesDialog
             open={notesOpen}
             onOpenChange={setNotesOpen}
-            notes={row.original.notes || ""}
+            // TODO: Fetch notes from API and set as default value, for now empty array
+            notes={""}
+            // notes={row.original.notes || ""}
             guestName={row.original.guest_name.toLocaleString()}
           />
         </>

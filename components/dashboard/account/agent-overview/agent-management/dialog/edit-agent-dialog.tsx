@@ -77,7 +77,12 @@ const EditAgentDialog = ({ agent, ...props }: EditAgentDialogProps) => {
             Edit details below and save the changes
           </DialogDescription>
         </DialogHeader>
-        <AgentForm<EditAgentSchema> form={form} onSubmit={onSubmit}>
+        <AgentForm<EditAgentSchema>
+          form={form}
+          onSubmit={onSubmit}
+          // TODO: fetch promoGroupSelect here, for now just pass an empty array
+          promoGroupSelect={[]}
+        >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>
               <Button type="button" variant="outline">

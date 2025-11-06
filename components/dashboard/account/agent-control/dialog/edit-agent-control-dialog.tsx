@@ -59,7 +59,7 @@ const EditAgentControlDialog = ({
       if (!agent) return;
 
       const { success } = await editAgent({
-        id: agent.id,
+        id: String(agent.id),
         ...input,
       });
 

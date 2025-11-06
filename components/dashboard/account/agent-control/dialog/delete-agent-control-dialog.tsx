@@ -51,7 +51,7 @@ export function DeleteAgentControlDialog({
     startDeleteTransition(async () => {
       const agentId = agentControl[0].id;
 
-      toast.promise(deleteAgent(agentId), {
+      toast.promise(deleteAgent(String(agentId)), {
         // loading: "Deleting agent...",
         success: (data) => data.message,
         error: "Failed to delete agent",
