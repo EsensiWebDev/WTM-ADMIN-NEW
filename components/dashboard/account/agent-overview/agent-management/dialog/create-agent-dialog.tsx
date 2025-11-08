@@ -26,7 +26,13 @@ export const createAgentSchema = z.object({
   agent_company: z.string(),
   promo_group_id: z.string(),
   email: z.string().email(),
-  phone: z.string(),
+  phone: z
+    .string()
+    .min(8, "Phone number must be at least 8 characters")
+    .regex(
+      /^\+\d+$/,
+      "Phone number must start with a country code (e.g., +62) followed by digits only"
+    ),
   is_active: z.boolean(),
   kakao_talk_id: z.string().min(1).max(25),
   photo_selfie: z.instanceof(File).optional(),

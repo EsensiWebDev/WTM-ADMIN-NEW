@@ -25,7 +25,14 @@ export const editAgentSchema = z.object({
   agent_company: z.string().optional(),
   promo_group_id: z.string().optional(),
   email: z.string().email().optional(),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .min(8, "Phone number must be at least 8 characters")
+    .regex(
+      /^\+\d+$/,
+      "Phone number must start with a country code (e.g., +62) followed by digits only"
+    )
+    .optional(),
   is_active: z.boolean().optional(),
 });
 
