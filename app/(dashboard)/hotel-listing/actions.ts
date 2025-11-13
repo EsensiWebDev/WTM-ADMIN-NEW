@@ -13,58 +13,7 @@ export async function deleteHotel(hotelId: string) {
   return { success: true, message: `Hotel deleted` };
 }
 
-export async function createHotel(formData: FormData) {
-  try {
-    console.log({ formData });
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Extract data from FormData
-    const hotelInfo = JSON.parse(formData.get("hotelInfo") as string);
-    const rooms = JSON.parse(formData.get("rooms") as string);
-    const images = formData.getAll("images") as File[];
-    const mainImageIndex = formData.get("mainImageIndex") as string;
-
-    // Validate required data
-    if (!hotelInfo.name || !hotelInfo.location || !hotelInfo.description) {
-      return { success: false, error: "Missing required hotel information" };
-    }
-
-    if (images.length === 0) {
-      return { success: false, error: "At least one image is required" };
-    }
-
-    if (rooms.length === 0) {
-      return { success: false, error: "At least one room is required" };
-    }
-
-    // Simulate successful creation
-    console.log("Hotel created successfully:", {
-      hotelInfo,
-      roomsCount: rooms.length,
-      imagesCount: images.length,
-      mainImageIndex,
-      createdAt: new Date().toISOString(),
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error creating hotel:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to create hotel",
-    };
-  }
-}
-
 export async function createHotelNew(formData: FormData) {
-  // console.log({ formData });
-
-  // return {
-  //   success: true,
-  //   message: "Hotel created",
-  // };
   try {
     const response = await apiCall("hotels", {
       method: "POST",
@@ -105,54 +54,39 @@ export async function createHotelNew(formData: FormData) {
 
 export async function updateHotel(hotelId: string, formData: FormData) {
   try {
-    console.log({ hotelId, formData });
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Extract data from FormData
-    const hotelInfo = JSON.parse(formData.get("hotelInfo") as string);
-    const rooms = JSON.parse(formData.get("rooms") as string);
-    const images = formData.getAll("images") as File[];
-    const mainImageIndex = formData.get("mainImageIndex") as string;
-    const existingImages = formData.get("existingImages")
-      ? JSON.parse(formData.get("existingImages") as string)
-      : [];
-
-    // Validate required data
-    if (!hotelInfo.name || !hotelInfo.location || !hotelInfo.description) {
-      return { success: false, error: "Missing required hotel information" };
-    }
-
-    // For updates, we allow either existing images or new images
-    if (images.length === 0 && existingImages.length === 0) {
-      return { success: false, error: "At least one image is required" };
-    }
-
-    if (rooms.length === 0) {
-      return { success: false, error: "At least one room is required" };
-    }
-
-    // Simulate successful update
-    console.log("Hotel updated successfully:", {
-      hotelId,
-      hotelInfo,
-      roomsCount: rooms.length,
-      newImagesCount: images.length,
-      existingImagesCount: existingImages.length,
-      mainImageIndex,
-      updatedAt: new Date().toISOString(),
+    const response = await apiCall(`hotels/${hotelId}`, {
+      method: "POST",
+      body: formData,
     });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to update hotels",
+      };
+    }
+
+    revalidatePath("/hotel-listing", "layout");
 
     return {
       success: true,
-      message: response.message || "Promo status updated successfully",
+      message: response.message || "Hotel updated",
     };
   } catch (error) {
     console.error("Error updating hotel:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to update hotel",
+      message:
+        error instanceof Error ? error.message : "Failed to update hotel",
     };
   }
 }

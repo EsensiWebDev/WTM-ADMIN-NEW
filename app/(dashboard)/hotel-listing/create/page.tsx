@@ -1,4 +1,3 @@
-import { HotelForm } from "@/components/dashboard/hotel-listing/form/hotel-form";
 import NewHotelForm from "@/components/dashboard/hotel-listing/form/new-hotel-form";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -15,7 +14,6 @@ const CreateHotelPage = () => {
       </Button>
 
       <NewHotelForm />
-      {/* <HotelForm /> */}
     </div>
   );
 };

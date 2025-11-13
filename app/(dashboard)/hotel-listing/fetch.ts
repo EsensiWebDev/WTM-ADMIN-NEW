@@ -1,8 +1,8 @@
+import { apiCall } from "@/lib/api";
+import { buildQueryParams } from "@/lib/utils";
 import { ApiResponse, SearchParams } from "@/types";
 import { Option } from "@/types/data-table";
-import { Hotel } from "./types";
-import { buildQueryParams } from "@/lib/utils";
-import { apiCall } from "@/lib/api";
+import { Hotel, HotelDetail } from "./types";
 
 export const getData = async ({
   searchParams,
@@ -13,6 +13,11 @@ export const getData = async ({
   const url = `/hotels${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<Hotel[]>(url);
 
+  return apiResponse;
+};
+
+export const getHotelDetails = async (id: string) => {
+  const apiResponse = await apiCall<HotelDetail>(`/hotels/${id}`);
   return apiResponse;
 };
 

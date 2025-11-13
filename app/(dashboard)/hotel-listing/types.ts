@@ -16,6 +16,25 @@ export interface Hotel {
   rooms: Room[];
 }
 
+export interface HotelDetail {
+  id: number;
+  name: string;
+  province: string;
+  city: string;
+  sub_district: string;
+  description: string;
+  photos: Array<string>;
+  rating: number;
+  email: string;
+  facilities: Array<string>;
+  nearby_place: Array<{ id: number; name: string; radius: number }>;
+  social_media: Array<{ platform: string; link: string }>;
+  // room_type: null;
+  cancellation_period: number;
+  check_in_hour: number;
+  check_out_hour: number;
+}
+
 export interface HotelTableResponse {
   success: boolean;
   data: Hotel[];
