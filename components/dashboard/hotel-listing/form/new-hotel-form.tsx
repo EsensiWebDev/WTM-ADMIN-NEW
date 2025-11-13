@@ -1,30 +1,29 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { createHotelNew } from "@/app/(dashboard)/hotel-listing/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { Loader, MapPin, Trash2 } from "lucide-react";
-import { useCallback, useTransition } from "react";
-import { createHotelNew } from "@/app/(dashboard)/hotel-listing/actions";
-import { ImageUpload, ImageFile } from "../create/image-upload";
 import { StarRating } from "@/components/ui/star-rating";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   IconBrandInstagramFilled,
   IconBrandTiktokFilled,
   IconWorld,
 } from "@tabler/icons-react";
+import { Loader, MapPin, PlusCircle, Trash2 } from "lucide-react";
+import { useCallback, useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { ImageFile, ImageUpload } from "../create/image-upload";
 
 // Define the Zod schema according to specifications
 export const createHotelFormSchema = z.object({
@@ -63,6 +62,9 @@ export type CreateHotelFormValues = z.infer<typeof createHotelFormSchema>;
 
 const NewHotelForm = () => {
   const [isPending, startTransition] = useTransition();
+  const [hotelNearby, setHotelNearby] = useState<
+    { name: string; distance: string }[]
+  >([]);
 
   const form = useForm<CreateHotelFormValues>({
     resolver: zodResolver(createHotelFormSchema),
@@ -92,6 +94,25 @@ const NewHotelForm = () => {
     },
     [form]
   );
+
+  const handleNearbyUpdate = useCallback(
+    (index: number, place: { name: string; distance: string }) => {
+      setHotelNearby((prev) => {
+        const next = [...prev];
+        next[index] = place;
+        return next;
+      });
+    },
+    []
+  );
+
+  const handleNearbyRemove = useCallback((index: number) => {
+    setHotelNearby((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleNearbyAdd = useCallback(() => {
+    setHotelNearby((prev) => [...prev, { name: "", distance: "" }]);
+  }, []);
 
   // Handle form submission
   const onSubmit = useCallback(
@@ -431,26 +452,26 @@ const NewHotelForm = () => {
             {/* Nearby Places */}
             <div className="flex flex-col gap-3">
               <h2 className="text-lg font-bold">Near Us</h2>
-              {/* <div className="space-y-3">
-                  {hotelNearby.map((place, index) => (
-                    <NearbyPlaceItem
-                      key={index}
-                      place={place}
-                      index={index}
-                      onUpdate={handleNearbyUpdate}
-                      onRemove={handleNearbyRemove}
-                    />
-                  ))}
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      className="inline-flex items-center gap-2"
-                      onClick={handleNearbyAdd}
-                    >
-                      <PlusCircle className="size-4" /> Add List
-                    </Button>
-                  </div>
-                </div> */}
+              <div className="space-y-3">
+                {hotelNearby.map((place, index) => (
+                  <NearbyPlaceItem
+                    key={index}
+                    place={place}
+                    index={index}
+                    onUpdate={handleNearbyUpdate}
+                    onRemove={handleNearbyRemove}
+                  />
+                ))}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    className="inline-flex items-center gap-2"
+                    onClick={handleNearbyAdd}
+                  >
+                    <PlusCircle className="size-4" /> Add List
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {/* Facilities */}
