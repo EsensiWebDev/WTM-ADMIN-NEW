@@ -62,9 +62,7 @@ export type CreateHotelFormValues = z.infer<typeof createHotelFormSchema>;
 
 const NewHotelForm = () => {
   const [isPending, startTransition] = useTransition();
-  const [hotelNearby, setHotelNearby] = useState<
-    { name: string; distance: string }[]
-  >([]);
+  const [hotelFacilities, setHotelFacilities] = useState<string[]>([]);
 
   const form = useForm<CreateHotelFormValues>({
     resolver: zodResolver(createHotelFormSchema),
@@ -97,21 +95,54 @@ const NewHotelForm = () => {
 
   const handleNearbyUpdate = useCallback(
     (index: number, place: { name: string; distance: string }) => {
-      setHotelNearby((prev) => {
-        const next = [...prev];
-        next[index] = place;
-        return next;
-      });
+      const currentNearbyPlaces = form.getValues("nearby_places") || [];
+      const updatedNearbyPlaces = [...currentNearbyPlaces];
+
+      // Parse distance as integer, default to 0 if invalid
+      const distance = place.distance ? parseInt(place.distance, 10) : 0;
+
+      updatedNearbyPlaces[index] = {
+        name: place.name,
+        distance: isNaN(distance) ? 0 : distance,
+      };
+      form.setValue("nearby_places", updatedNearbyPlaces);
     },
-    []
+    [form]
   );
 
-  const handleNearbyRemove = useCallback((index: number) => {
-    setHotelNearby((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+  const handleNearbyRemove = useCallback(
+    (index: number) => {
+      const currentNearbyPlaces = form.getValues("nearby_places") || [];
+      const updatedNearbyPlaces = currentNearbyPlaces.filter(
+        (_, i) => i !== index
+      );
+      form.setValue("nearby_places", updatedNearbyPlaces);
+    },
+    [form]
+  );
 
   const handleNearbyAdd = useCallback(() => {
-    setHotelNearby((prev) => [...prev, { name: "", distance: "" }]);
+    const currentNearbyPlaces = form.getValues("nearby_places") || [];
+    form.setValue("nearby_places", [
+      ...currentNearbyPlaces,
+      { name: "", distance: 0 },
+    ]);
+  }, [form]);
+
+  const handleFacilityUpdate = useCallback((index: number, value: string) => {
+    setHotelFacilities((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }, []);
+
+  const handleFacilityRemove = useCallback((index: number) => {
+    setHotelFacilities((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleFacilityAdd = useCallback(() => {
+    setHotelFacilities((prev) => [...prev, ""]);
   }, []);
 
   // Handle form submission
@@ -138,7 +169,7 @@ const NewHotelForm = () => {
         toast.promise(createHotelNew(formData), {
           loading: "Creating hotel...",
           success: ({ message }) => {
-            form.reset();
+            // form.reset();
             return message || `Hotel created successfully!`;
           },
           error: "An unexpected error occurred. Please try again.",
@@ -453,10 +484,13 @@ const NewHotelForm = () => {
             <div className="flex flex-col gap-3">
               <h2 className="text-lg font-bold">Near Us</h2>
               <div className="space-y-3">
-                {hotelNearby.map((place, index) => (
+                {form.watch("nearby_places")?.map((place, index) => (
                   <NearbyPlaceItem
                     key={index}
-                    place={place}
+                    place={{
+                      name: place.name || "",
+                      distance: place.distance?.toString() || "",
+                    }}
                     index={index}
                     onUpdate={handleNearbyUpdate}
                     onRemove={handleNearbyRemove}
@@ -477,22 +511,22 @@ const NewHotelForm = () => {
             {/* Facilities */}
             <div className="flex flex-col gap-3">
               <h2 className="text-lg font-bold">Main Facilities</h2>
-              {/* <div className="space-y-3">
-                  {hotelFacilities.map((facility, index) => (
-                    <FacilityItem
-                      key={index}
-                      facility={facility}
-                      index={index}
-                      onUpdate={handleFacilityUpdate}
-                      onRemove={handleFacilityRemove}
-                    />
-                  ))}
-                  <div className="flex justify-end">
-                    <Button type="button" onClick={handleFacilityAdd}>
-                      <PlusCircle className="size-4" /> Add List
-                    </Button>
-                  </div>
-                </div> */}
+              <div className="space-y-3">
+                {hotelFacilities.map((facility, index) => (
+                  <FacilityItem
+                    key={index}
+                    facility={facility}
+                    index={index}
+                    onUpdate={handleFacilityUpdate}
+                    onRemove={handleFacilityRemove}
+                  />
+                ))}
+                <div className="flex justify-end">
+                  <Button type="button" onClick={handleFacilityAdd}>
+                    <PlusCircle className="size-4" /> Add List
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
