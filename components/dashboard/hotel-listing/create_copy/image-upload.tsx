@@ -25,7 +25,7 @@ export function ImageUpload({
   onImagesChange,
   maxImages = 10,
   acceptedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"],
-  maxSizeMB = 2, // Changed default to 2MB to match form requirements
+  maxSizeMB = 5,
   initialImages = [],
 }: ImageUploadProps) {
   const [images, setImages] = useState<ImageFile[]>([]);
@@ -250,11 +250,11 @@ export function ImageUpload({
                   </>
                 )}
               </p>
-              <div className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Supported formats:{" "}
                 {acceptedTypes.map((type) => type.split("/")[1]).join(", ")} •
                 Max size: {maxSizeMB}MB • Max images: {maxImages}
-              </div>
+              </p>
             </div>
           </div>
         </div>
@@ -386,7 +386,6 @@ export function ImageUpload({
               • You can still drag and drop additional images onto the grid
               above
             </p>
-            <p>• Maximum file size: {maxSizeMB}MB per image</p>
           </div>
         </div>
       )}

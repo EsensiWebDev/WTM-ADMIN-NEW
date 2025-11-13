@@ -1,6 +1,8 @@
 "use server";
 
+import { apiCall } from "@/lib/api";
 import { Hotel, Room } from "./types";
+import { revalidatePath } from "next/cache";
 
 export async function deleteHotel(hotelId: string) {
   console.log("Delete Hotel");
@@ -56,6 +58,51 @@ export async function createHotel(formData: FormData) {
   }
 }
 
+export async function createHotelNew(formData: FormData) {
+  console.log({ formData });
+
+  return {
+    success: true,
+    message: "Hotel created",
+  };
+  try {
+    const response = await apiCall("hotels", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to create hotels",
+      };
+    }
+
+    revalidatePath("/hotel-listing", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Hotel created",
+    };
+  } catch (error) {
+    console.error("Error creating hotel:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to create hotel",
+    };
+  }
+}
+
 export async function updateHotel(hotelId: string, formData: FormData) {
   try {
     console.log({ hotelId, formData });
@@ -97,7 +144,10 @@ export async function updateHotel(hotelId: string, formData: FormData) {
       updatedAt: new Date().toISOString(),
     });
 
-    return { success: true };
+    return {
+      success: true,
+      message: response.message || "Promo status updated successfully",
+    };
   } catch (error) {
     console.error("Error updating hotel:", error);
     return {
