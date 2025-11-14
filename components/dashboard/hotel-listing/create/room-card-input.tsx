@@ -249,7 +249,10 @@ export function RoomCardInput({
               render={() => (
                 <FormItem>
                   <FormControl>
-                    <ImageUpload onImagesChange={handleImageChange} />
+                    <ImageUpload
+                      initialImages={defaultValues?.photos || []}
+                      onImagesChange={handleImageChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

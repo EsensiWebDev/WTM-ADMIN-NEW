@@ -42,7 +42,7 @@ const RoomForm = ({
     setNewRoomCounter(newRoomCounter + 1);
   };
 
-  const onCreate = (data: RoomFormValues) => {
+  const onCreate = async (data: RoomFormValues) => {
     const formData = new FormData();
     formData.append("hotel_id", hotelId);
     formData.append("name", data.name);
@@ -63,19 +63,25 @@ const RoomForm = ({
     formData.append("additional", JSON.stringify(data.additional));
     formData.append("description", data.description || "");
 
-    toast.promise(createHotelRoomType(formData), {
-      loading: "Creating room type...",
-      success: ({ message }) => message,
-      error: ({ message }) => message,
-    });
+    const { success, message } = await createHotelRoomType(formData);
+
+    if (!success) {
+      toast.error(message || "Failed to create room type");
+      return;
+    }
+
+    toast.success(message || "Room type created");
   };
 
-  const onRemove = (roomId: string) => {
-    toast.promise(removeHotelRoomType(roomId), {
-      loading: "Removing room type...",
-      success: ({ message }) => message,
-      error: ({ message }) => message,
-    });
+  const onRemove = async (roomId: string) => {
+    const { success, message } = await removeHotelRoomType(roomId, hotelId);
+
+    if (!success) {
+      toast.error(message || "Failed to remove room type");
+      return;
+    }
+
+    toast.success(message || "Room type removed");
   };
 
   // Create a wrapper function that includes roomId for the update operation
@@ -128,7 +134,7 @@ const RoomForm = ({
             roomId={String(room.id)}
             defaultValues={{
               name: room.name,
-              photos: [],
+              photos: room.photos || [],
               without_breakfast: room.without_breakfast,
               with_breakfast: room.with_breakfast,
               room_size: room.room_size,

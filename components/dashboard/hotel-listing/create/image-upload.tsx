@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { formatUrl } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Image as ImageIcon, Loader2, Star, Upload, X } from "lucide-react";
 import React, { useCallback, useRef, useState } from "react";
@@ -39,7 +40,7 @@ export function ImageUpload({
     if (initialImages.length > 0 && images.length === 0) {
       const existingImages: ImageFile[] = initialImages.map((url, index) => ({
         id: `existing-${index}`,
-        preview: url,
+        preview: formatUrl(url) || "",
         isMain: index === 0, // First image is main by default
         isExisting: true,
       }));
