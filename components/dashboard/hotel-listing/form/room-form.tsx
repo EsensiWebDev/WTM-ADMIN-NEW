@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { RoomCardInput, RoomFormValues } from "../create/room-card-input";
 import { RoomDetail } from "@/app/(dashboard)/hotel-listing/types";
+import { useState } from "react";
 
 const RoomForm = ({
   hotelId,
@@ -13,7 +14,29 @@ const RoomForm = ({
   hotelId: string;
   rooms?: RoomDetail[];
 }) => {
-  const addNewRoom = () => {};
+  // State to manage the list of rooms
+  const [roomList, setRoomList] = useState<RoomDetail[]>(rooms || []);
+  const [newRoomCounter, setNewRoomCounter] = useState(0);
+
+  const addNewRoom = () => {
+    // Create a new empty room object with a temporary ID
+    const newRoom: RoomDetail = {
+      id: -(newRoomCounter + 1), // Use negative IDs for new rooms
+      name: "",
+      photos: [],
+      without_breakfast: { price: 0, is_show: true },
+      with_breakfast: { price: 0, pax: 1, is_show: true },
+      room_size: 0,
+      max_occupancy: 1,
+      bed_types: [""],
+      is_smoking_room: false,
+      additional: [],
+      description: "",
+    };
+
+    setRoomList([...roomList, newRoom]);
+    setNewRoomCounter(newRoomCounter + 1);
+  };
 
   const onSubmit = (data: RoomFormValues) => {
     const formData = new FormData();
@@ -57,30 +80,29 @@ const RoomForm = ({
       </div>
 
       <div className="space-y-6">
-        {!rooms && <p>No rooms found.</p>}
-        {rooms &&
-          rooms.map((room) => (
-            <RoomCardInput
-              key={room.id}
-              roomId={String(room.id)}
-              defaultValues={{
-                name: room.name,
-                photos: [],
-                without_breakfast: [room.without_breakfast],
-                with_breakfast: [room.with_breakfast],
-                room_size: room.room_size,
-                max_occupancy: room.max_occupancy,
-                bed_types: room.bed_types,
-                is_smoking_room: room.is_smoking_room,
-                additional: room.additional.map((item) => ({
-                  name: item.name,
-                  price: item.price,
-                })),
-                description: room.description,
-              }}
-              onSubmit={onSubmit}
-            />
-          ))}
+        {roomList.length === 0 && <p>No rooms found.</p>}
+        {roomList.map((room) => (
+          <RoomCardInput
+            key={room.id}
+            roomId={String(room.id)}
+            defaultValues={{
+              name: room.name,
+              photos: [],
+              without_breakfast: [room.without_breakfast],
+              with_breakfast: [room.with_breakfast],
+              room_size: room.room_size,
+              max_occupancy: room.max_occupancy,
+              bed_types: room.bed_types,
+              is_smoking_room: room.is_smoking_room,
+              additional: room.additional.map((item) => ({
+                name: item.name,
+                price: item.price,
+              })),
+              description: room.description,
+            }}
+            onSubmit={onSubmit}
+          />
+        ))}
       </div>
     </section>
   );
