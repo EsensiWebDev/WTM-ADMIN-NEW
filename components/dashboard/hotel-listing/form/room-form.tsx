@@ -7,7 +7,7 @@ import {
 } from "@/app/(dashboard)/hotel-listing/actions";
 import { RoomDetail } from "@/app/(dashboard)/hotel-listing/types";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RoomCardInput, RoomFormValues } from "../create/room-card-input";
 
@@ -117,6 +117,10 @@ const RoomForm = ({
       error: ({ message }) => message,
     });
   };
+
+  useEffect(() => {
+    setRoomList(rooms || []);
+  }, [rooms]);
 
   return (
     <section className="space-y-8">
