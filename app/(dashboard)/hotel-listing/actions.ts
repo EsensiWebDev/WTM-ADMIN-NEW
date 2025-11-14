@@ -91,6 +91,51 @@ export async function updateHotel(hotelId: string, formData: FormData) {
   }
 }
 
+export async function createHotelRoomType(formData: FormData) {
+  console.log({ formData });
+
+  try {
+    const response = await apiCall("hotels/room-types", {
+      method: "POST",
+      body: formData,
+    });
+
+    console.log({ response });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to create hotel room type",
+      };
+    }
+
+    revalidatePath("/hotel-listing", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Hotel room type created",
+    };
+  } catch (error) {
+    console.error("Error creating hotel room type:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to create hotel room type",
+    };
+  }
+}
+
 export async function importHotelsFromCsv(file: File) {
   try {
     // Simulate API delay

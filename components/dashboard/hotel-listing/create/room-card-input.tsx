@@ -49,7 +49,7 @@ const additionalSchema = z.object({
 });
 
 export const roomFormSchema = z.object({
-  hotel_id: z.number().int().positive("Hotel ID is required"),
+  // hotel_id: z.number().int().positive("Hotel ID is required"),
   name: z.string().min(1, "Room name is required"),
   photos: z
     .array(z.instanceof(File))
@@ -538,7 +538,7 @@ export function RoomCardInput({
                               <Input
                                 type="number"
                                 placeholder="0"
-                                className="bg-gray-200 w-26 pr-19"
+                                className="bg-gray-200 w-28"
                                 {...field}
                                 value={field.value || ""}
                                 onChange={(e) =>
@@ -621,13 +621,13 @@ export function RoomCardInput({
                           )}
                         </div>
                       ))}
-                      <Button
+                      {/* <Button
                         type="button"
                         className="inline-flex items-center gap-2"
                         onClick={addBedType}
                       >
                         <PlusCircle className="size-4" /> Add Bed Type
-                      </Button>
+                      </Button> */}
                     </div>
                   </div>
                 </div>
