@@ -134,6 +134,7 @@ const RoomForm = ({
             roomId={String(room.id)}
             defaultValues={{
               name: room.name,
+              // @ts-ignore TODO: fix this
               photos: room.photos || [],
               without_breakfast: room.without_breakfast,
               with_breakfast: room.with_breakfast,

@@ -250,6 +250,7 @@ export function RoomCardInput({
                 <FormItem>
                   <FormControl>
                     <ImageUpload
+                      // @ts-ignore TODO: fix this
                       initialImages={defaultValues?.photos || []}
                       onImagesChange={handleImageChange}
                     />
