@@ -81,6 +81,11 @@ const RoomForm = ({
       return;
     }
 
+    // Update local state to remove the deleted room from the UI
+    setRoomList((prevRoomList) =>
+      prevRoomList.filter((room) => String(room.id) !== roomId)
+    );
+
     toast.success(message || "Room type removed");
   };
 
