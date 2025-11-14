@@ -6,6 +6,27 @@ export interface Room {
   price_with_breakfast: number;
 }
 
+export interface RoomDetail {
+  id: number;
+  name: string;
+  without_breakfast: {
+    price: number;
+    is_show: boolean;
+  };
+  with_breakfast: {
+    price: number;
+    pax: number;
+    is_show: boolean;
+  };
+  room_size: number;
+  max_occupancy: number;
+  bed_types: string[];
+  is_smoking_room: boolean;
+  additional: Array<{ id: number; name: string; price: number }>;
+  description: string;
+  photos: string[];
+}
+
 export interface Hotel {
   id: string;
   name: string;
@@ -29,7 +50,7 @@ export interface HotelDetail {
   facilities: Array<string>;
   nearby_place: Array<{ id: number; name: string; radius: number }>;
   social_media: Array<{ platform: string; link: string }>;
-  // room_type: null;
+  room_type?: RoomDetail[];
   cancellation_period: number;
   check_in_hour: number;
   check_out_hour: number;

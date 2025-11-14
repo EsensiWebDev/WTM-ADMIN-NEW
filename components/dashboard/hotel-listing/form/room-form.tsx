@@ -4,11 +4,16 @@ import { createHotelRoomType } from "@/app/(dashboard)/hotel-listing/actions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { RoomCardInput, RoomFormValues } from "../create/room-card-input";
+import { RoomDetail } from "@/app/(dashboard)/hotel-listing/types";
 
-const RoomForm = ({ hotelId }: { hotelId: string }) => {
+const RoomForm = ({
+  hotelId,
+  rooms,
+}: {
+  hotelId: string;
+  rooms?: RoomDetail[];
+}) => {
   const addNewRoom = () => {};
-  const removeRoom = (roomId: string) => {};
-  const updateRoom = (roomId: string, updatedRoom: any) => {};
 
   const onSubmit = (data: RoomFormValues) => {
     const formData = new FormData();
@@ -52,11 +57,30 @@ const RoomForm = ({ hotelId }: { hotelId: string }) => {
       </div>
 
       <div className="space-y-6">
-        <RoomCardInput
-          onUpdate={(updatedRoom) => updateRoom("test", updatedRoom)}
-          onRemove={removeRoom}
-          onSubmit={onSubmit}
-        />
+        {!rooms && <p>No rooms found.</p>}
+        {rooms &&
+          rooms.map((room) => (
+            <RoomCardInput
+              key={room.id}
+              roomId={String(room.id)}
+              defaultValues={{
+                name: room.name,
+                photos: [],
+                without_breakfast: [room.without_breakfast],
+                with_breakfast: [room.with_breakfast],
+                room_size: room.room_size,
+                max_occupancy: room.max_occupancy,
+                bed_types: room.bed_types,
+                is_smoking_room: room.is_smoking_room,
+                additional: room.additional.map((item) => ({
+                  name: item.name,
+                  price: item.price,
+                })),
+                description: room.description,
+              }}
+              onSubmit={onSubmit}
+            />
+          ))}
       </div>
     </section>
   );

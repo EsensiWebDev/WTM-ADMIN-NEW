@@ -27,7 +27,7 @@ const EditHotelPage = async ({
       {status === 200 && (
         <>
           <EditHotelForm hotel={hotel} hotelId={id} />
-          <RoomForm hotelId={id} />
+          <RoomForm hotelId={id} rooms={hotel.room_type} />
         </>
       )}
     </div>
