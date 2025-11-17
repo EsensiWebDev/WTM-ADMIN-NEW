@@ -457,6 +457,11 @@ const getDetailBookingColumns = ({
         );
       };
 
+      const handleUploadReceipt = () => {
+        toast.info("Uploading receipt...");
+        // Implementation would open receipt viewer
+      };
+
       const handleViewReceipt = () => {
         toast.info("Opening receipt viewer...");
         // Implementation would open receipt viewer
@@ -480,14 +485,14 @@ const getDetailBookingColumns = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            {row.original.payment_status === "paid" && (
+            {row.original.payment_status.toLowerCase() === "paid" && (
               <DropdownMenuItem onClick={handleViewReceipt}>
                 <IconFileText className="mr-2 h-4 w-4" />
                 View Receipt
               </DropdownMenuItem>
             )}
-            {row.original.payment_status === "unpaid" && (
-              <DropdownMenuItem onClick={handleViewReceipt}>
+            {row.original.payment_status.toLowerCase() === "unpaid" && (
+              <DropdownMenuItem onClick={handleUploadReceipt}>
                 <IconCloudUpload className="mr-2 h-4 w-4" />
                 Upload Receipt
               </DropdownMenuItem>
