@@ -25,7 +25,7 @@ import {
   IconFriends,
 } from "@tabler/icons-react";
 import { Cigarette, Eye, EyeOff, PlusCircle, Trash2 } from "lucide-react";
-import { useCallback, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -44,33 +44,48 @@ const withBreakfastSchema = z.object({
 });
 
 const additionalSchema = z.object({
+  id: z.number().int().optional(), // ID for existing additions
   name: z.string().min(1, "Additional name is required"),
   price: z.number().min(0, "Price must be a positive number"),
 });
 
-export const roomFormSchema = z.object({
-  // hotel_id: z.number().int().positive("Hotel ID is required"),
-  name: z.string().min(1, "Room name is required"),
-  photos: z
-    .array(z.instanceof(File))
-    .min(1, "At least one photo is required")
-    .max(10, "Maximum 10 images allowed")
-    .refine(
-      (files) => files.every((file) => file.size <= 2 * 1024 * 1024),
-      "Each image must be less than 2MB"
-    ),
-  without_breakfast: withoutBreakfastSchema,
-  with_breakfast: withBreakfastSchema,
-  room_size: z
-    .number()
-    .min(0, "Room size must be a positive number")
-    .optional(),
-  max_occupancy: z.number().int().min(1, "Max occupancy must be at least 1"),
-  bed_types: z.array(z.string()).min(1, "At least one bed type is required"),
-  is_smoking_room: z.boolean(),
-  additional: z.array(additionalSchema).optional(),
-  description: z.string().optional(),
-});
+export const roomFormSchema = z
+  .object({
+    // hotel_id: z.number().int().positive("Hotel ID is required"),
+    name: z.string().min(1, "Room name is required"),
+    photos: z
+      .array(z.instanceof(File))
+      .max(10, "Maximum 10 images allowed")
+      .refine(
+        (files) => files.every((file) => file.size <= 2 * 1024 * 1024),
+        "Each image must be less than 2MB"
+      ),
+    unchanged_room_photos: z.array(z.string()).optional(),
+    without_breakfast: withoutBreakfastSchema,
+    with_breakfast: withBreakfastSchema,
+    room_size: z
+      .number()
+      .min(0, "Room size must be a positive number")
+      .optional(),
+    max_occupancy: z.number().int().min(1, "Max occupancy must be at least 1"),
+    bed_types: z.array(z.string()).min(1, "At least one bed type is required"),
+    is_smoking_room: z.boolean(),
+    additional: z.array(additionalSchema).optional(),
+    unchanged_additions_ids: z.array(z.number().int()).optional(),
+    description: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // At least one photo is required (either new or existing)
+      const hasNewPhotos = data.photos.length > 0;
+      const hasExistingPhotos = (data.unchanged_room_photos?.length || 0) > 0;
+      return hasNewPhotos || hasExistingPhotos;
+    },
+    {
+      message: "At least one photo is required",
+      path: ["photos"], // Show error on photos field
+    }
+  );
 
 export type RoomFormValues = z.infer<typeof roomFormSchema>;
 export type WithoutBreakfast = z.infer<typeof withoutBreakfastSchema>;
@@ -80,6 +95,8 @@ export type Additional = z.infer<typeof additionalSchema>;
 interface RoomCardInputProps {
   roomId?: string;
   defaultValues?: Partial<RoomFormValues>;
+  initialPhotos?: string[]; // URLs of existing room photos for edit mode
+  initialAdditions?: Array<{ id: number; name: string; price: number }>; // Existing additions with IDs
   onUpdate?: (room: RoomFormValues) => void;
   onRemove?: (id: string) => void;
   onCreate?: (data: RoomFormValues) => void;
@@ -88,11 +105,22 @@ interface RoomCardInputProps {
 export function RoomCardInput({
   roomId,
   defaultValues,
+  initialPhotos = [],
+  initialAdditions = [],
   onUpdate,
   onRemove,
   onCreate,
 }: RoomCardInputProps) {
   const [isPending, startTransition] = useTransition();
+
+  // Track original additions with their IDs for comparison
+  const [originalAdditions] = useState(
+    initialAdditions.map((addition) => ({
+      id: addition.id,
+      name: addition.name,
+      price: addition.price,
+    }))
+  );
 
   const form = useForm<RoomFormValues>({
     resolver: zodResolver(roomFormSchema),
@@ -100,6 +128,7 @@ export function RoomCardInput({
       // hotel_id: defaultValues?.hotel_id || 0,
       name: defaultValues?.name || "",
       photos: [],
+      unchanged_room_photos: initialPhotos,
       without_breakfast: defaultValues?.without_breakfast || {
         is_show: true,
         price: 0,
@@ -113,7 +142,14 @@ export function RoomCardInput({
       max_occupancy: defaultValues?.max_occupancy || 1,
       bed_types: defaultValues?.bed_types || [""],
       is_smoking_room: defaultValues?.is_smoking_room || false,
-      additional: defaultValues?.additional || [],
+      additional:
+        initialAdditions.map((addition) => ({
+          id: addition.id,
+          name: addition.name,
+          price: addition.price,
+        })) || [],
+      unchanged_additions_ids:
+        initialAdditions.map((addition) => addition.id) || [],
       description: defaultValues?.description || "",
     },
   });
@@ -149,19 +185,107 @@ export function RoomCardInput({
 
   // Handle image uploads from ImageUpload component
   const handleImageChange = useCallback(
-    (newImages: { file?: File }[]) => {
-      // Extract File objects for form validation
-      const files = newImages
-        .filter((img): img is { file: File } => img.file !== undefined) // Type guard to ensure file exists
-        .map((img) => img.file);
-      form.setValue("photos", files);
+    (
+      newImages: {
+        id: string;
+        file?: File;
+        preview: string;
+        isExisting?: boolean;
+      }[]
+    ) => {
+      // Separate new uploads from existing unchanged images
+      const newFiles = newImages
+        .filter((img) => img.file && !img.isExisting) // Only include newly uploaded files
+        .map((img) => img.file) as File[];
+
+      // Map existing images back to their original URLs from initialPhotos
+      const unchangedUrls = newImages
+        .filter((img) => img.isExisting) // Only include existing images that weren't removed
+        .map((img) => {
+          // Extract the index from the ID (e.g., 'existing-0' -> 0)
+          const indexMatch = img.id.match(/^existing-(\d+)$/);
+          if (indexMatch && initialPhotos) {
+            const index = parseInt(indexMatch[1], 10);
+            // Return the original URL from initialPhotos without modification
+            return initialPhotos[index];
+          }
+          return null;
+        })
+        .filter((url): url is string => url !== null); // Remove null values
+
+      form.setValue("photos", newFiles);
+      form.setValue("unchanged_room_photos", unchangedUrls);
     },
-    [form]
+    [form, initialPhotos]
   );
 
   const handleAddAdditional = useCallback(() => {
-    appendAdditional({ name: "", price: 0 });
+    appendAdditional({ name: "", price: 0 }); // New additions don't have ID
   }, [appendAdditional]);
+
+  const handleRemoveAdditional = useCallback(
+    (index: number) => {
+      const currentAdditions = form.getValues("additional") || [];
+      const additionToRemove = currentAdditions[index];
+
+      // If the addition has an ID, remove it from unchanged list
+      if (additionToRemove?.id !== undefined) {
+        const unchangedIds = form.getValues("unchanged_additions_ids") || [];
+        form.setValue(
+          "unchanged_additions_ids",
+          unchangedIds.filter((id) => id !== additionToRemove.id)
+        );
+      }
+
+      removeAdditional(index);
+    },
+    [form, removeAdditional]
+  );
+
+  // Track changes to additions
+  const handleAdditionChange = useCallback(
+    (index: number, field: "name" | "price", value: string | number) => {
+      const currentAdditions = form.getValues("additional") || [];
+      const addition = currentAdditions[index];
+
+      // Check if this is an existing addition (has ID)
+      if (addition?.id !== undefined) {
+        const originalAddition = originalAdditions.find(
+          (a) => a.id === addition.id
+        );
+
+        // After updating, check if it's modified
+        const updatedAddition = {
+          ...addition,
+          [field]: value,
+        };
+
+        const isModified =
+          originalAddition &&
+          (originalAddition.name !== updatedAddition.name ||
+            originalAddition.price !== updatedAddition.price);
+
+        const unchangedIds = form.getValues("unchanged_additions_ids") || [];
+
+        if (isModified) {
+          // Remove from unchanged list if it was modified
+          form.setValue(
+            "unchanged_additions_ids",
+            unchangedIds.filter((id) => id !== addition.id)
+          );
+        } else {
+          // Add back to unchanged list if it matches original
+          if (!unchangedIds.includes(addition.id)) {
+            form.setValue("unchanged_additions_ids", [
+              ...unchangedIds,
+              addition.id,
+            ]);
+          }
+        }
+      }
+    },
+    [form, originalAdditions]
+  );
 
   // Handle form submission
   const handleSubmit = useCallback(
@@ -250,8 +374,7 @@ export function RoomCardInput({
                 <FormItem>
                   <FormControl>
                     <ImageUpload
-                      // @ts-ignore TODO: fix this
-                      initialImages={defaultValues?.photos || []}
+                      initialImages={initialPhotos}
                       onImagesChange={handleImageChange}
                     />
                   </FormControl>
@@ -430,6 +553,14 @@ export function RoomCardInput({
                               className="bg-gray-200"
                               placeholder="Service name"
                               {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                handleAdditionChange(
+                                  index,
+                                  "name",
+                                  e.target.value
+                                );
+                              }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -449,11 +580,17 @@ export function RoomCardInput({
                                 placeholder="Price"
                                 {...field}
                                 value={field.value || ""}
-                                onChange={(e) =>
-                                  field.onChange(
-                                    e.target.value ? Number(e.target.value) : 0
-                                  )
-                                }
+                                onChange={(e) => {
+                                  const numValue = e.target.value
+                                    ? Number(e.target.value)
+                                    : 0;
+                                  field.onChange(numValue);
+                                  handleAdditionChange(
+                                    index,
+                                    "price",
+                                    numValue
+                                  );
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -468,7 +605,7 @@ export function RoomCardInput({
                       type="button"
                       variant="destructive"
                       size="icon"
-                      onClick={() => removeAdditional(index)}
+                      onClick={() => handleRemoveAdditional(index)}
                     >
                       <Trash2 className="size-4" />
                     </Button>

@@ -33,11 +33,12 @@ export function ImageUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false); // Track if component has been initialized
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize images with existing images when component mounts
   React.useEffect(() => {
-    if (initialImages.length > 0 && images.length === 0) {
+    if (initialImages.length > 0 && images.length === 0 && !isInitialized) {
       const existingImages: ImageFile[] = initialImages.map((url, index) => ({
         id: `existing-${index}`,
         preview: formatUrl(url) || "",
@@ -46,8 +47,9 @@ export function ImageUpload({
       }));
       setImages(existingImages);
       onImagesChange(existingImages);
+      setIsInitialized(true); // Mark as initialized to prevent re-initialization
     }
-  }, [initialImages, images.length, onImagesChange]);
+  }, [initialImages, images.length, onImagesChange, isInitialized]);
 
   const validateFile = (file: File): string | null => {
     if (!acceptedTypes.includes(file.type)) {

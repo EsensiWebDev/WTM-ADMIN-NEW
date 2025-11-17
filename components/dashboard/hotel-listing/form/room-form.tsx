@@ -60,7 +60,13 @@ const RoomForm = ({
       formData.append("bed_types", bedType);
     });
     formData.append("is_smoking_room", String(data.is_smoking_room));
-    formData.append("additional", JSON.stringify(data.additional));
+
+    // Process additions - only send new ones (without ID)
+    const newAdditions = (data.additional || [])
+      .filter((addition) => addition.id === undefined)
+      .map((addition) => ({ name: addition.name, price: addition.price }));
+
+    formData.append("additional", JSON.stringify(newAdditions));
     formData.append("description", data.description || "");
 
     const { success, message } = await createHotelRoomType(formData);
@@ -97,6 +103,14 @@ const RoomForm = ({
     data.photos.forEach((photo) => {
       formData.append("photos", photo);
     });
+
+    // Send unchanged room photos
+    if (data.unchanged_room_photos && data.unchanged_room_photos.length > 0) {
+      data.unchanged_room_photos.forEach((photo) => {
+        formData.append("unchanged_room_photos", photo);
+      });
+    }
+
     formData.append(
       "without_breakfast",
       JSON.stringify(data.without_breakfast)
@@ -108,7 +122,31 @@ const RoomForm = ({
       formData.append("bed_types", bedType);
     });
     formData.append("is_smoking_room", String(data.is_smoking_room));
-    formData.append("additional", JSON.stringify(data.additional));
+
+    // Process additions
+    const unchangedIds = data.unchanged_additions_ids || [];
+    const allAdditions = data.additional || [];
+
+    // Filter out unchanged additions and prepare only new/modified ones
+    const additionsToSend = allAdditions
+      .filter((addition) => {
+        // Include if it's a new addition (no ID) or modified (not in unchanged list)
+        return addition.id === undefined || !unchangedIds.includes(addition.id);
+      })
+      .map((addition) => {
+        // Remove ID from all new/modified additions - backend treats them equally
+        return { name: addition.name, price: addition.price };
+      });
+
+    formData.append("additional", JSON.stringify(additionsToSend));
+
+    // Send unchanged addition IDs separately
+    if (unchangedIds.length > 0) {
+      unchangedIds.forEach((id) => {
+        formData.append("unchanged_additions_ids", String(id));
+      });
+    }
+
     formData.append("description", data.description || "");
 
     toast.promise(updateHotelRoomType(roomId, formData), {
@@ -141,20 +179,16 @@ const RoomForm = ({
           <RoomCardInput
             key={room.id}
             roomId={String(room.id)}
+            initialPhotos={room.photos || []}
+            initialAdditions={room.additional || []}
             defaultValues={{
               name: room.name,
-              // @ts-ignore TODO: fix this
-              photos: room.photos || [],
               without_breakfast: room.without_breakfast,
               with_breakfast: room.with_breakfast,
               room_size: room.room_size,
               max_occupancy: room.max_occupancy,
               bed_types: room.bed_types,
               is_smoking_room: room.is_smoking_room,
-              additional: room.additional?.map((item) => ({
-                name: item.name,
-                price: item.price,
-              })),
               description: room.description,
             }}
             {
