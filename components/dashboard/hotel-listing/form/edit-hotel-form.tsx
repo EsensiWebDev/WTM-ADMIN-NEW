@@ -258,10 +258,9 @@ const EditHotelForm = ({ hotel, hotelId }: EditHotelFormProps) => {
           data.unchanged_hotel_photos &&
           data.unchanged_hotel_photos.length > 0
         ) {
-          formData.append(
-            "unchanged_hotel_photos",
-            JSON.stringify(data.unchanged_hotel_photos)
-          );
+          data.unchanged_hotel_photos.forEach((photo) => {
+            formData.append("unchanged_hotel_photos", photo);
+          });
         }
         formData.append("sub_district", data.sub_district);
         formData.append("district", data.district);
@@ -289,10 +288,9 @@ const EditHotelForm = ({ hotel, hotelId }: EditHotelFormProps) => {
 
         // Send unchanged IDs separately
         if (unchangedIds.length > 0) {
-          formData.append(
-            "unchanged_nearby_place_ids",
-            JSON.stringify(unchangedIds)
-          );
+          unchangedIds.forEach((id) => {
+            formData.append("unchanged_nearby_place_ids", String(id));
+          });
         }
 
         data.facilities?.forEach((facility) => {

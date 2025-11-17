@@ -82,11 +82,15 @@ export async function createHotelNew(formData: FormData) {
 }
 
 export async function updateHotel(hotelId: string, formData: FormData) {
+  console.log(formData);
+
   try {
     const response = await apiCall(`hotels/${hotelId}`, {
       method: "PUT",
       body: formData,
     });
+
+    console.log({ response });
 
     if (response.status !== 200) {
       return {
@@ -95,7 +99,7 @@ export async function updateHotel(hotelId: string, formData: FormData) {
       };
     }
 
-    revalidatePath("/hotel-listing", "layout");
+    revalidatePath(`/hotel-listing/[id]/edit`, "layout");
 
     return {
       success: true,
