@@ -22,19 +22,73 @@ import { PromoForm } from "../form/promo-form";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useQueryClient } from "@tanstack/react-query";
 
-export const editPromoSchema = z.object({
-  description: z.string().min(1, "Description is required"),
-  detail: z.union([z.string(), z.number()]),
-  promo_name: z.string().min(1, "Promo name is required"),
-  promo_code: z.string().min(1, "Promo code is required"),
-  promo_type: z.string().min(1, "Promo type is required"),
-  room_type_id: z.string().min(1, "Room type is required"),
-  total_night: z.number().min(1, "Total night is required"),
-  start_date: z.string().min(1, "Start date is required"),
-  end_date: z.string().min(1, "End date is required"),
-  is_active: z.boolean(),
-  hotel_name: z.string().min(1, "Hotel name is required"),
-});
+// Enhanced validation schema with more robust rules and better error messages
+export const editPromoSchema = z
+  .object({
+    description: z
+      .string()
+      .min(1, "Description is required")
+      .max(500, "Description must be less than 500 characters"),
+    detail: z.union([z.string(), z.number()]).refine(
+      (val) => {
+        if (typeof val === "string") {
+          return val.trim().length > 0;
+        }
+        return val !== null && val !== undefined;
+      },
+      {
+        message: "Detail is required",
+      }
+    ),
+    promo_name: z
+      .string()
+      .min(1, "Promo name is required")
+      .max(100, "Promo name must be less than 100 characters"),
+    promo_code: z
+      .string()
+      .min(1, "Promo code is required")
+      .max(50, "Promo code must be less than 50 characters")
+      .regex(
+        /^[A-Za-z0-9_]+$/,
+        "Promo code must contain only letters, numbers, and underscores"
+      ),
+    promo_type: z.string().min(1, "Promo type is required"),
+    room_type_id: z.string().min(1, "Room type is required"),
+    total_night: z.coerce
+      .number({
+        invalid_type_error: "Total night must be a number",
+        required_error: "Total night is required",
+      })
+      .min(1, "Total night must be at least 1")
+      .max(365, "Total night cannot exceed 365"),
+    start_date: z
+      .string()
+      .min(1, "Start date is required")
+      .refine(
+        (date) => !isNaN(Date.parse(date)),
+        "Start date must be a valid date"
+      ),
+    end_date: z
+      .string()
+      .min(1, "End date is required")
+      .refine(
+        (date) => !isNaN(Date.parse(date)),
+        "End date must be a valid date"
+      ),
+    is_active: z.boolean(),
+    hotel_name: z.string().min(1, "Hotel name is required"),
+  })
+  .refine(
+    (data) => {
+      const startDate = new Date(data.start_date);
+      const endDate = new Date(data.end_date);
+      return endDate > startDate;
+    },
+    {
+      message: "End date must be after start date",
+      path: ["end_date"],
+    }
+  );
 
 export type EditPromoSchema = z.infer<typeof editPromoSchema>;
 
