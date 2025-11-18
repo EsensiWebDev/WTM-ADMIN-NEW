@@ -46,7 +46,7 @@ export function getHotelTableColumns({
       size: 40,
     },
     {
-      id: "hotel_name",
+      id: "search",
       accessorKey: "name",
       header: ({ column }) => (
         <DataTableColumnHeader
@@ -164,8 +164,8 @@ export function getHotelTableColumns({
       enableSorting: false,
     },
     {
-      id: "api_status",
-      accessorKey: "api_status",
+      id: "is_api",
+      accessorKey: "is_api",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="API Status" />
       ),
@@ -181,8 +181,8 @@ export function getHotelTableColumns({
         placeholder: "Search API...",
         variant: "multiSelect",
         options: [
-          { label: "API", value: "api" },
-          { label: "Non API", value: "non_api" },
+          { label: "API", value: "true" },
+          { label: "Non API", value: "false" },
         ],
       },
       enableColumnFilter: true,

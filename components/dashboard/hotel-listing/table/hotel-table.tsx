@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  getData,
-  getRegionOptions,
-} from "@/app/(dashboard)/hotel-listing/fetch";
+import { getData } from "@/app/(dashboard)/hotel-listing/fetch";
 import { Hotel } from "@/app/(dashboard)/hotel-listing/types";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
@@ -19,6 +16,7 @@ import { DeleteHotelDialog } from "../dialog/delete-hotel-dialog";
 import EditHotelDialog from "../dialog/edit-hotel-dialog";
 import ImportCsvDialog from "../dialog/import-csv-dialog";
 import { getHotelTableColumns } from "./hotel-columns";
+import { getRegionOptions } from "@/server/general";
 
 interface HotelTableProps {
   promises: Promise<

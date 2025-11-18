@@ -78,3 +78,17 @@ export const getPaymentStatusOptions = async (): Promise<Option[]> => {
     return [];
   }
 };
+
+export const getRegionOptions = async () => {
+  const url = `/hotels/provinces?limit=0`;
+  const apiResponse = await apiCall<string[]>(url);
+
+  if (apiResponse.status === 200 && Array.isArray(apiResponse.data)) {
+    return apiResponse.data.map((province) => ({
+      label: province,
+      value: province,
+    }));
+  }
+
+  return [];
+};

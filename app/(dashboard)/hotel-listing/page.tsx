@@ -3,8 +3,9 @@ import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import React from "react";
-import { getData, getRegionOptions } from "./fetch";
+import { getData } from "./fetch";
 import { HotelPageProps } from "./types";
+import { getRegionOptions } from "@/server/general";
 
 const HotelPage = async (props: HotelPageProps) => {
   const searchParams = await props.searchParams;
