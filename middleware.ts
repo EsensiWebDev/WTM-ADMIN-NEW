@@ -1,7 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/login", "/forgot-password"];
 const AUTHENTICATED_REDIRECT_PATH = "/account/user-management/super-admin";
 
 export default withAuth(
