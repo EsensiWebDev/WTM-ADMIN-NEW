@@ -154,6 +154,12 @@ export const authOptions: NextAuthOptions = {
           throw new Error(data.message || "Invalid credentials");
         }
 
+        const isAgent = data.data.user.role.toLowerCase() === "agent";
+
+        if (isAgent) {
+          throw new Error("Invalid credentials");
+        }
+
         const refreshToken = extractRefreshToken(
           response.headers.get("set-cookie")
         );
