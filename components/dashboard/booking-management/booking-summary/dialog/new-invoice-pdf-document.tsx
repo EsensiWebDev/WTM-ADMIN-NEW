@@ -44,6 +44,7 @@ export interface NewInvoiceData {
     unit: string;
     price: number;
     total: number;
+    total_before_promo: number;
   }>;
   totalPrice: number;
   totalBeforePromo: number;
@@ -322,9 +323,29 @@ export const NewInvoicePDFDocument: React.FC<{
               </Text>
             </View>
             <View style={{ width: "16%", padding: 8, alignItems: "flex-end" }}>
-              <Text style={{ fontSize: 10, fontWeight: "bold" }}>
-                {formatCurrency(item.total, "IDR")}
-              </Text>
+              {/* Conditionally show strikethrough price when promo is applied to this item */}
+              {invoice.promo?.promo_code &&
+              item.total_before_promo > item.total ? (
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text
+                    style={{
+                      fontSize: 8,
+                      color: "#666",
+                      textDecoration: "line-through",
+                      marginBottom: 2,
+                    }}
+                  >
+                    {formatCurrency(item.total_before_promo, "IDR")}
+                  </Text>
+                  <Text style={{ fontSize: 10, fontWeight: "bold" }}>
+                    {formatCurrency(item.total, "IDR")}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={{ fontSize: 10, fontWeight: "bold" }}>
+                  {formatCurrency(item.total, "IDR")}
+                </Text>
+              )}
             </View>
           </View>
         ))}

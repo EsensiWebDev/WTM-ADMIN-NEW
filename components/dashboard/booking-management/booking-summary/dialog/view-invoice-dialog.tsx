@@ -319,7 +319,16 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                         {formatCurrency(item.price, "IDR")}
                       </td>
                       <td className="px-4 py-3 text-right text-sm font-medium">
-                        {formatCurrency(item.total, "IDR")}
+                        <div className="flex flex-col items-end gap-1">
+                          {/* Conditionally show strikethrough price when promo is applied to this item */}
+                          {newInvoiceData.promo?.promo_code &&
+                            item.total_before_promo > item.total && (
+                              <span className="text-xs text-gray-500 line-through">
+                                {formatCurrency(item.total_before_promo, "IDR")}
+                              </span>
+                            )}
+                          <span>{formatCurrency(item.total, "IDR")}</span>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -342,25 +351,36 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                   </p> */}
                 </div>
                 <div className="text-right">
-                  <div className="mb-1 flex items-center justify-end gap-2">
-                    <span className="text-sm text-gray-500 line-through">
-                      {formatCurrency(newInvoiceData.totalBeforePromo, "IDR")}
-                    </span>
-                  </div>
+                  {/* Conditionally show strikethrough price when promo is applied */}
+                  {newInvoiceData.promo?.promo_code &&
+                    newInvoiceData.totalBeforePromo >
+                      newInvoiceData.totalPrice && (
+                      <div className="mb-1 flex items-center justify-end gap-2">
+                        <span className="text-sm text-gray-500 line-through">
+                          {formatCurrency(
+                            newInvoiceData.totalBeforePromo,
+                            "IDR"
+                          )}
+                        </span>
+                      </div>
+                    )}
                   <p className="text-2xl font-bold text-gray-900">
                     {formatCurrency(newInvoiceData.totalPrice, "IDR")}
                   </p>
                 </div>
               </div>
-              <div className="flex items-end justify-end">
-                <span className="flex items-center gap-1 rounded-full bg-gray-800 px-3 py-1 text-xs font-medium text-white">
-                  Promo
-                  <IconRosetteDiscount size={14} />
-                  <span className="font-semibold">
-                    {newInvoiceData.promo.promo_code}
+              {/* Conditionally show promo badge when promo code exists */}
+              {newInvoiceData.promo?.promo_code && (
+                <div className="flex items-end justify-end">
+                  <span className="flex items-center gap-1 rounded-full bg-gray-800 px-3 py-1 text-xs font-medium text-white">
+                    Promo
+                    <IconRosetteDiscount size={14} />
+                    <span className="font-semibold">
+                      {newInvoiceData.promo.promo_code}
+                    </span>
                   </span>
-                </span>
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
