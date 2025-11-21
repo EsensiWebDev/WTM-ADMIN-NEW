@@ -19,6 +19,7 @@ import {
   IconWorld,
 } from "@tabler/icons-react";
 import { Loader, MapPin, PlusCircle, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -62,6 +63,7 @@ export type CreateHotelFormValues = z.infer<typeof createHotelFormSchema>;
 
 const NewHotelForm = () => {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<CreateHotelFormValues>({
     resolver: zodResolver(createHotelFormSchema),
@@ -177,8 +179,9 @@ const NewHotelForm = () => {
 
         toast.promise(createHotelNew(formData), {
           loading: "Creating hotel...",
-          success: ({ message }) => {
+          success: ({ data, message }) => {
             form.reset();
+            if (data) router.push(`/hotel-listing/${data.hotel_id}/edit`);
             return message || `Hotel created successfully!`;
           },
           error: "An unexpected error occurred. Please try again.",

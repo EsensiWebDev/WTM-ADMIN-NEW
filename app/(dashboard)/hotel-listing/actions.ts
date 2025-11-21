@@ -42,9 +42,11 @@ export async function deleteHotel(hotelId: string) {
   }
 }
 
-export async function createHotelNew(formData: FormData) {
+export async function createHotelNew(
+  formData: FormData
+): Promise<{ success: boolean; message: string; data?: { hotel_id: number } }> {
   try {
-    const response = await apiCall("hotels", {
+    const response = await apiCall<{ hotel_id: number }>("hotels", {
       method: "POST",
       body: formData,
     });
@@ -61,6 +63,7 @@ export async function createHotelNew(formData: FormData) {
     return {
       success: true,
       message: response.message || "Hotel created",
+      data: response.data,
     };
   } catch (error) {
     console.error("Error creating hotel:", error);
@@ -89,8 +92,6 @@ export async function updateHotel(hotelId: string, formData: FormData) {
       method: "PUT",
       body: formData,
     });
-
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
