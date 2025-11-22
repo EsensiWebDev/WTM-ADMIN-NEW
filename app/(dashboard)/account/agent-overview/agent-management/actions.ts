@@ -1,6 +1,5 @@
 "use server";
 
-import { EditAgentSchema } from "@/components/dashboard/account/agent-overview/agent-management/dialog/edit-agent-dialog";
 import { apiCall } from "@/lib/api";
 import { ExportConfigs } from "@/lib/export-client";
 import { ExportService } from "@/lib/export-service";
@@ -74,20 +73,13 @@ export async function createAgent(formData: FormData) {
   }
 }
 
-export async function editAgent(input: EditAgentSchema & { id: number }) {
+export async function editAgent(formData: FormData) {
   console.log("Edit Agent:");
-  console.log({ input });
 
   try {
-    const body = {
-      ...input,
-      user_id: input.id,
-      promo_group_id: Number(input.promo_group_id),
-    };
-
     const response = await apiCall("users", {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: formData,
     });
 
     console.log({ response, message: response.message });

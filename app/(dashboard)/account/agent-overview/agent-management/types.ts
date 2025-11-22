@@ -10,10 +10,10 @@ export interface Agent {
   kakao_talk_id: string;
   phone_number: string;
   status: string;
-  certificate: string;
-  id_card: string;
-  name_card: string;
-  photo: string;
+  photo_selfie?: string; // url link photo agent selfie
+  photo_id_card?: string; // url link photo agent id card
+  certificate?: string; // url link photo agent certificate
+  name_card?: string; // url link photo agent name card
 }
 
 export interface AgentTableResponse {

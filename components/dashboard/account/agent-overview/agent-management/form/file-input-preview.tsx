@@ -13,6 +13,7 @@ interface FileInputPreviewProps {
   ref: React.Ref<HTMLInputElement>;
   name: string;
   placeholder?: string;
+  initialPreview?: string; // URL of existing image
 }
 
 export const FileInputPreview = React.forwardRef<
@@ -27,10 +28,13 @@ export const FileInputPreview = React.forwardRef<
       value,
       name,
       placeholder = "Choose file",
+      initialPreview,
     },
     ref
   ) => {
-    const [preview, setPreview] = useState<string | null>(null);
+    const [preview, setPreview] = useState<string | null>(
+      initialPreview || null
+    );
     const [fileName, setFileName] = useState<string | null>(null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -42,11 +46,12 @@ export const FileInputPreview = React.forwardRef<
           setFileName(value.name);
         };
         reader.readAsDataURL(value);
-      } else {
+      } else if (!value && !initialPreview) {
+        // Only reset if there's no value and no initialPreview
         setPreview(null);
         setFileName(null);
       }
-    }, [value]);
+    }, [value, initialPreview]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];

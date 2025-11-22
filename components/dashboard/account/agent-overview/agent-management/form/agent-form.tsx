@@ -29,6 +29,13 @@ interface AgentFormProps<T extends FieldValues>
   form: UseFormReturn<T>;
   onSubmit: (data: T) => void;
   promoGroupSelect: PromoGroup[];
+  existingImages?: {
+    photo_selfie?: string;
+    photo_id_card?: string;
+    certificate?: string;
+    name_card?: string;
+  };
+  isEditMode?: boolean;
 }
 
 export function AgentForm<T extends FieldValues>({
@@ -36,6 +43,8 @@ export function AgentForm<T extends FieldValues>({
   onSubmit,
   children,
   promoGroupSelect,
+  existingImages,
+  isEditMode = false,
 }: AgentFormProps<T>) {
   return (
     <Form {...form}>
@@ -153,6 +162,7 @@ export function AgentForm<T extends FieldValues>({
                   onChange={onChange}
                   value={value}
                   accept="image/*"
+                  initialPreview={existingImages?.photo_selfie}
                 />
               </FormControl>
               <FormMessage />
@@ -173,6 +183,7 @@ export function AgentForm<T extends FieldValues>({
                   onChange={onChange}
                   value={value}
                   accept="image/*"
+                  initialPreview={existingImages?.photo_id_card}
                 />
               </FormControl>
               <FormMessage />
@@ -193,6 +204,7 @@ export function AgentForm<T extends FieldValues>({
                   onChange={onChange}
                   value={value}
                   accept="image/*"
+                  initialPreview={existingImages?.certificate}
                 />
               </FormControl>
               <FormMessage />
@@ -213,32 +225,35 @@ export function AgentForm<T extends FieldValues>({
                   onChange={onChange}
                   value={value}
                   accept="image/*"
+                  initialPreview={existingImages?.name_card}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        {/* <FormField
-          control={form.control}
-          name={"is_active" as FieldPath<T>}
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Status</FormLabel>
-                <div className="text-sm text-muted-foreground">
-                  Enable or disable this user account
+        {isEditMode && (
+          <FormField
+            control={form.control}
+            name={"is_active" as FieldPath<T>}
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Status</FormLabel>
+                  <div className="text-sm text-muted-foreground">
+                    Enable or disable this user account
+                  </div>
                 </div>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={!!field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        /> */}
+                <FormControl>
+                  <Switch
+                    checked={!!field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
         {children}
       </form>
     </Form>
