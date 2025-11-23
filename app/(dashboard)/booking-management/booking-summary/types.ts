@@ -10,6 +10,7 @@ export interface BookingSummary {
   booking_id: number;
   booking_status: BookingStatus;
   detail: BookingSummaryDetail[];
+  receipts: string[] | null;
   group_promo: string;
   guest_name: string[];
   payment_status: PaymentStatus;

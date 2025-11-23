@@ -15,6 +15,7 @@ import { DeleteBookingSummaryDialog } from "../dialog/delete-booking-summary-dia
 import { DetailBookingSummaryDialog } from "../dialog/detail-booking-summary-dialog";
 import EditBookingSummaryDialog from "../dialog/edit-booking-summary-dialog";
 import { UploadReceiptDialog } from "../dialog/upload-receipt-dialog";
+import ViewReceiptDialog from "../dialog/view-receipt-dialog";
 import { getBookingSummaryTableColumns } from "./booking-summary-columns";
 
 interface BookingSummaryTableProps {
@@ -36,6 +37,11 @@ const BookingSummaryTable = ({ promises }: BookingSummaryTableProps) => {
   const [uploadReceiptOpen, setUploadReceiptOpen] = React.useState(false);
   const [selectedBookingForReceipt, setSelectedBookingForReceipt] =
     React.useState<{ bookingId?: string; subBookingId?: string } | null>(null);
+  const [viewReceiptOpen, setViewReceiptOpen] = React.useState(false);
+  const [selectedBookingForViewReceipt, setSelectedBookingForViewReceipt] =
+    React.useState<BookingSummary | null>(null);
+
+  console.log({ data });
 
   const columns = React.useMemo(
     () =>
@@ -46,6 +52,10 @@ const BookingSummaryTable = ({ promises }: BookingSummaryTableProps) => {
         onUploadReceipt: (bookingId: string) => {
           setSelectedBookingForReceipt({ bookingId });
           setUploadReceiptOpen(true);
+        },
+        onViewReceipt: (booking: BookingSummary) => {
+          setSelectedBookingForViewReceipt(booking);
+          setViewReceiptOpen(true);
         },
       }),
     []
@@ -100,6 +110,11 @@ const BookingSummaryTable = ({ promises }: BookingSummaryTableProps) => {
           setSelectedBookingForReceipt(null);
           startTransition(() => {});
         }}
+      />
+      <ViewReceiptDialog
+        open={viewReceiptOpen}
+        onOpenChange={setViewReceiptOpen}
+        booking={selectedBookingForViewReceipt}
       />
     </>
   );

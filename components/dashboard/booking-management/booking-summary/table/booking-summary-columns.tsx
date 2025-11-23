@@ -33,6 +33,7 @@ interface GetBookingSummaryTableColumnsProps {
   bookingStatusOptions: Option[];
   paymentStatusOptions: Option[];
   onUploadReceipt: (bookingId: string) => void;
+  onViewReceipt: (booking: BookingSummary) => void;
 }
 
 export function getBookingSummaryTableColumns({
@@ -40,6 +41,7 @@ export function getBookingSummaryTableColumns({
   bookingStatusOptions,
   paymentStatusOptions,
   onUploadReceipt,
+  onViewReceipt,
 }: GetBookingSummaryTableColumnsProps): ColumnDef<BookingSummary>[] {
   return [
     {
@@ -418,22 +420,19 @@ export function getBookingSummaryTableColumns({
         <DataTableColumnHeader column={column} title="Payment Receipt" />
       ),
       cell: ({ row }) => {
-        if (row.original.payment_status.toLowerCase() === "unpaid")
-          return (
-            <Button
-              size={"sm"}
-              onClick={() => onUploadReceipt(String(row.original.booking_id))}
-            >
-              <IconCloudUpload className="h-4 w-4" />
-              Upload Receipt
-            </Button>
-          );
+        // if (row.original.payment_status.toLowerCase() === "unpaid")
+        //   return (
+        //     <Button
+        //       size={"sm"}
+        //       onClick={() => onUploadReceipt(String(row.original.booking_id))}
+        //     >
+        //       <IconCloudUpload className="h-4 w-4" />
+        //       Upload Receipt
+        //     </Button>
+        //   );
 
         return (
-          <Button
-            size={"sm"}
-            onClick={() => setRowAction({ row, variant: "detail" })}
-          >
+          <Button size={"sm"} onClick={() => onViewReceipt(row.original)}>
             <FileText className="h-4 w-4" />
             View Receipt
           </Button>

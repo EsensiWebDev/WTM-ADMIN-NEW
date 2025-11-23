@@ -59,6 +59,7 @@ import {
 import { Ban, MoreHorizontal } from "lucide-react";
 import ViewInvoiceDialog from "./view-invoice-dialog";
 import { UploadReceiptDialog } from "./upload-receipt-dialog";
+import ViewReceiptDialog from "./view-receipt-dialog";
 
 interface GetDetailBookingTableColumnsProps {
   setRowAction: React.Dispatch<
@@ -631,6 +632,16 @@ export function DetailBookingSummaryDialog({
         bookingSummary={rowAction?.row.original ?? null}
         open={rowAction?.variant === "invoice"}
         onOpenChange={() => setRowAction(null)}
+      />
+      <ViewReceiptDialog
+        open={rowAction?.variant === "receipt"}
+        onOpenChange={() => setRowAction(null)}
+        receipts={
+          bookingSummary?.receipts && rowAction?.row.original
+            ? [bookingSummary.receipts[rowAction.row.index] || ""]
+            : null
+        }
+        invoiceIndex={rowAction?.row.index}
       />
       <UploadReceiptDialog
         open={uploadReceiptOpen}
