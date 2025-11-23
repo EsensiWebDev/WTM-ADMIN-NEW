@@ -528,18 +528,18 @@ const getDetailBookingColumns = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            {row.original.payment_status.toLowerCase() === "paid" && (
-              <DropdownMenuItem onClick={handleViewReceipt}>
-                <IconFileText className="mr-2 h-4 w-4" />
-                View Receipt
-              </DropdownMenuItem>
-            )}
-            {row.original.payment_status.toLowerCase() === "unpaid" && (
+            {/* {row.original.payment_status.toLowerCase() === "paid" && ( */}
+            <DropdownMenuItem onClick={handleViewReceipt}>
+              <IconFileText className="mr-2 h-4 w-4" />
+              View Receipt
+            </DropdownMenuItem>
+            {/* )} */}
+            {/* {row.original.payment_status.toLowerCase() === "unpaid" && (
               <DropdownMenuItem onClick={handleUploadReceipt}>
                 <IconCloudUpload className="mr-2 h-4 w-4" />
                 Upload Receipt
               </DropdownMenuItem>
-            )}
+            )} */}
             <DropdownMenuItem onClick={handleViewInvoice}>
               <IconFileDownload className="mr-2 h-4 w-4" />
               View Invoice
@@ -636,11 +636,7 @@ export function DetailBookingSummaryDialog({
       <ViewReceiptDialog
         open={rowAction?.variant === "receipt"}
         onOpenChange={() => setRowAction(null)}
-        receipts={
-          bookingSummary?.receipts && rowAction?.row.original
-            ? [bookingSummary.receipts[rowAction.row.index] || ""]
-            : null
-        }
+        receipts={bookingSummary?.receipts || null}
         invoiceIndex={rowAction?.row.index}
       />
       <UploadReceiptDialog
