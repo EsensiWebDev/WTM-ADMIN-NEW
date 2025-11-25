@@ -70,7 +70,7 @@ export function AgentForm<T extends FieldValues>({
           name={"agent_company" as FieldPath<T>}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Agent Company*</FormLabel>
+              <FormLabel>Agent Company</FormLabel>
               <FormControl>
                 <Input placeholder="Enter agent company" {...field} />
               </FormControl>

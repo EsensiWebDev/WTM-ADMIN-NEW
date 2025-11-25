@@ -2,6 +2,7 @@
 
 import { editAgent } from "@/app/(dashboard)/account/agent-overview/agent-management/actions";
 import { Agent } from "@/app/(dashboard)/account/agent-overview/agent-management/types";
+import { PromoGroup } from "@/app/(dashboard)/promo-group/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formatUrl } from "@/lib/format";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
 import React from "react";
@@ -19,14 +21,12 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { AgentForm } from "../form/agent-form";
-import { PromoGroup } from "@/app/(dashboard)/promo-group/types";
-import { formatUrl } from "@/lib/format";
 
 export const editAgentSchema = z.object({
-  full_name: z.string(),
-  agent_company: z.string(),
-  promo_group_id: z.string(),
-  email: z.string().email(),
+  full_name: z.string().min(1, "Full name is required"),
+  agent_company: z.string().optional(),
+  promo_group_id: z.string().min(1, "Promo group is required"),
+  email: z.string().email("Invalid email format").min(1, "Email is required"),
   phone: z
     .string()
     .min(8, "Phone number must be at least 8 characters")
@@ -35,7 +35,7 @@ export const editAgentSchema = z.object({
       "Phone number must start with a country code (e.g., +62) followed by digits only"
     ),
   is_active: z.boolean(),
-  kakao_talk_id: z.string().optional(),
+  kakao_talk_id: z.string().min(1, "KakaoTalk ID is required").max(25),
   photo_selfie: z.instanceof(File).optional(),
   photo_id_card: z.instanceof(File).optional(),
   certificate: z.instanceof(File).optional(),
@@ -84,7 +84,7 @@ const EditAgentDialog = ({
 
       // Only add fields that have values
       fd.append("full_name", input.full_name);
-      fd.append("agent_company", input.agent_company);
+      if (input.agent_company) fd.append("agent_company", input.agent_company);
       fd.append("promo_group_id", input.promo_group_id);
       fd.append("email", input.email);
       fd.append("phone", input.phone);

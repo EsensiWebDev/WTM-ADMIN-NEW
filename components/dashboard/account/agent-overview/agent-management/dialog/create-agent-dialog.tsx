@@ -23,7 +23,7 @@ import { AgentForm } from "../form/agent-form";
 
 export const createAgentSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
-  agent_company: z.string().min(1, "Agent company is required"),
+  agent_company: z.string().optional(),
   promo_group_id: z.string().min(1, "Promo group is required"),
   email: z.string().email("Invalid email format").min(1, "Email is required"),
   phone: z
@@ -86,7 +86,7 @@ const CreateAgentDialog = ({
   function onSubmit(input: CreateAgentSchema) {
     const fd = new FormData();
     fd.append("full_name", input.full_name);
-    fd.append("agent_company", input.agent_company);
+    if (input.agent_company) fd.append("agent_company", input.agent_company);
     fd.append("promo_group_id", input.promo_group_id);
     fd.append("email", input.email);
     fd.append("phone", input.phone);
