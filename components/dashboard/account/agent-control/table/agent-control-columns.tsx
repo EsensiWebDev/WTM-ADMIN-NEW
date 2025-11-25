@@ -31,7 +31,7 @@ export function getAgentControlTableColumns({
   const getStatusColor = (value: string) => {
     if (value === "Active") return "text-green-600 bg-green-100";
     else if (value === "Reject") return "text-red-600 bg-red-100";
-    else return "text-gray-600 bg-gray-100";
+    else return "text-gray-600 bg-white-100";
   };
 
   interface StatusCellProps {
@@ -40,7 +40,9 @@ export function getAgentControlTableColumns({
 
   function StatusCell({ row }: StatusCellProps) {
     const [isUpdatePending, startUpdateTransition] = React.useTransition();
-    const [selectValue, setSelectValue] = React.useState(row.original.status);
+    const [selectValue, setSelectValue] = React.useState(
+      row.original.status === "Waiting Approval" ? "" : row.original.status
+    );
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [pendingValue, setPendingValue] = React.useState<string | null>(null);
 
@@ -93,7 +95,7 @@ export function getAgentControlTableColumns({
             )}`}
             id={`${row.original.id}-promo-group`}
           >
-            <SelectValue placeholder="Assign promo group" />
+            <SelectValue placeholder="Assign status" />
           </SelectTrigger>
           <SelectContent align="end">
             <SelectItem value="Active">Approved</SelectItem>
