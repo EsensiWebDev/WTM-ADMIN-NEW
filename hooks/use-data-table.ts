@@ -20,7 +20,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  type Parser,
+  type GenericParserBuilder,
   type UseQueryStateOptions,
   parseAsInteger,
   parseAsNativeArrayOf,
@@ -177,13 +177,12 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     if (enableAdvancedFilter) return {};
 
     return filterableColumns.reduce<
-      Record<string, Parser<string> | Parser<string[]>>
+      Record<
+        string,
+        GenericParserBuilder<string> | GenericParserBuilder<string[]>
+      >
     >((acc, column) => {
       if (column.meta?.options) {
-        // acc[column.id ?? ""] = parseAsArrayOf(
-        //   parseAsString,
-        //   ARRAY_SEPARATOR
-        // ).withOptions(queryStateOptions);
         acc[column.id ?? ""] =
           parseAsNativeArrayOf(parseAsString).withOptions(queryStateOptions);
       } else {
