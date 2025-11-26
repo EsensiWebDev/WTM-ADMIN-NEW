@@ -18,7 +18,7 @@ export interface ReportSummary {
       message: string;
     };
   };
-  graphic_data: null;
+  graphic_data: { date: string; count: number }[];
 }
 
 export interface ReportAgent {

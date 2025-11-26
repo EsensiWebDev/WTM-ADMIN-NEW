@@ -140,7 +140,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ChartAreaInteractive() {
+interface ChartAreaInteractiveProps {
+  data?: { date: string; count: number }[];
+}
+
+export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
   const [range, setRange] = React.useState<DateRange | undefined>({
@@ -148,15 +152,27 @@ export function ChartAreaInteractive() {
     to: new Date(2025, 5, 30),
   });
 
+  // Transform the provided data to match the chart format
+  const transformedData = React.useMemo(() => {
+    if (data.length === 0) {
+      return chartData; // Fallback to dummy data if no data provided
+    }
+    return data.map(item => ({
+      date: item.date,
+      confirmed: item.count,
+      rejected: 0 // Use only the count field for confirmed bookings
+    }));
+  }, [data]);
+
   const newFilteredData = React.useMemo(() => {
     if (!range?.from && !range?.to) {
-      return chartData;
+      return transformedData;
     }
-    return chartData.filter((item) => {
+    return transformedData.filter((item) => {
       const date = new Date(item.date);
       return date >= range.from! && date <= range.to!;
     });
-  }, [range]);
+  }, [range, transformedData]);
 
   // Check if there's no data to display
   const hasNoData = newFilteredData.length === 0;
