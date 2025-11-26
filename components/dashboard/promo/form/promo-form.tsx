@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFormattedCurrencyInput } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { getHotelOptions } from "@/server/general";
 import { useQuery } from "@tanstack/react-query";
@@ -282,23 +283,30 @@ export function PromoForm<T extends FieldValues>({
             <FormField
               control={form.control}
               name={"detail" as FieldPath<T>}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price Discount (IDR)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="Enter amount"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 0)
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const { displayValue, handleChange, handleBlur } =
+                  useFormattedCurrencyInput(
+                    field.value,
+                    field.onChange,
+                    "id-ID"
+                  );
+
+                return (
+                  <FormItem>
+                    <FormLabel>Price Discount (IDR)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="Enter amount (e.g., 50.000)"
+                        value={displayValue}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           )}
           {form.watch("promo_type" as FieldPath<T>) === "3" && (
