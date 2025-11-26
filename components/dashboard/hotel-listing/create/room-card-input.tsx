@@ -770,79 +770,100 @@ export function RoomCardInput({
                   </div>
 
                   {/* Smoking Policy */}
-                  <div className="flex items-center gap-2">
-                    <Cigarette className="h-5 w-5" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Cigarette className="h-5 w-5" />
+                      <FormField
+                        control={form.control}
+                        name="is_smoking_room"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Select
+                                value={field.value ? "smoking" : "non-smoking"}
+                                onValueChange={(value) =>
+                                  field.onChange(value === "smoking")
+                                }
+                              >
+                                <SelectTrigger className="bg-gray-200 w-32">
+                                  <SelectValue placeholder="Select smoking" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="non-smoking">
+                                    <div className="flex items-center gap-2">
+                                      <span>Non Smoking</span>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="smoking">
+                                    <div className="flex items-center gap-2">
+                                      <span>Smoking</span>
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
                       name="is_smoking_room"
-                      render={({ field }) => (
+                      render={() => (
                         <FormItem>
-                          <FormControl>
-                            <Select
-                              value={field.value ? "smoking" : "non-smoking"}
-                              onValueChange={(value) =>
-                                field.onChange(value === "smoking")
-                              }
-                            >
-                              <SelectTrigger className="bg-gray-200 w-32">
-                                <SelectValue placeholder="Select smoking" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="non-smoking">
-                                  <div className="flex items-center gap-2">
-                                    <span>Non Smoking</span>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="smoking">
-                                  <div className="flex items-center gap-2">
-                                    <span>Smoking</span>
-                                  </div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
 
                   {/* Bed Types */}
-                  <div className="flex items-center gap-2">
-                    <IconBed className="h-5 w-5" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <IconBed className="h-5 w-5" />
+                      <FormField
+                        control={form.control}
+                        name="bed_types"
+                        render={() => (
+                          <FormItem>
+                            <FormControl>
+                              <div className="space-y-2">
+                                {bedTypes.map((bedType, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Input
+                                      placeholder="Bed type"
+                                      className="bg-gray-200 w-26"
+                                      value={bedType}
+                                      onChange={(e) =>
+                                        updateBedType(index, e.target.value)
+                                      }
+                                    />
+                                    {bedTypes.length > 1 && (
+                                      <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => removeBedType(index)}
+                                      >
+                                        <Trash2 className="size-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
                       name="bed_types"
                       render={() => (
                         <FormItem>
-                          <FormControl>
-                            <div className="space-y-2">
-                              {bedTypes.map((bedType, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Input
-                                    placeholder="Bed type"
-                                    className="bg-gray-200 w-26"
-                                    value={bedType}
-                                    onChange={(e) =>
-                                      updateBedType(index, e.target.value)
-                                    }
-                                  />
-                                  {bedTypes.length > 1 && (
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="icon"
-                                      onClick={() => removeBedType(index)}
-                                    >
-                                      <Trash2 className="size-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </FormControl>
                           <FormMessage className="whitespace-pre-line" />
                         </FormItem>
                       )}
