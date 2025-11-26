@@ -1,3 +1,5 @@
+"use server";
+
 import { apiCall } from "@/lib/api";
 import { buildQueryParams } from "@/lib/utils";
 import { ApiResponse } from "@/types";
@@ -52,26 +54,6 @@ export const getReportAgent = async ({
     query = rest as SearchParams;
   }
 
-  // return {
-  //   data: [
-  //     {
-  //       agent_company: "Dummy Company",
-  //       agent_name: "Dummy Agent",
-  //       cancelled_booking: 1,
-  //       confirmed_booking: 1,
-  //       hotel_name: "Dummy Hotel",
-  //     },
-  //   ],
-  //   message: "success",
-  //   pagination: {
-  //     limit: 10,
-  //     page: 1,
-  //     total: 1,
-  //     total_pages: 1,
-  //   },
-  //   status: 200,
-  // };
-
   const queryString = buildQueryParams(query);
   const url = `/reports/agent${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<ReportAgent[]>(url);
@@ -79,36 +61,18 @@ export const getReportAgent = async ({
   return apiResponse;
 };
 
-export const getReportAgentDetail = async (): Promise<
-  ApiResponse<ReportAgentDetail[]>
-> => {
-  // return {
-  //   data: [
-  //     {
-  //       additional: "dummy",
-  //       capacity: "dummy",
-  //       date_in: "2025-10-23T02:21:55+07:00",
-  //       date_out: "2025-10-24T02:21:55+07:00",
-  //       guest_name: "dummy",
-  //       room_type: "dummy",
-  //       status_booking: "dummy",
-  //     },
-  //   ],
-  //   message: "dummy",
-  //   pagination: {
-  //     limit: 10,
-  //     page: 1,
-  //     total: 1,
-  //     total_pages: 1,
-  //   },
-  //   status: 200,
-  // };
-
-  const searchParams: SearchParams = {
-    limit: "10",
+export const getReportAgentDetail = async ({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<ApiResponse<ReportAgentDetail[]>> => {
+  const searchParamsWithDefaults = {
+    ...searchParams,
+    limit: "0",
   };
 
-  const queryString = buildQueryParams(searchParams);
+  const queryString = buildQueryParams(searchParamsWithDefaults);
+  console.log({ queryString });
   const url = `/reports/agent/detail${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<ReportAgentDetail[]>(url);
 

@@ -60,10 +60,21 @@ const ReportTable = ({ promises }: ReportTableProps) => {
     },
   });
 
+  console.log({ dataRow: rowAction?.row.original });
+
   const query = useQuery({
-    queryKey: ["report-agent-details"],
+    queryKey: [
+      "report-agent-details",
+      `agent-${rowAction?.row.original?.agent_id}`,
+      `hotel-${rowAction?.row.original?.hotel_id}`,
+    ],
     queryFn: async () => {
-      const data = await getReportAgentDetail();
+      const data = await getReportAgentDetail({
+        searchParams: {
+          agent_id: String(rowAction?.row.original?.agent_id),
+          hotel_id: String(rowAction?.row.original?.hotel_id),
+        },
+      });
       return data;
     },
     retry: 2,
