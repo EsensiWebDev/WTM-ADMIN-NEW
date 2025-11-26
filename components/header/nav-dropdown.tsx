@@ -23,7 +23,7 @@ export const NavDropdown = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="inline-flex items-center justify-center text-white hover:text-gray-200 duration-150 cursor-pointer">
+        <button className="text-muted-foreground inline-flex items-center justify-center sm:text-white hover:text-gray-200 duration-150 cursor-pointer">
           <span>{menu.name}</span>
           <ChevronDown className="ml-2 size-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
         </button>

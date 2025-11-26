@@ -19,9 +19,10 @@ import {
 
 type NavUserProps = {
   user?: AccountProfile;
+  compact?: boolean; // For mobile view
 };
 
-export const NavUser = ({ user }: NavUserProps) => {
+export const NavUser = ({ user, compact = false }: NavUserProps) => {
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
   const isMounted = React.useRef(true);
 
@@ -93,8 +94,13 @@ export const NavUser = ({ user }: NavUserProps) => {
 
   if (!user) {
     return (
-      <Button asChild variant="ghost" size="lg" className="text-white">
-        <Link href="/login">Login</Link>
+      <Button
+        asChild
+        variant="ghost"
+        size={compact ? "icon" : "lg"}
+        className="text-white"
+      >
+        <Link href="/login">{compact ? "Login" : "Login"}</Link>
       </Button>
     );
   }
@@ -104,18 +110,22 @@ export const NavUser = ({ user }: NavUserProps) => {
       <DropdownMenuTrigger asChild>
         <Button
           variant={"ghost"}
-          size={"lg"}
+          size={compact ? "icon" : "lg"}
           className="text-white data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
           <Avatar className="h-8 w-8 rounded-lg">
             <AvatarImage src={displayAvatar} alt={displayName} />
             <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
           </Avatar>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">{displayName}</span>
-            <span className="truncate text-xs">{displayEmail}</span>
-          </div>
-          <ChevronsUpDown className="ml-auto size-4" />
+          {!compact && (
+            <>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{displayName}</span>
+                <span className="truncate text-xs">{displayEmail}</span>
+              </div>
+              <ChevronsUpDown className="ml-auto size-4" />
+            </>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-30 rounded-lg">
