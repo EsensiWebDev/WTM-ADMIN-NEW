@@ -147,20 +147,31 @@ interface ChartAreaInteractiveProps {
 export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
-  const [range, setRange] = React.useState<DateRange | undefined>({
-    from: new Date(2025, 3, 1),
-    to: new Date(2025, 5, 30),
-  });
+
+  // Set default date range to last 7 days (6 days ago to today)
+  const getDefaultDateRange = React.useCallback(() => {
+    const today = new Date();
+    const fromDate = new Date(today);
+    fromDate.setDate(fromDate.getDate() - 6); // 6 days ago
+    return {
+      from: fromDate,
+      to: today,
+    };
+  }, []);
+
+  const [range, setRange] = React.useState<DateRange | undefined>(
+    getDefaultDateRange()
+  );
 
   // Transform the provided data to match the chart format
   const transformedData = React.useMemo(() => {
     if (data.length === 0) {
       return chartData; // Fallback to dummy data if no data provided
     }
-    return data.map(item => ({
+    return data.map((item) => ({
       date: item.date,
       confirmed: item.count,
-      rejected: 0 // Use only the count field for confirmed bookings
+      rejected: 0, // Use only the count field for confirmed bookings
     }));
   }, [data]);
 
