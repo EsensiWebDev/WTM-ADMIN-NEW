@@ -46,7 +46,10 @@ const ReportTable = ({ promises }: ReportTableProps) => {
     data: data || [],
     columns,
     pageCount: pagination?.total_pages || 1,
-    getRowId: (originalRow) => originalRow.hotel_name,
+    getRowId: (originalRow) =>
+      originalRow.hotel_name +
+      originalRow.agent_name +
+      originalRow.agent_company,
     shallow: false,
     clearOnDefault: true,
     startTransition,

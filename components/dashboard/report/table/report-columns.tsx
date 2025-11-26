@@ -38,7 +38,7 @@ export function getReportTableColumns({
       meta: {
         label: "Hotel",
         placeholder: "Search hotel...",
-        variant: "multiSelect",
+        variant: "select",
         options: hotelOptions,
       },
       enableColumnFilter: true,
@@ -53,7 +53,7 @@ export function getReportTableColumns({
       meta: {
         label: "Company",
         placeholder: "Search company...",
-        variant: "multiSelect",
+        variant: "select",
         options: companyOptions,
       },
       enableColumnFilter: true,
