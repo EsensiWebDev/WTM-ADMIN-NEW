@@ -43,8 +43,6 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
   const { data: session } = useSession();
   const isSuperAdmin = session?.user?.role.toLowerCase() === "super admin";
 
-  const user = session?.user;
-
   const form = useForm<PasswordChangeSchema>({
     resolver: zodResolver(passwordChangeSchema),
     defaultValues: {
@@ -58,16 +56,9 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
   function onSubmit(values: PasswordChangeSchema) {
     setIsLoading(true);
 
-    if (!user?.username) {
-      toast.error("User not found");
-      setIsLoading(false);
-      return;
-    }
-
     toast.promise(
       changePassword({
         ...values,
-        username: isSuperAdmin ? values.username : user.username,
       }),
       {
         loading: "Changing password...",
