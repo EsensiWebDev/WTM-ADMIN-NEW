@@ -44,7 +44,7 @@ const ReportPage = async (props: ReportPageProps) => {
         }
       >
         <SectionCards data={reportSummary.data.summary_data} />
-        <ChartAreaInteractive data={reportSummary.data.graphic_data} />
+        <ChartAreaInteractive data={reportSummary.data.graphic_data || []} />
         <Separator />
         <ReportTable promises={promises} />
       </React.Suspense>
