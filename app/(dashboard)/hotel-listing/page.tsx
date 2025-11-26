@@ -1,11 +1,11 @@
 import HotelTable from "@/components/dashboard/hotel-listing/table/hotel-table";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getRegionOptions } from "@/server/general";
 import Link from "next/link";
 import React from "react";
 import { getData } from "./fetch";
 import { HotelPageProps } from "./types";
-import { getRegionOptions } from "@/server/general";
 
 const HotelPage = async (props: HotelPageProps) => {
   const searchParams = await props.searchParams;

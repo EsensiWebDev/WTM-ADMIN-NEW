@@ -146,7 +146,7 @@ export function getPromoTableColumns({
       meta: {
         label: "Status",
         placeholder: "Filter by status...",
-        variant: "multiSelect",
+        variant: "select",
         options: [
           { label: "Active", value: "true" },
           { label: "Inactive", value: "false" },

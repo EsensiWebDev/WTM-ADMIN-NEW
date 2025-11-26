@@ -70,7 +70,7 @@ export function getRoomAvailabilityTableColumns({
       meta: {
         label: "Region",
         placeholder: "Search region...",
-        variant: "multiSelect",
+        variant: "select",
         options: regionOptions,
       },
       enableColumnFilter: true,

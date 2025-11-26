@@ -1,7 +1,6 @@
 import { updateHotelStatus } from "@/app/(dashboard)/hotel-listing/actions";
 import { Hotel } from "@/app/(dashboard)/hotel-listing/types";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,12 +28,12 @@ interface GetHotelTableColumnsProps {
   setRowAction: React.Dispatch<
     React.SetStateAction<DataTableRowAction<Hotel> | null>
   >;
-  companyOptions: Option[];
+  regionOptions: Option[];
 }
 
 export function getHotelTableColumns({
   setRowAction,
-  companyOptions,
+  regionOptions,
 }: GetHotelTableColumnsProps): ColumnDef<Hotel>[] {
   return [
     {
@@ -91,8 +90,8 @@ export function getHotelTableColumns({
       meta: {
         label: "Region",
         placeholder: "Search region...",
-        variant: "multiSelect",
-        options: companyOptions,
+        variant: "select",
+        options: regionOptions,
       },
       enableColumnFilter: true,
     },
@@ -179,7 +178,7 @@ export function getHotelTableColumns({
       meta: {
         label: "API",
         placeholder: "Search API...",
-        variant: "multiSelect",
+        variant: "select",
         options: [
           { label: "API", value: "true" },
           { label: "Non API", value: "false" },

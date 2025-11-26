@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { useDataTable } from "@/hooks/use-data-table";
 import { formatCurrency } from "@/lib/format";
+import { getRegionOptions } from "@/server/general";
 import type { DataTableRowAction } from "@/types/data-table";
 import { Plus } from "lucide-react";
 import Link from "next/link";
@@ -16,7 +17,6 @@ import { DeleteHotelDialog } from "../dialog/delete-hotel-dialog";
 import EditHotelDialog from "../dialog/edit-hotel-dialog";
 import ImportCsvDialog from "../dialog/import-csv-dialog";
 import { getHotelTableColumns } from "./hotel-columns";
-import { getRegionOptions } from "@/server/general";
 
 interface HotelTableProps {
   promises: Promise<
@@ -29,7 +29,7 @@ interface HotelTableProps {
 
 const HotelTable = ({ promises }: HotelTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pagination }, companyOptions] = React.use(promises);
+  const [{ data, pagination }, regionOptions] = React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<Hotel> | null>(null);
 
@@ -37,7 +37,7 @@ const HotelTable = ({ promises }: HotelTableProps) => {
     () =>
       getHotelTableColumns({
         setRowAction,
-        companyOptions,
+        regionOptions,
       }),
     []
   );
