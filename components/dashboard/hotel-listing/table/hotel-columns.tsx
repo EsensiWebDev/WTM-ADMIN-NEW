@@ -1,5 +1,6 @@
 import { updateHotelStatus } from "@/app/(dashboard)/hotel-listing/actions";
 import { Hotel } from "@/app/(dashboard)/hotel-listing/types";
+import { AuthorizationGuard } from "@/components/authorization-guard";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -121,42 +122,44 @@ export function getHotelTableColumns({
         };
 
         return (
-          <Select
-            defaultValue={status}
-            disabled={isUpdatePending}
-            onValueChange={(value) => {
-              startUpdateTransition(async () => {
-                const sendValue = value === "approved";
+          <AuthorizationGuard requiredRole="Super Admin">
+            <Select
+              defaultValue={status}
+              disabled={isUpdatePending}
+              onValueChange={(value) => {
+                startUpdateTransition(async () => {
+                  const sendValue = value === "approved";
 
-                const fd = new FormData();
-                fd.append("status", String(sendValue));
-                fd.append("hotel_id", row.original.id);
+                  const fd = new FormData();
+                  fd.append("status", String(sendValue));
+                  fd.append("hotel_id", row.original.id);
 
-                const { success, message } = await updateHotelStatus(fd);
+                  const { success, message } = await updateHotelStatus(fd);
 
-                if (!success) {
-                  toast.error(message);
-                  return;
-                }
-                toast.success(message);
-              });
-            }}
-          >
-            <SelectTrigger
-              className={`w-38 rounded-full px-3 border-0 shadow-none **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate ${getStatusColor(
-                status
-              )}`}
+                  if (!success) {
+                    toast.error(message);
+                    return;
+                  }
+                  toast.success(message);
+                });
+              }}
             >
-              <SelectValue placeholder="Change status" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value={"approved"}>Approved</SelectItem>
-              <SelectItem value={"in review"} disabled>
-                In Review
-              </SelectItem>
-              <SelectItem value={"rejected"}>Rejected</SelectItem>
-            </SelectContent>
-          </Select>
+              <SelectTrigger
+                className={`w-38 rounded-full px-3 border-0 shadow-none **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate ${getStatusColor(
+                  status
+                )}`}
+              >
+                <SelectValue placeholder="Change status" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                <SelectItem value={"approved"}>Approved</SelectItem>
+                <SelectItem value={"in review"} disabled>
+                  In Review
+                </SelectItem>
+                <SelectItem value={"rejected"}>Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </AuthorizationGuard>
         );
       },
       enableHiding: false,

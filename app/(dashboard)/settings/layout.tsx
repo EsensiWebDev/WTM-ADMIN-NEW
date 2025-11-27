@@ -9,6 +9,7 @@ const tabItems = [
   {
     href: "/settings/email-setting",
     label: "E-mail Setting",
+    requiredRole: "Super Admin" as const,
   },
   {
     href: "/settings/email-log",

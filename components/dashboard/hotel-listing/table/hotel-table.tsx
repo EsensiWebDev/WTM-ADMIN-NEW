@@ -17,6 +17,7 @@ import { DeleteHotelDialog } from "../dialog/delete-hotel-dialog";
 import EditHotelDialog from "../dialog/edit-hotel-dialog";
 import ImportCsvDialog from "../dialog/import-csv-dialog";
 import { getHotelTableColumns } from "./hotel-columns";
+import { useAuthorization } from "@/hooks/use-authorization";
 
 interface HotelTableProps {
   promises: Promise<
@@ -32,6 +33,7 @@ const HotelTable = ({ promises }: HotelTableProps) => {
   const [{ data, pagination }, regionOptions] = React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<Hotel> | null>(null);
+  const { userRole } = useAuthorization();
 
   const columns = React.useMemo(
     () =>
@@ -50,6 +52,11 @@ const HotelTable = ({ promises }: HotelTableProps) => {
     shallow: false,
     clearOnDefault: true,
     startTransition,
+    initialState: {
+      columnVisibility: {
+        approval_status: userRole === "Super Admin",
+      },
+    },
     // getSubRows: (row) => row.rooms,
   });
 

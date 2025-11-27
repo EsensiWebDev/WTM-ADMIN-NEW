@@ -1,18 +1,28 @@
+"use client";
+
 import TabsPageChanger from "@/components/tabs-page-changer";
+import type { UserRole } from "@/lib/authorization";
 import React from "react";
 
-const tabItems = [
+const tabItems: {
+  href: string;
+  label: string;
+  requiredRole?: UserRole | UserRole[];
+}[] = [
   {
     href: "/account/user-management/super-admin",
     label: "Super Admin",
+    requiredRole: "Super Admin" as const,
   },
   {
     href: "/account/user-management/admin",
     label: "Admin",
+    requiredRole: "Super Admin" as const,
   },
   {
     href: "/account/user-management/support",
     label: "Support",
+    requiredRole: ["Super Admin", "Admin"] as const,
   },
 ];
 
