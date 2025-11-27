@@ -1,7 +1,9 @@
 "use client";
 
 import TabsPageChanger from "@/components/tabs-page-changer";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { UserRole } from "@/lib/authorization";
+import { redirect, usePathname } from "next/navigation";
 import React from "react";
 
 const tabItems: {
@@ -31,6 +33,25 @@ const UserManagementLayout = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
+  const pathname = usePathname();
+  const { hasRole } = useAuthorization();
+
+  if (
+    pathname === "/account/user-management/super-admin" &&
+    !hasRole("Super Admin")
+  )
+    redirect("/unauthorized");
+  else if (
+    pathname === "/account/user-management/admin" &&
+    !hasRole("Super Admin")
+  )
+    redirect("/unauthorized");
+  else if (
+    pathname === "/account/user-management/support" &&
+    !hasRole(["Super Admin", "Admin"])
+  )
+    redirect("/unauthorized");
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">

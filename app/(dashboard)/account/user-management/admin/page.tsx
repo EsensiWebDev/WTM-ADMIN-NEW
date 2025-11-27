@@ -4,10 +4,9 @@ import { Suspense } from "react";
 import { getAdminData } from "./fetch";
 import { AdminPageProps } from "./types";
 import { requireAuthorization } from "@/lib/server-authorization";
+import { redirect } from "next/navigation";
 
 const AdminPage = async (props: AdminPageProps) => {
-  await requireAuthorization({ requiredRole: "Super Admin" });
-
   const searchParams = await props.searchParams;
 
   const promises = Promise.all([
