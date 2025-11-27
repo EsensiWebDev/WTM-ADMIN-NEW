@@ -65,6 +65,21 @@ export function AgentForm<T extends FieldValues>({
             </FormItem>
           )}
         />
+        {isEditMode && (
+          <FormField
+            control={form.control}
+            name={"username" as FieldPath<T>}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username*</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter username" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name={"agent_company" as FieldPath<T>}
