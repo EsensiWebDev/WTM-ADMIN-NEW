@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useFormattedCurrencyInput } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { getHotelOptions } from "@/server/general";
@@ -376,34 +377,37 @@ export function PromoForm<T extends FieldValues>({
         </div>
 
         {/* Second Row: Promo Code, Description */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name={"promo_code" as FieldPath<T>}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Promo Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter promo code" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={"description" as FieldPath<T>}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter promo description" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name={"promo_code" as FieldPath<T>}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Promo Code</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter promo code" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={"description" as FieldPath<T>}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  rows={3}
+                  className="resize-none max-h-16"
+                  placeholder="Enter promo description"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Third Row: Start Date, End Date */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
