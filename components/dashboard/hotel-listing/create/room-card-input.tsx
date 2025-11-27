@@ -31,6 +31,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { ImageUpload } from "./image-upload";
+import { useRouter } from "next/navigation";
 
 // Define the Zod schema for room data validation
 const withoutBreakfastSchema = z.object({
@@ -176,6 +177,7 @@ export function RoomCardInput({
   onCreate,
 }: RoomCardInputProps) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   // Track original additions with their IDs for comparison
   const [originalAdditions, setOriginalAdditions] = useState(
@@ -1000,7 +1002,7 @@ export function RoomCardInput({
             <Button
               type="button"
               variant="outline"
-              onClick={() => window.history.back()}
+              onClick={() => router.push("/hotel-listing")}
             >
               Cancel
             </Button>
