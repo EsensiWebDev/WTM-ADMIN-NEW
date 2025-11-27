@@ -6,7 +6,7 @@ import { SupportPageProps } from "./types";
 import { requireAuthorization } from "@/lib/server-authorization";
 
 const SupportPage = async (props: SupportPageProps) => {
-  // await requireAuthorization({ requiredRole: "Admin" });
+  await requireAuthorization({ requiredRole: "Admin" });
   const searchParams = await props.searchParams;
 
   const promisesSupport = Promise.all([

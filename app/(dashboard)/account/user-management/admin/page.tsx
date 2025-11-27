@@ -6,7 +6,7 @@ import { AdminPageProps } from "./types";
 import { requireAuthorization } from "@/lib/server-authorization";
 
 const AdminPage = async (props: AdminPageProps) => {
-  // await requireAuthorization({ requiredRole: "Super Admin" });
+  await requireAuthorization({ requiredRole: "Super Admin" });
 
   const searchParams = await props.searchParams;
 

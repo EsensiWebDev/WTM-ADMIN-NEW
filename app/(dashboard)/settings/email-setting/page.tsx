@@ -1,8 +1,11 @@
 import EmailSettingForm from "@/components/dashboard/settings/email-setting/form/email-setting-form";
 import EmailPreview from "@/components/dashboard/settings/email-setting/preview/email-preview";
 import { getEmailTemplate } from "./fetch";
+import { requireAuthorization } from "@/lib/server-authorization";
 
 const EmailSettingPage = async () => {
+  await requireAuthorization({ requiredRole: "Super Admin" });
+
   const { data: emailTemplate } = await getEmailTemplate();
   return (
     <div className="flex gap-12">

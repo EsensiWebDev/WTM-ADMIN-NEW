@@ -25,9 +25,7 @@ export default function UnauthorizedPage() {
             </p>
             <div className="mt-6 flex gap-4">
               <Button asChild>
-                <Link href="/account/user-management/super-admin">
-                  Return to Dashboard
-                </Link>
+                <Link href="/">Return to Dashboard</Link>
               </Button>
               <Button asChild variant="outline">
                 <Link href="/logout">Logout</Link>
