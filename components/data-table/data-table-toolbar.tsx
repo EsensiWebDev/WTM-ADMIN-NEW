@@ -23,7 +23,10 @@ export function DataTableToolbar<TData>({
   isPending = false,
   ...props
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered = table.getState().columnFilters.some((filter) => {
+    if (Array.isArray(filter.value) && filter.value.length === 0) return false;
+    return true;
+  });
 
   const columns = React.useMemo(
     () =>
