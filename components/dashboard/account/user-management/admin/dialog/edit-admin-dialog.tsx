@@ -25,6 +25,7 @@ export const editAdminSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().optional(),
   is_active: z.boolean().optional(),
+  username: z.string(),
 });
 
 export type EditAdminSchema = z.infer<typeof editAdminSchema>;
@@ -43,6 +44,7 @@ const EditAdminDialog = ({ admin, ...props }: EditAdminDialogProps) => {
       full_name: admin?.name ?? "",
       email: admin?.email,
       phone: admin?.phone_number,
+      username: admin?.username || "",
       is_active: admin?.status === "Active" ? true : false,
     },
   });

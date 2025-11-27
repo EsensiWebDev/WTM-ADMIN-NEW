@@ -10,6 +10,7 @@ export interface SuperAdmin {
   promo_group_name: string;
   agent_company_name: string;
   kakao_talk_id: string;
+  username: string;
 }
 
 export interface SuperAdminPageProps {

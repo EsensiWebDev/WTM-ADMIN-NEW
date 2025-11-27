@@ -25,6 +25,7 @@ export const editSupportSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().optional(),
   is_active: z.boolean().optional(),
+  username: z.string(),
 });
 
 export type EditSupportSchema = z.infer<typeof editSupportSchema>;
@@ -43,6 +44,7 @@ const EditSupportDialog = ({ support, ...props }: EditSupportDialogProps) => {
       full_name: support?.name ?? "",
       email: support?.email,
       phone: support?.phone_number,
+      username: support?.username || "",
       is_active: support?.status === "Active" ? true : false,
     },
   });

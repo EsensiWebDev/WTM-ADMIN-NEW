@@ -76,6 +76,21 @@ export function AdminForm<T extends FieldValues>({
             </FormItem>
           )}
         />
+        {isEdit && (
+          <FormField
+            control={form.control}
+            name={"username" as FieldPath<T>}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter username" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name={"is_active" as FieldPath<T>}
