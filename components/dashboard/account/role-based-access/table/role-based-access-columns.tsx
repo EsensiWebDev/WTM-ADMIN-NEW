@@ -5,8 +5,10 @@ import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
 
-export function getRoleBasedAccessTableColumns(): ColumnDef<RoleBasedAccessPageData>[] {
-  return [
+export function getRoleBasedAccessTableColumns(
+  roles: string[]
+): ColumnDef<RoleBasedAccessPageData>[] {
+  const baseColumns: ColumnDef<RoleBasedAccessPageData>[] = [
     {
       id: "no",
       header: "No",
@@ -43,32 +45,20 @@ export function getRoleBasedAccessTableColumns(): ColumnDef<RoleBasedAccessPageD
       enableSorting: false,
       size: 400,
     },
-    {
-      id: "admin",
-      accessorKey: "admin",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Admin" />
-      ),
-      cell: ({ row }) => <></>,
-      enableSorting: false,
-    },
-    // {
-    //   id: "agent",
-    //   accessorKey: "agent",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader column={column} title="Agent" />
-    //   ),
-    //   cell: ({ row }) => <></>,
-    //   enableSorting: false,
-    // },
-    {
-      id: "support",
-      accessorKey: "support",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Support" />
-      ),
-      cell: ({ row }) => <></>,
-      enableSorting: false,
-    },
   ];
+
+  // Dynamically create columns for each role
+  const roleColumns: ColumnDef<RoleBasedAccessPageData>[] = roles.map(
+    (role) => ({
+      id: role.toLowerCase(),
+      accessorKey: role.toLowerCase(),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={role} />
+      ),
+      cell: ({ row }) => <></>,
+      enableSorting: false,
+    })
+  );
+
+  return [...baseColumns, ...roleColumns];
 }

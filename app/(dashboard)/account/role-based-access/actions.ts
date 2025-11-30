@@ -2,10 +2,9 @@
 
 import { apiCall } from "@/lib/api";
 import { revalidatePath } from "next/cache";
-import { Action } from "./types";
 
 export async function updateRBA(body: {
-  action: Action;
+  action: string;
   page: string;
   role: string;
   allowed: boolean;

@@ -1,47 +1,35 @@
-export type Role = "Admin" | "Support";
-
-export type Action = "View" | "Create" | "Edit" | "Delete" | "Confirmation";
-
-export interface PageAction {
-  action: Action;
-  permissions: Record<Role, boolean>;
+export interface RoleAccess {
+  role: string;
+  access: Record<string, Record<string, boolean>>;
 }
 
+export interface Access {
+  account: Actions;
+  booking: Actions;
+  hotel: Actions;
+  promo: Actions;
+  "promo-group": Actions;
+  report: Actions;
+}
+
+export interface Actions {
+  create: boolean;
+  delete: boolean;
+  edit: boolean;
+  view: boolean;
+}
+
+export type Action = string;
+
+export type ModuleKey = string;
+
+// UI representation for the table
 export interface RoleBasedAccessPageData {
   id: string;
   name: string;
-  actions: PageAction[];
-}
-
-export interface RoleBasedAccessTableResponse {
-  success: boolean;
-  data: RoleBasedAccessPageData[];
-  pageCount: number;
-}
-
-export interface AccessControl {
-  create: boolean;
-  delete: boolean;
-  view: boolean;
-  edit: boolean;
-}
-
-export interface RoleAccess {
-  account: AccessControl;
-  booking: AccessControl;
-  hotel: AccessControl;
-  promo: AccessControl;
-  ["promo-group"]: AccessControl;
-  report: AccessControl;
-}
-
-export interface RoleAccessData {
-  role: Role;
-  access: RoleAccess;
-}
-
-export interface GetRoleAccessResponse {
-  status: number;
-  message: string;
-  data: RoleAccessData[];
+  actions: {
+    action: string;
+    actionKey: string;
+    permissions: Record<string, boolean>;
+  }[];
 }

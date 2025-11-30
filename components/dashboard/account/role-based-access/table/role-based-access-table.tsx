@@ -3,7 +3,7 @@
 import { updateRBA } from "@/app/(dashboard)/account/role-based-access/actions";
 import { getRoleBasedAccessData } from "@/app/(dashboard)/account/role-based-access/fetch";
 import {
-  Action,
+  ModuleKey,
   RoleBasedAccessPageData,
 } from "@/app/(dashboard)/account/role-based-access/types";
 import { DataTable } from "@/components/data-table/data-table";
@@ -33,11 +33,74 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
     Record<string, string>
   >({});
   const response = React.use(promise);
-  const { data, success } = response;
-  const columns = React.useMemo(() => getRoleBasedAccessTableColumns(), []);
+  const { data, status, error } = response;
+
+  // Transform API response to table data structure
+  const transformedData = React.useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    // Dynamically extract modules from the first role's access object
+    const firstRoleAccess = data[0]?.access;
+    if (!firstRoleAccess) return [];
+
+    const moduleKeys = Object.keys(firstRoleAccess) as ModuleKey[];
+
+    // Transform data for each module
+    return moduleKeys.map((moduleKey) => {
+      // Dynamically extract actions from the first module's actions object
+      const firstModuleActions = firstRoleAccess[moduleKey];
+      const actionKeys = Object.keys(firstModuleActions) as string[];
+
+      // Format module name: "promo-group" → "Promo Group"
+      const formatModuleName = (key: string) => {
+        return key
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      };
+
+      // Format action name: "view" → "View"
+      const formatActionName = (key: string) => {
+        return key.charAt(0).toUpperCase() + key.slice(1);
+      };
+
+      return {
+        id: moduleKey,
+        name: formatModuleName(moduleKey),
+        actions: actionKeys.map((actionKey) => {
+          // Build permissions object for all roles
+          const permissions: Record<string, boolean> = {};
+
+          data.forEach((roleAccess) => {
+            const moduleAccess = roleAccess.access[moduleKey];
+            if (moduleAccess && actionKey in moduleAccess) {
+              permissions[roleAccess.role] = moduleAccess[actionKey];
+            }
+          });
+
+          return {
+            action: formatActionName(actionKey),
+            actionKey: actionKey,
+            permissions,
+          };
+        }),
+      };
+    });
+  }, [data]);
+
+  // Extract unique roles from data
+  const roles = React.useMemo(() => {
+    if (!data || data.length === 0) return [];
+    return data.map((roleAccess) => roleAccess.role);
+  }, [data]);
+
+  const columns = React.useMemo(
+    () => getRoleBasedAccessTableColumns(roles),
+    [roles]
+  );
 
   const { table } = useDataTable({
-    data: data || [],
+    data: transformedData,
     columns,
     pageCount: 1,
     getRowId: (originalRow) => originalRow.id,
@@ -46,7 +109,11 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
     startTransition,
   });
 
-  if (!success) {
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (status !== 200) {
     return <div>Failed to load data</div>;
   }
 
@@ -56,7 +123,7 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
     role,
     allowed,
   }: {
-    action: Action;
+    action: string;
     page: string;
     role: string;
     allowed: boolean;
@@ -99,7 +166,7 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
                   <TableCell />
                   <TableCell>{action.action}</TableCell>
                   {Object.entries(action.permissions).map(([role, allowed]) => {
-                    const selectKey = `${role}-${page.id}-${action.action}`;
+                    const selectKey = `${role}-${page.id}-${action.actionKey}`;
                     const currentValue =
                       selectValueMap[selectKey] ?? String(allowed);
 
@@ -110,8 +177,8 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
                           value={currentValue}
                           onValueChange={(value) =>
                             handleChangePermission({
-                              action: action.action.toLowerCase() as Action,
-                              page: page.id.toLowerCase(),
+                              action: action.actionKey,
+                              page: page.id,
                               role: role.toLowerCase(),
                               allowed: value === "true",
                             })
