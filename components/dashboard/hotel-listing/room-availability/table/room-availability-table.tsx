@@ -48,7 +48,8 @@ const monthYearParser = createParser({
 
 const RoomAvailabilityTable = ({ promises }: RoomAvailabilityTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pagination, error }, regionOptions] = React.use(promises);
+  const [{ data, status, pagination, error }, regionOptions] =
+    React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<Hotel> | null>(null);
 
@@ -100,6 +101,10 @@ const RoomAvailabilityTable = ({ promises }: RoomAvailabilityTableProps) => {
 
   if (error) {
     return <div>{error}</div>;
+  }
+
+  if (status !== 200) {
+    return <div>Failed to load data</div>;
   }
 
   return (

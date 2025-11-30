@@ -2,6 +2,7 @@ import { MembersCard } from "@/components/dashboard/promo-group/members-card";
 import PromoDetailsCard from "@/components/dashboard/promo-group/promo-details-card";
 import { Button } from "@/components/ui/button";
 import { getCompanyOptions } from "@/server/general";
+import { SearchParams } from "@/types";
 import { IconChevronLeft } from "@tabler/icons-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,7 +11,6 @@ import {
   getPromoGroupPromosById,
   getPromoGroupsById,
 } from "../../fetch";
-import { SearchParams } from "@/types";
 
 const PromoGroupEditPage = async ({
   params,
@@ -32,6 +32,14 @@ const PromoGroupEditPage = async ({
 
   if (!promoGroup) {
     return notFound();
+  }
+
+  if (promoGroup.error) {
+    return <div>{promoGroup.error}</div>;
+  }
+
+  if (promoGroup.status !== 200) {
+    return <div>Failed to load data</div>;
   }
 
   return (

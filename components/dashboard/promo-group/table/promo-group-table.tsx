@@ -18,7 +18,7 @@ interface PromoGroupTableProps {
 
 const PromoGroupTable = ({ promises }: PromoGroupTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pagination }] = React.use(promises);
+  const [{ data, pagination, status, error }] = React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<PromoGroup> | null>(null);
 
@@ -39,6 +39,14 @@ const PromoGroupTable = ({ promises }: PromoGroupTableProps) => {
     clearOnDefault: true,
     startTransition,
   });
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (status !== 200) {
+    return <div>Failed to load data</div>;
+  }
 
   return (
     <>

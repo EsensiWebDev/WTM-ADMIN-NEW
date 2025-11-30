@@ -6,12 +6,12 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useDataTable } from "@/hooks/use-data-table";
 import type { DataTableRowAction } from "@/types/data-table";
+import { useQuery } from "@tanstack/react-query";
 import React, { useTransition } from "react";
 import CreatePromoDialog from "../dialog/create-promo-dialog";
 import DeletePromoDialog from "../dialog/delete-promo-dialog";
 import EditPromoDialog from "../dialog/edit-promo-dialog";
 import { getPromoTableColumns } from "./promo-columns";
-import { useQuery } from "@tanstack/react-query";
 
 interface PromoTableProps {
   promises: Promise<[Awaited<ReturnType<typeof getData>>]>;
@@ -19,7 +19,7 @@ interface PromoTableProps {
 
 const PromoTable = ({ promises }: PromoTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pagination }] = React.use(promises);
+  const [{ data, status, error, pagination }] = React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<Promo> | null>(null);
 
@@ -52,6 +52,14 @@ const PromoTable = ({ promises }: PromoTableProps) => {
     retry: 2,
     enabled: rowAction?.variant === "detail" || rowAction?.variant === "update",
   });
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (status !== 200) {
+    return <div>Failed to load data</div>;
+  }
 
   return (
     <>

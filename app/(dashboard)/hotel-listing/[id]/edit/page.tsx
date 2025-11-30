@@ -15,6 +15,14 @@ const EditHotelPage = async ({
   const response = await getHotelDetails(id);
   const { data: hotel, status, error } = response;
 
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (status !== 200) {
+    return <div>Failed to load data</div>;
+  }
+
   // Create a unique key based on hotel data to force re-render on update
   const hotelKey = hotel
     ? `${hotel.id}-${JSON.stringify(hotel.photos)}-${JSON.stringify(

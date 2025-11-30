@@ -21,6 +21,14 @@ const ReportPage = async (props: ReportPageProps) => {
     searchParams,
   });
 
+  if (reportSummary.error) {
+    return <div>{reportSummary.error}</div>;
+  }
+
+  if (reportSummary.status !== 200) {
+    return <div>Failed to load data</div>;
+  }
+
   return (
     <div className="flex flex-col gap-4 md:gap-6">
       <div className="flex items-center justify-between">

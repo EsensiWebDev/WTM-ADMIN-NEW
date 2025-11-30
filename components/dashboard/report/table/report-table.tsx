@@ -27,7 +27,7 @@ interface ReportTableProps {
 
 const ReportTable = ({ promises }: ReportTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pagination }, companyOptions, hotelOptions] =
+  const [{ data, pagination, status, error }, companyOptions, hotelOptions] =
     React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<ReportAgent> | null>(null);
@@ -60,8 +60,6 @@ const ReportTable = ({ promises }: ReportTableProps) => {
     },
   });
 
-  console.log({ dataRow: rowAction?.row.original });
-
   const query = useQuery({
     queryKey: [
       "report-agent-details",
@@ -81,6 +79,14 @@ const ReportTable = ({ promises }: ReportTableProps) => {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: rowAction?.variant === "detail",
   });
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (status !== 200) {
+    return <div>Failed to load data</div>;
+  }
 
   return (
     <>
