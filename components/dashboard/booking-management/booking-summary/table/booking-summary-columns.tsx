@@ -82,6 +82,7 @@ export function getBookingSummaryTableColumns({
         icon: Text,
       },
       enableColumnFilter: false,
+      enableSorting: false,
     },
     {
       id: "agent_company",

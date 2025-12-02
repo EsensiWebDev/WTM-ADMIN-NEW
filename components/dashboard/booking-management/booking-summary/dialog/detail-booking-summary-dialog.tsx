@@ -129,6 +129,7 @@ const getDetailBookingColumns = ({
       <div className="font-medium">{row.original.guest_name}</div>
     ),
     enableHiding: false,
+    enableSorting: false,
   },
   {
     id: "hotel_name",
@@ -138,6 +139,7 @@ const getDetailBookingColumns = ({
     ),
     cell: ({ row }) => row.original.hotel_name,
     enableHiding: false,
+    enableSorting: false,
   },
   {
     id: "sub_booking_id",
@@ -149,6 +151,7 @@ const getDetailBookingColumns = ({
       <div className="font-mono text-sm">{row.original.sub_booking_id}</div>
     ),
     enableHiding: false,
+    enableSorting: false,
   },
   {
     id: "booking_status",
@@ -314,6 +317,7 @@ const getDetailBookingColumns = ({
       );
     },
     enableHiding: false,
+    enableSorting: false,
   },
   {
     id: "payment_status",
@@ -435,6 +439,7 @@ const getDetailBookingColumns = ({
       );
     },
     enableHiding: false,
+    enableSorting: false,
   },
   {
     id: "notes",

@@ -38,7 +38,7 @@ export function getHistoryBookingLogTableColumns({
       cell: ({ row }) => row.original.booking_id,
       meta: {
         label: "Booking ID",
-        placeholder: "Search anyhting...",
+        placeholder: "Search hotel name...",
         variant: "text",
         icon: Text,
       },
