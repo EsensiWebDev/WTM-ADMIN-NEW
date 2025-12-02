@@ -31,7 +31,7 @@ const BannerTable = ({ promises }: BannerTableProps) => {
     []
   );
 
-  const { table, setCurrentCursor } = useDataTable({
+  const { table } = useDataTable({
     data: data || [],
     columns,
     pageCount: pagination?.total_pages || 1,
@@ -41,18 +41,6 @@ const BannerTable = ({ promises }: BannerTableProps) => {
     startTransition,
   });
 
-  const handlePrevPage = React.useCallback(() => {
-    if (pagination?.prev_cursor && pagination.prev_cursor.trim()) {
-      setCurrentCursor(pagination.prev_cursor);
-    }
-  }, [pagination?.prev_cursor, setCurrentCursor]);
-
-  const handleNextPage = React.useCallback(() => {
-    if (pagination?.next_cursor && pagination.next_cursor.trim()) {
-      setCurrentCursor(pagination.next_cursor);
-    }
-  }, [pagination?.next_cursor, setCurrentCursor]);
-
   if (error) {
     return <div>{error}</div>;
   }
@@ -61,19 +49,10 @@ const BannerTable = ({ promises }: BannerTableProps) => {
     return <div>Failed to load data</div>;
   }
 
-  console.log({ data, pagination });
-
   return (
     <>
       <div className="relative">
-        <DataTable
-          table={table}
-          isPending={isPending}
-          pagination={pagination}
-          onPrevPage={handlePrevPage}
-          onNextPage={handleNextPage}
-          isCursorBased={true}
-        >
+        <DataTable table={table} isPending={isPending}>
           <DataTableToolbar table={table} isPending={isPending}>
             <CreateBannerDialog />
           </DataTableToolbar>

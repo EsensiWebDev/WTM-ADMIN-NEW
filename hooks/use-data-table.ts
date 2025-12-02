@@ -37,7 +37,6 @@ import type { ExtendedColumnSort } from "@/types/data-table";
 const PAGE_KEY = "page";
 const PER_PAGE_KEY = "limit";
 const SORT_KEY = "sort";
-const CURSOR_KEY = "current_cursor";
 const ARRAY_SEPARATOR = ",";
 const DEBOUNCE_MS = 300;
 const THROTTLE_MS = 50;
@@ -120,10 +119,6 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     parseAsInteger
       .withOptions(queryStateOptions)
       .withDefault(initialState?.pagination?.pageSize ?? 10)
-  );
-  const [currentCursor, setCurrentCursor] = useQueryState(
-    CURSOR_KEY,
-    parseAsString.withOptions(queryStateOptions)
   );
 
   const pagination: PaginationState = React.useMemo(() => {
@@ -319,5 +314,5 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     manualFiltering: true,
   });
 
-  return { table, shallow, debounceMs, throttleMs, setCurrentCursor };
+  return { table, shallow, debounceMs, throttleMs };
 }

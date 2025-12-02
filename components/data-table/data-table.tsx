@@ -13,7 +13,6 @@ import { getCommonPinningStyles } from "@/lib/data-table";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { LoadingSpinner } from "../ui/loading-spinner";
-import { ApiResponse } from "@/types";
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>;
@@ -21,10 +20,6 @@ interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   isPending?: boolean;
   showPagination?: boolean;
   renderSubRow?: (row: TData) => React.ReactNode;
-  pagination?: ApiResponse<TData>["pagination"];
-  onPrevPage?: () => void;
-  onNextPage?: () => void;
-  isCursorBased?: boolean;
 }
 
 export function DataTable<TData>({
@@ -35,10 +30,6 @@ export function DataTable<TData>({
   isPending = false,
   showPagination = true,
   renderSubRow,
-  pagination,
-  onPrevPage,
-  onNextPage,
-  isCursorBased = false,
   ...props
 }: DataTableProps<TData>) {
   return (
@@ -122,15 +113,7 @@ export function DataTable<TData>({
         </Table>
       </div>
       <div className="flex flex-col gap-2.5">
-        {showPagination && (
-          <DataTablePagination
-            table={table}
-            pagination={pagination}
-            onPrevPage={onPrevPage}
-            onNextPage={onNextPage}
-            isCursorBased={isCursorBased}
-          />
-        )}
+        {showPagination && <DataTablePagination table={table} />}
         {actionBar &&
           table.getFilteredSelectedRowModel().rows.length > 0 &&
           actionBar}
