@@ -56,6 +56,7 @@ const columns: ColumnDef<ReportAgentDetail>[] = [
       variant: "text",
     },
     enableHiding: false,
+    enableSorting: false,
   },
   {
     id: "room_type",
@@ -71,6 +72,7 @@ const columns: ColumnDef<ReportAgentDetail>[] = [
       variant: "text",
     },
     enableHiding: false,
+    enableSorting: false,
   },
   {
     id: "date_in",
@@ -82,7 +84,7 @@ const columns: ColumnDef<ReportAgentDetail>[] = [
       const dateIn = new Date(row.original.date_in);
       return <div className="text-sm">{format(dateIn, "dd MMMM yyyy")}</div>;
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: false,
   },
   {
@@ -95,7 +97,7 @@ const columns: ColumnDef<ReportAgentDetail>[] = [
       const dateOut = new Date(row.original.date_out);
       return <div className="text-sm">{format(dateOut, "dd MMMM yyyy")}</div>;
     },
-    enableSorting: true,
+    enableSorting: false,
   },
   {
     id: "capacity",
@@ -106,7 +108,7 @@ const columns: ColumnDef<ReportAgentDetail>[] = [
     cell: ({ row }) => (
       <div className="text-center font-medium">{row.original.capacity}</div>
     ),
-    enableSorting: true,
+    enableSorting: false,
     size: 100,
     enableHiding: false,
   },
@@ -128,6 +130,7 @@ const columns: ColumnDef<ReportAgentDetail>[] = [
       variant: "text",
     },
     enableHiding: false,
+    enableSorting: false,
   },
 ];
 
