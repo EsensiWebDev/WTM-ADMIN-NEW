@@ -18,8 +18,10 @@ export type ApiResponse<TData> = {
   error?: string;
   pagination?: {
     limit: number;
-    page: number;
+    page?: number;
     total: number;
     total_pages: number;
+    next_cursor?: string;
+    prev_cursor?: string;
   };
 };

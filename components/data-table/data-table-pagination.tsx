@@ -15,18 +15,50 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { ApiResponse } from "@/types";
 
 interface DataTablePaginationProps<TData> extends React.ComponentProps<"div"> {
   table: Table<TData>;
   pageSizeOptions?: number[];
+  pagination?: ApiResponse<TData>["pagination"];
+  onPrevPage?: () => void;
+  onNextPage?: () => void;
+  isCursorBased: boolean;
 }
 
 export function DataTablePagination<TData>({
   table,
   pageSizeOptions = [10, 20, 30, 40, 50],
+  pagination,
   className,
+  onPrevPage,
+  onNextPage,
+  isCursorBased,
   ...props
 }: DataTablePaginationProps<TData>) {
+  const hasPrevCursor = !!(
+    pagination?.prev_cursor && pagination.prev_cursor.trim()
+  );
+  const hasNextCursor = !!(
+    pagination?.next_cursor && pagination.next_cursor.trim()
+  );
+
+  const handlePrevPage = () => {
+    if (isCursorBased && onPrevPage) {
+      onPrevPage();
+    } else {
+      table.previousPage();
+    }
+  };
+
+  const handleNextPage = () => {
+    if (isCursorBased && onNextPage) {
+      onNextPage();
+    } else {
+      table.nextPage();
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -65,7 +97,7 @@ export function DataTablePagination<TData>({
           {table.getPageCount()}
         </div>
         <div className="flex items-center space-x-2">
-          <Button
+          {/* <Button
             aria-label="Go to first page"
             variant="outline"
             size="icon"
@@ -74,14 +106,16 @@ export function DataTablePagination<TData>({
             disabled={!table.getCanPreviousPage()}
           >
             <ChevronsLeft />
-          </Button>
+          </Button> */}
           <Button
             aria-label="Go to previous page"
             variant="outline"
             size="icon"
             className="size-8 bg-white"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={() => handlePrevPage()}
+            disabled={
+              isCursorBased ? !hasPrevCursor : !table.getCanPreviousPage()
+            }
           >
             <ChevronLeft />
           </Button>
@@ -90,12 +124,12 @@ export function DataTablePagination<TData>({
             variant="outline"
             size="icon"
             className="size-8 bg-white"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() => handleNextPage()}
+            disabled={isCursorBased ? !hasNextCursor : !table.getCanNextPage()}
           >
             <ChevronRight />
           </Button>
-          <Button
+          {/* <Button
             aria-label="Go to last page"
             variant="outline"
             size="icon"
@@ -104,7 +138,7 @@ export function DataTablePagination<TData>({
             disabled={!table.getCanNextPage()}
           >
             <ChevronsRight />
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>
