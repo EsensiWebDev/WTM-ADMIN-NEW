@@ -35,8 +35,6 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
   const response = React.use(promise);
   const { data, status, error } = response;
 
-  console.log({ response });
-
   // Transform API response to table data structure
   const transformedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];

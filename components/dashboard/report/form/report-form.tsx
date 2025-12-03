@@ -25,8 +25,6 @@ export function ReportForm<T extends FieldValues>({
   onSubmit,
   children,
 }: ReportFormProps<T>) {
-  console.log({ form });
-
   return (
     <Form {...form}>
       <form
