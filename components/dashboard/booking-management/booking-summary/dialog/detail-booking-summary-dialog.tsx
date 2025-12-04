@@ -168,6 +168,8 @@ const getDetailBookingColumns = ({
             return "4";
           case "waiting approval":
             return "2";
+          case "canceled":
+            return "5";
           default:
             return "";
         }
@@ -181,6 +183,8 @@ const getDetailBookingColumns = ({
             return "Rejected";
           case "2":
             return "Waiting Approval";
+          case "5":
+            return "Canceled";
           default:
             return "";
         }
@@ -239,6 +243,7 @@ const getDetailBookingColumns = ({
         if (value === "3") return "text-green-600 bg-green-100";
         if (value === "4") return "text-red-600 bg-red-100";
         if (value === "2") return "text-yellow-600 bg-yellow-100";
+        if (value === "5") return "text-red-600 bg-red-100";
         return "";
       };
 
@@ -263,12 +268,17 @@ const getDetailBookingColumns = ({
                 selectValue
               )}`}
               id={`${row.original.sub_booking_id}-booking-status`}
+              disabled={selectValue === "5"}
             >
               <SelectValue placeholder="Change status" />
             </SelectTrigger>
             <SelectContent align="end">
               {bookingStatusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  disabled={option.value === "5"}
+                >
                   {option.label}
                 </SelectItem>
               ))}
@@ -547,14 +557,14 @@ const getDetailBookingColumns = ({
               <IconFileDownload className="mr-2 h-4 w-4" />
               View Invoice
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {/* <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleCancel}
               className="text-red-600 focus:text-red-600"
             >
               <Ban className="mr-2 h-4 w-4" />
               Cancel
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
       );

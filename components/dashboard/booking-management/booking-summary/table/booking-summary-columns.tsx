@@ -232,7 +232,11 @@ export function getBookingSummaryTableColumns({
               </SelectTrigger>
               <SelectContent align="end">
                 {bookingStatusOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.value === "5"}
+                  >
                     {option.label}
                   </SelectItem>
                 ))}
