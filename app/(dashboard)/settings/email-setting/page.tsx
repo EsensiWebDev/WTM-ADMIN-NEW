@@ -2,14 +2,22 @@ import EmailSettingForm from "@/components/dashboard/settings/email-setting/form
 import EmailPreview from "@/components/dashboard/settings/email-setting/preview/email-preview";
 import { getEmailTemplate } from "./fetch";
 import { requireAuthorization } from "@/lib/server-authorization";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { SearchParams } from "@/types";
+import { cn } from "@/lib/utils";
 
-const EmailSettingPage = async () => {
+const EmailSettingPage = async (props: {
+  searchParams: Promise<SearchParams>;
+}) => {
+  const searchParams = await props.searchParams;
+  const currentTab = searchParams.type as string;
   await requireAuthorization({ requiredRole: "Super Admin" });
 
-  const { data: emailTemplate } = await getEmailTemplate();
+  const { data: emailTemplate } = await getEmailTemplate({
+    type: currentTab,
+  });
+
   return (
     <div className="flex gap-12">
       {/* Left: Form */}
@@ -17,17 +25,27 @@ const EmailSettingPage = async () => {
         <div className="mb-8 flex items-start gap-8">
           <div className="min-w-[180px] font-medium flex flex-col gap-2">
             E-mail Setting
-            <Button asChild>
-              <Link href="/settings/email-setting?type=confirmation">
-                Confirmation
-              </Link>
+            <Button
+              asChild
+              className={cn({
+                "bg-[var(--tabs-background)] text-[var(--tabs-foreground)] hover:bg-[var(--tabs-background)] hover:text-[var(--tabs-foreground)]":
+                  currentTab !== "confirm",
+              })}
+            >
+              <Link href="/settings/email-setting?type=confirm">Confirm</Link>
             </Button>
-            <Button asChild>
+            <Button
+              asChild
+              className={cn({
+                "bg-[var(--tabs-background)] text-[var(--tabs-foreground)] hover:bg-[var(--tabs-background)] hover:text-[var(--tabs-foreground)]":
+                  currentTab !== "cancel",
+              })}
+            >
               <Link href="/settings/email-setting?type=cancel">Cancel</Link>
             </Button>
           </div>
 
-          <EmailSettingForm defaultValues={emailTemplate} />
+          <EmailSettingForm defaultValues={emailTemplate} type={currentTab} />
         </div>
       </div>
       {/* Right: Preview */}

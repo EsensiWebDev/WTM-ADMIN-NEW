@@ -30,9 +30,10 @@ export type EmailSettingSchema = z.infer<typeof emailSettingSchema>;
 
 interface EmailSettingFormProps {
   defaultValues: EmailTemplate;
+  type: string;
 }
 
-const EmailSettingForm = ({ defaultValues }: EmailSettingFormProps) => {
+const EmailSettingForm = ({ defaultValues, type }: EmailSettingFormProps) => {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<EmailSettingSchema>({
@@ -47,6 +48,7 @@ const EmailSettingForm = ({ defaultValues }: EmailSettingFormProps) => {
     const formData = new FormData();
     formData.append("body", values.body);
     formData.append("signature_text", values.signature_text);
+    formData.append("type", type);
 
     startTransition(() => {
       toast.promise(saveEmailSetting(formData), {
