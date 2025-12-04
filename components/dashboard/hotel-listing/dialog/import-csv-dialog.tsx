@@ -79,7 +79,7 @@ const ImportCsvDialog = () => {
     }
 
     setSelectedFile(file);
-    toast.success(`File "${file.name}" selected successfully`);
+    // toast.success(`File "${file.name}" selected successfully`);
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {

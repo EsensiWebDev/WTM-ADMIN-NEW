@@ -36,7 +36,9 @@ const EmailSettingPage = async (props: {
                   currentTab !== "confirm",
               })}
             >
-              <Link href="/settings/email-setting?type=confirm">Confirm</Link>
+              <Link href="/settings/email-setting?type=confirm">
+                Confirmation
+              </Link>
             </Button>
             <Button
               asChild
@@ -45,7 +47,9 @@ const EmailSettingPage = async (props: {
                   currentTab !== "cancel",
               })}
             >
-              <Link href="/settings/email-setting?type=cancel">Cancel</Link>
+              <Link href="/settings/email-setting?type=cancel">
+                Cancellation
+              </Link>
             </Button>
           </div>
 

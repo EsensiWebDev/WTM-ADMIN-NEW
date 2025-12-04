@@ -78,9 +78,10 @@ export const FileInputPreview = React.forwardRef<
           onBlur={onBlur}
           onChange={handleFileChange}
           placeholder={placeholder}
+          className="bg-white"
         />
         {preview && (
-          <div className="flex flex-col gap-3 border rounded-lg p-3">
+          <div className="flex flex-col gap-3 border rounded-lg p-3 bg-white">
             <div className="relative">
               <img
                 src={preview}
