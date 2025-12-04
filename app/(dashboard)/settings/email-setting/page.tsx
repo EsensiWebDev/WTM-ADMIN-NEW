@@ -1,11 +1,14 @@
-import EmailSettingForm from "@/components/dashboard/settings/email-setting/form/email-setting-form";
-import EmailPreview from "@/components/dashboard/settings/email-setting/preview/email-preview";
+import EmailSettingFormAsync from "@/components/dashboard/settings/email-setting/form/email-setting-form-async";
+import EmailSettingFormSkeleton from "@/components/dashboard/settings/email-setting/form/email-setting-form-skeleton";
+import EmailPreviewAsync from "@/components/dashboard/settings/email-setting/preview/email-preview-async";
+import EmailPreviewSkeleton from "@/components/dashboard/settings/email-setting/preview/email-preview-skeleton";
 import { getEmailTemplate } from "./fetch";
 import { requireAuthorization } from "@/lib/server-authorization";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { SearchParams } from "@/types";
 import { cn } from "@/lib/utils";
+import { Suspense } from "react";
 
 const EmailSettingPage = async (props: {
   searchParams: Promise<SearchParams>;
@@ -14,7 +17,8 @@ const EmailSettingPage = async (props: {
   const currentTab = searchParams.type as string;
   await requireAuthorization({ requiredRole: "Super Admin" });
 
-  const { data: emailTemplate } = await getEmailTemplate({
+  // Fetch data as promise without awaiting
+  const emailTemplatePromise = getEmailTemplate({
     type: currentTab,
   });
 
@@ -45,13 +49,20 @@ const EmailSettingPage = async (props: {
             </Button>
           </div>
 
-          <EmailSettingForm defaultValues={emailTemplate} type={currentTab} />
+          <Suspense fallback={<EmailSettingFormSkeleton />} key={currentTab}>
+            <EmailSettingFormAsync
+              emailTemplatePromise={emailTemplatePromise}
+              type={currentTab}
+            />
+          </Suspense>
         </div>
       </div>
       {/* Right: Preview */}
       <div className="flex flex-col min-w-[340px] max-w-md w-full">
         <div className="mb-2 font-medium">E-mail Preview</div>
-        <EmailPreview emailTemplate={emailTemplate} />
+        <Suspense fallback={<EmailPreviewSkeleton />} key={currentTab}>
+          <EmailPreviewAsync emailTemplatePromise={emailTemplatePromise} />
+        </Suspense>
       </div>
     </div>
   );

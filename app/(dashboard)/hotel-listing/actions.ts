@@ -334,6 +334,8 @@ export async function importHotelsFromCsv(file: File) {
       body: formData,
     });
 
+    console.log({ response });
+
     if (response.status !== 200) {
       return {
         success: false,
