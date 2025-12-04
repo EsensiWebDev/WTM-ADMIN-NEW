@@ -64,60 +64,57 @@ const EmailSettingForm = ({ defaultValues }: EmailSettingFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="mb-8 flex items-start gap-8">
-          <div className="min-w-[180px] font-medium">E-mail Setting</div>
-          <div className="flex-1">
-            <div className="grid grid-cols-1 gap-6 items-end">
-              <FormField
-                control={form.control}
-                name="body"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="mb-2 block text-base">
-                      E-mail Body Template
-                    </FormLabel>
-                    <FormControl>
-                      <Editor
-                        content={field.value}
-                        onChange={field.onChange}
-                        placeholder="Enter your email body template here..."
-                        className="bg-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="signature_text"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="mb-2 block text-base">
-                      E-mail Signature
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="h-24 bg-white"
-                        placeholder="Enter your email signature here"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <Button className="mt-6" type="submit" disabled={isPending}>
-              {isPending && (
-                <Loader
-                  className="mr-2 h-4 w-4 animate-spin"
-                  aria-hidden="true"
-                />
+        <div className="flex-1">
+          <div className="grid grid-cols-1 gap-6 items-end">
+            <FormField
+              control={form.control}
+              name="body"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="mb-2 block text-base">
+                    E-mail Body Template
+                  </FormLabel>
+                  <FormControl>
+                    <Editor
+                      content={field.value}
+                      onChange={field.onChange}
+                      placeholder="Enter your email body template here..."
+                      className="bg-white"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-              Save Changes
-            </Button>
+            />
+            <FormField
+              control={form.control}
+              name="signature_text"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="mb-2 block text-base">
+                    E-mail Signature
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      className="h-24 bg-white"
+                      placeholder="Enter your email signature here"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
+          <Button className="mt-6" type="submit" disabled={isPending}>
+            {isPending && (
+              <Loader
+                className="mr-2 h-4 w-4 animate-spin"
+                aria-hidden="true"
+              />
+            )}
+            Save Changes
+          </Button>
         </div>
       </form>
     </Form>

@@ -11,7 +11,7 @@ const tabItems = [
     label: "Account Setting",
   },
   {
-    href: "/settings/email-setting",
+    href: "/settings/email-setting?type=confirmation",
     label: "E-mail Setting",
     requiredRole: "Super Admin" as const,
   },
