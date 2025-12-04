@@ -1,6 +1,7 @@
 "use client";
 
 import { importHotelsFromCsv } from "@/app/(dashboard)/hotel-listing/actions";
+import { downloadCsvTemplate } from "@/app/(dashboard)/hotel-listing/fetch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -152,24 +153,33 @@ const ImportCsvDialog = () => {
     });
   };
 
-  const downloadTemplate = () => {
-    // Create CSV template with hotel data structure based on Hotel interface
-    const csvContent = `name,region,email,approval_status,api_status,room_name,room_description,normal_price,discount_price
-Sample Hotel,Jakarta,hotel@example.com,approved,true,Deluxe Room,Spacious room with city view,500000,450000
-Sample Hotel,Jakarta,hotel@example.com,approved,true,Standard Room,Comfortable standard room,300000,270000
-Another Hotel,Bali,another@example.com,pending,false,Ocean View Suite,Luxury suite with ocean view,800000,720000`;
+  const downloadTemplate = async () => {
+    try {
+      toast.info("Preparing template download...");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "hotel_listing_template.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+      const result = await downloadCsvTemplate();
 
-    toast.success("Template downloaded successfully");
+      if (result.status !== 200 || !result.data) {
+        toast.error(result.error || "Failed to download template");
+        return;
+      }
+
+      // Create a blob from the response data
+      const blob = new Blob([result.data], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "hotel_listing_template.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Template downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading template:", error);
+      toast.error("Failed to download template");
+    }
   };
 
   const resetDialog = () => {
@@ -213,39 +223,23 @@ Another Hotel,Bali,another@example.com,pending,false,Ocean View Suite,Luxury sui
                 <AlertDescription className="text-sm">
                   <ul className="list-disc list-inside space-y-1 mt-2">
                     <li>
-                      Download the CSV template below to see the required format
+                      Column separator:
+                      <TextExample>;</TextExample>
                     </li>
                     <li>
-                      Fill in your hotel data following the template structure
+                      Facilities: comma-separated list (e.g.,
+                      <TextExample>WiFi,Pool,Gym</TextExample>)
                     </li>
                     <li>
-                      Each row can contain one hotel with one room, or multiple
-                      rows for hotels with multiple rooms
-                    </li>
-                    <li>
-                      Required fields:{" "}
-                      <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                        name, region, email, approval_status, api_status
-                      </code>
-                    </li>
-                    <li>
-                      Room fields:{" "}
-                      <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                        room_name, room_description, normal_price,
-                        discount_price
-                      </code>
-                    </li>
-                    <li>
-                      Approval status values:{" "}
-                      <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                        approved, pending, rejected
-                      </code>
-                    </li>
-                    <li>
-                      API status values:{" "}
-                      <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                        true, false
-                      </code>
+                      Nearby places: format
+                      <TextExample>
+                        PlaceName,Distance|PlaceName,Distance
+                      </TextExample>
+                      (e.g.,
+                      <TextExample>
+                        Mall Ambassador,0.5|Kuningan City,1.2
+                      </TextExample>
+                      )
                     </li>
                   </ul>
                 </AlertDescription>
@@ -372,6 +366,12 @@ Another Hotel,Bali,another@example.com,pending,false,Ocean View Suite,Luxury sui
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+};
+
+export const TextExample = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <code className="text-xs bg-muted px-1 py-0.5 rounded">{children}</code>
   );
 };
 
