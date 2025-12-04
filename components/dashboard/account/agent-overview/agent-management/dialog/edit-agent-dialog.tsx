@@ -83,6 +83,7 @@ const EditAgentDialog = ({
       // Create FormData for multipart upload
       const fd = new FormData();
       fd.append("user_id", String(agent.id));
+      fd.append("role", "agent");
 
       // Only add fields that have values
       fd.append("full_name", input.full_name);
