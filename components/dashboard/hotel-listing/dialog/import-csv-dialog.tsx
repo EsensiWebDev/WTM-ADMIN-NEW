@@ -130,11 +130,6 @@ const ImportCsvDialog = () => {
 
         if (result.success) {
           toast.success(result.message);
-          if (result.data?.errors && result.data.errors > 0) {
-            toast.info(
-              `Note: ${result.data.errors} rows had errors. Check console for details.`
-            );
-          }
         } else {
           toast.error(result.error || "Failed to import CSV file");
         }

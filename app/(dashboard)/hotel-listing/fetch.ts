@@ -1,3 +1,5 @@
+"use server";
+
 import { apiCall } from "@/lib/api";
 import { bffFetch } from "@/lib/bff-client";
 import { buildQueryParams } from "@/lib/utils";
