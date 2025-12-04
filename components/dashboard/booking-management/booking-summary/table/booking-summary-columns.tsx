@@ -126,6 +126,8 @@ export function getBookingSummaryTableColumns({
               return "4";
             case "waiting approval":
               return "2";
+            case "canceled":
+              return "5";
             default:
               return "";
           }
@@ -139,6 +141,8 @@ export function getBookingSummaryTableColumns({
               return "Rejected";
             case "2":
               return "Waiting Approval";
+            case "5":
+              return "Canceled";
             default:
               return "";
           }
@@ -197,6 +201,7 @@ export function getBookingSummaryTableColumns({
           if (value === "3") return "text-green-600 bg-green-100";
           if (value === "4") return "text-red-600 bg-red-100";
           if (value === "2") return "text-yellow-600 bg-yellow-100";
+          if (value === "5") return "text-red-600 bg-red-100";
           return "";
         };
 
@@ -221,6 +226,7 @@ export function getBookingSummaryTableColumns({
                   selectValue
                 )}`}
                 id={`${row.original.booking_id}-booking-status`}
+                disabled={selectValue === "5"}
               >
                 <SelectValue placeholder="Change status" />
               </SelectTrigger>
