@@ -33,6 +33,7 @@ export function getEmailLogTableColumns({
       },
       enableColumnFilter: false,
       enableHiding: false,
+      enableSorting: false,
     },
     {
       id: "hotel_name",
@@ -48,6 +49,7 @@ export function getEmailLogTableColumns({
         icon: Text,
       },
       enableColumnFilter: false,
+      enableSorting: false,
     },
     {
       id: "status",
@@ -75,6 +77,7 @@ export function getEmailLogTableColumns({
         ],
       },
       enableColumnFilter: false,
+      enableSorting: false,
     },
     {
       id: "notes",
@@ -90,6 +93,7 @@ export function getEmailLogTableColumns({
         icon: Text,
       },
       enableColumnFilter: false,
+      enableSorting: false,
     },
   ];
 }
