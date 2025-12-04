@@ -52,17 +52,29 @@ export function getEmailLogTableColumns({
       enableSorting: false,
     },
     {
+      id: "email_type",
+      accessorKey: "email_type",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Type" />
+      ),
+      cell: ({ row }) => row.original.email_type || "-",
+      enableColumnFilter: false,
+      enableSorting: false,
+    },
+    {
       id: "status",
       accessorKey: "status",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => {
-        const value = row.original.status;
-        let variant: "default" | "destructive" =
-          value === "success" ? "default" : "destructive";
+        const value = row.original.status.toLowerCase() as
+          | "success"
+          | "failed"
+          | "pending";
+
         return (
-          <Badge variant={variant} className="capitalize">
+          <Badge variant={value} className="capitalize">
             {value}
           </Badge>
         );
