@@ -1,5 +1,6 @@
 import { updatePromoGroup } from "@/app/(dashboard)/account/agent-overview/agent-management/actions";
 import { Agent } from "@/app/(dashboard)/account/agent-overview/agent-management/types";
+import { addPromoGroupMembers } from "@/app/(dashboard)/promo-group/actions";
 import { PromoGroup } from "@/app/(dashboard)/promo-group/types";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "@/components/ui/button";
@@ -95,7 +96,11 @@ export function getAgentTableColumns({
               onValueChange={(value) => {
                 startUpdateTransition(() => {
                   toast.promise(
-                    updatePromoGroup(row.original.id, Number(value)),
+                    addPromoGroupMembers({
+                      promo_group_id: String(value),
+                      member_id: String(row.original.id),
+                    }),
+                    // updatePromoGroup(row.original.id, Number(value)),
                     {
                       loading: "Updating promo group...",
                       success: (data) => data.message,

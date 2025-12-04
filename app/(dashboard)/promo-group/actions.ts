@@ -114,13 +114,13 @@ export async function editPromoGroup(
 }
 
 // Members
-export async function addPromoGroupMembers(
-  input: AddMemberPromoGroupSchemaType & { promo_group_id: string }
-): Promise<ActionResponse> {
+export async function addPromoGroupMembers(input: {
+  promo_group_id: string;
+  member_id: string;
+}): Promise<ActionResponse> {
   try {
     const body = {
       promo_group_id: Number(input.promo_group_id),
-      // agent_company_id: Number(input.agent_company_id),
       member_id: Number(input.member_id),
     };
 
