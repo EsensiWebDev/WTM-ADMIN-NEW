@@ -27,6 +27,7 @@ export interface ReportAgent {
   hotel_name: string;
   confirmed_booking: number;
   cancelled_booking: number;
+  rejected_booking: number;
   agent_id: number;
   hotel_id: number;
 }

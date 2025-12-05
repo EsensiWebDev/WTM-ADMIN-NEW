@@ -29,6 +29,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
+import { createParser, useQueryStates } from "nuqs";
 
 export const description = "An interactive area chart";
 
@@ -141,52 +142,98 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 interface ChartAreaInteractiveProps {
-  data?: { date: string; count: number }[];
+  data?: { date: string; count: number }[]; // date can be ISO 8601 timestamp or date string
 }
+
+// Custom parser for date strings (YYYY-MM-DD)
+const dateParser = createParser({
+  parse: (value) => {
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? null : date;
+  },
+  serialize: (value) => format(value, "yyyy-MM-dd"),
+});
+
+// Set default date range to last 7 days (6 days ago to today)
+const getDefaultDateRange = () => {
+  const today = new Date();
+  const fromDate = new Date(today);
+  fromDate.setDate(fromDate.getDate() - 6); // 6 days ago
+  return {
+    from: fromDate,
+    to: today,
+  };
+};
 
 export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
+  const defaultRange = getDefaultDateRange();
 
-  // Set default date range to last 7 days (6 days ago to today)
-  const getDefaultDateRange = React.useCallback(() => {
-    const today = new Date();
-    const fromDate = new Date(today);
-    fromDate.setDate(fromDate.getDate() - 6); // 6 days ago
-    return {
-      from: fromDate,
-      to: today,
-    };
-  }, []);
-
-  const [range, setRange] = React.useState<DateRange | undefined>(
-    getDefaultDateRange()
+  // Use nuqs for URL-based state management
+  const [{ date_from, date_to }, setDateRange] = useQueryStates(
+    {
+      date_from: dateParser.withDefault(defaultRange.from),
+      date_to: dateParser.withDefault(defaultRange.to),
+    },
+    {
+      shallow: false,
+      clearOnDefault: true,
+    }
   );
 
-  // Transform the provided data to match the chart format
+  // Convert to DateRange format for the Calendar component
+  const range: DateRange | undefined = React.useMemo(
+    () => ({
+      from: date_from || undefined,
+      to: date_to || undefined,
+    }),
+    [date_from, date_to]
+  );
+
+  // Update URL state when range changes
+  const setRange = React.useCallback(
+    (newRange: DateRange | undefined) => {
+      setDateRange({
+        date_from: newRange?.from || null,
+        date_to: newRange?.to || null,
+      });
+    },
+    [setDateRange]
+  );
+
+  // Transform and aggregate timestamp-based data into daily totals
   const transformedData = React.useMemo(() => {
     if (data.length === 0) {
       return chartData; // Fallback to dummy data if no data provided
     }
-    return data.map((item) => ({
-      date: item.date,
-      confirmed: item.count,
-      rejected: 0, // Use only the count field for confirmed bookings
-    }));
+
+    // Group bookings by calendar date and sum counts
+    const dailyTotals = data.reduce((acc, item) => {
+      // Extract date part from timestamp (YYYY-MM-DD)
+      const date = new Date(item.date);
+      const dateKey = date.toISOString().split("T")[0]; // Get YYYY-MM-DD format
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = 0;
+      }
+      acc[dateKey] += item.count;
+
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Convert to chart format and sort by date
+    return Object.entries(dailyTotals)
+      .map(([date, count]) => ({
+        date,
+        confirmed: count,
+        rejected: 0, // Use only the count field for confirmed bookings
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [data]);
 
-  const newFilteredData = React.useMemo(() => {
-    if (!range?.from && !range?.to) {
-      return transformedData;
-    }
-    return transformedData.filter((item) => {
-      const date = new Date(item.date);
-      return date >= range.from! && date <= range.to!;
-    });
-  }, [range, transformedData]);
-
-  // Check if there's no data to display
-  const hasNoData = newFilteredData.length === 0;
+  // Check if there's no data to display (backend already filters data)
+  const hasNoData = transformedData.length === 0;
 
   // Format the date range for display in the card description
   const formatDateRange = React.useMemo(() => {
@@ -218,40 +265,43 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   }, [range]);
 
   // Function to set date range based on preset
-  const setPresetRange = (days: number) => {
-    const today = new Date();
-    let fromDate: Date;
+  const setPresetRange = React.useCallback(
+    (days: number) => {
+      const today = new Date();
+      let fromDate: Date;
 
-    switch (days) {
-      case 0: // Today
-        fromDate = new Date(today);
-        break;
-      case 1: // Yesterday
-        fromDate = new Date(today);
-        fromDate.setDate(fromDate.getDate() - 1);
-        break;
-      case 7: // Last 7 days
-        fromDate = new Date(today);
-        fromDate.setDate(fromDate.getDate() - 6); // Include today
-        break;
-      case 30: // Last 30 days
-        fromDate = new Date(today);
-        fromDate.setDate(fromDate.getDate() - 29); // Include today
-        break;
-      case 90: // Last 90 days
-        fromDate = new Date(today);
-        fromDate.setDate(fromDate.getDate() - 89); // Include today
-        break;
-      default:
-        fromDate = new Date(today);
-        fromDate.setDate(fromDate.getDate() - days);
-    }
+      switch (days) {
+        case 0: // Today
+          fromDate = new Date(today);
+          break;
+        case 1: // Yesterday
+          fromDate = new Date(today);
+          fromDate.setDate(fromDate.getDate() - 1);
+          break;
+        case 7: // Last 7 days
+          fromDate = new Date(today);
+          fromDate.setDate(fromDate.getDate() - 6); // Include today
+          break;
+        case 30: // Last 30 days
+          fromDate = new Date(today);
+          fromDate.setDate(fromDate.getDate() - 29); // Include today
+          break;
+        case 90: // Last 90 days
+          fromDate = new Date(today);
+          fromDate.setDate(fromDate.getDate() - 89); // Include today
+          break;
+        default:
+          fromDate = new Date(today);
+          fromDate.setDate(fromDate.getDate() - days);
+      }
 
-    setRange({
-      from: fromDate,
-      to: new Date(today),
-    });
-  };
+      setDateRange({
+        date_from: fromDate,
+        date_to: new Date(today),
+      });
+    },
+    [setDateRange]
+  );
 
   return (
     <Card className="@container/card">
@@ -332,7 +382,7 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
             config={chartConfig}
             className="aspect-auto h-[250px] w-full"
           >
-            <AreaChart data={newFilteredData}>
+            <AreaChart data={transformedData}>
               <defs>
                 <linearGradient id="fillConfirmed" x1="0" y1="0" x2="0" y2="1">
                   <stop

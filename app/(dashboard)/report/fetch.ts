@@ -12,8 +12,23 @@ export const getReportSummary = async ({
 }: {
   searchParams: SearchParams;
 }): Promise<ApiResponse<ReportSummary>> => {
+  // Set default date range to last 7 days (6 days ago to today) if not provided
+  const getDefaultDateRange = () => {
+    const today = new Date();
+    const fromDate = new Date(today);
+    fromDate.setDate(fromDate.getDate() - 6); // 6 days ago
+    return {
+      date_from: format(fromDate, "yyyy-MM-dd"),
+      date_to: format(today, "yyyy-MM-dd"),
+    };
+  };
+
+  const defaultRange = getDefaultDateRange();
+
   const params = {
     ...searchParams,
+    date_from: searchParams.date_from ?? defaultRange.date_from,
+    date_to: searchParams.date_to ?? defaultRange.date_to,
     limit: searchParams.limit ?? "10",
   };
 
@@ -40,6 +55,7 @@ export const getReportAgent = async ({
     // Convert timestamps to formatted dates and prepare final query params
     const formattedQuery = {
       ...searchParams,
+      limit: searchParams.limit ?? "10",
       date_from: format(new Date(parseInt(dateFrom)), "yyyy-MM-dd"),
       date_to: format(new Date(parseInt(dateTo)), "yyyy-MM-dd"),
     } as SearchParams;
@@ -49,8 +65,13 @@ export const getReportAgent = async ({
     const { period_date, ...rest } = formattedQuery;
     query = rest;
   } else {
+    const formattedQuery = {
+      ...searchParams,
+      limit: searchParams.limit ?? "10",
+    } as SearchParams;
+
     // If no period_date, remove it from query if it exists
-    const { period_date, ...rest } = searchParams;
+    const { period_date, ...rest } = formattedQuery;
     query = rest as SearchParams;
   }
 
@@ -72,7 +93,6 @@ export const getReportAgentDetail = async ({
   };
 
   const queryString = buildQueryParams(searchParamsWithDefaults);
-  console.log({ queryString });
   const url = `/reports/agent/detail${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<ReportAgentDetail[]>(url);
 

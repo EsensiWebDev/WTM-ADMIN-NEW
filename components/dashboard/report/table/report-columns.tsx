@@ -69,7 +69,7 @@ export function getReportTableColumns({
       cell: ({ row }) => row.original.agent_name,
       meta: {
         label: "Name",
-        placeholder: "Search name...",
+        placeholder: "Search agent name...",
         variant: "text",
         icon: Text,
       },
@@ -103,19 +103,35 @@ export function getReportTableColumns({
     },
     {
       id: "confirmed_bookings",
-      accessorKey: "detail",
+      accessorKey: "deconfirmed_bookingstail",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Confirmed Bookings" />
       ),
       cell: ({ row }) => (
-        <div className="text-center">{row.original.confirmed_booking}</div>
+        <div className="text-center">
+          {row.original.confirmed_booking || "-"}
+        </div>
+      ),
+      enableHiding: false,
+      enableSorting: false,
+    },
+    {
+      id: "rejected_bookings",
+      accessorKey: "rejected_bookings",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Rejected Bookings" />
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.original.rejected_booking || "-"}
+        </div>
       ),
       enableHiding: false,
       enableSorting: false,
     },
     {
       id: "cancelled_bookings",
-      accessorKey: "detail",
+      accessorKey: "cancelled_bookings",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Cancelled Bookings" />
       ),
