@@ -126,7 +126,7 @@ export function getBookingSummaryTableColumns({
               return "4";
             case "waiting approval":
               return "2";
-            case "canceled":
+            case "cancelled":
               return "5";
             default:
               return "";
@@ -142,7 +142,7 @@ export function getBookingSummaryTableColumns({
             case "2":
               return "Waiting Approval";
             case "5":
-              return "Canceled";
+              return "Cancelled";
             default:
               return "";
           }
