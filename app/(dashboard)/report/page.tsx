@@ -35,6 +35,7 @@ const ReportPage = async (props: ReportPageProps) => {
         <h1 className="text-3xl font-bold">Report</h1>
       </div>
       <React.Suspense
+        key={JSON.stringify(searchParams) || ""}
         fallback={
           <DataTableSkeleton
             columnCount={7}

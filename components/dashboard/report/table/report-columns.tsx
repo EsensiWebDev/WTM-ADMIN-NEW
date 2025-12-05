@@ -99,7 +99,7 @@ export function getReportTableColumns({
         variant: "dateRange",
         icon: CalendarIcon,
       },
-      enableColumnFilter: true,
+      enableColumnFilter: false,
     },
     {
       id: "confirmed_bookings",

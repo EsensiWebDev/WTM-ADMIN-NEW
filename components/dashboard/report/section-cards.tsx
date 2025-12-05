@@ -61,19 +61,19 @@ export function SectionCards({
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Cancellations Bookings</CardDescription>
+          <CardDescription>Cancelled Bookings</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {data.cancellation_booking?.count}
+            {data.cancelled_booking?.count}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <TrendingIndicator percent={data.cancellation_booking?.percent} />
+              <TrendingIndicator percent={data.cancelled_booking?.percent} />
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            {data.cancellation_booking?.message}
+            {data.cancelled_booking?.message}
           </div>
         </CardFooter>
       </Card>

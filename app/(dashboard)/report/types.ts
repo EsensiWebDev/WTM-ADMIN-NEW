@@ -7,7 +7,7 @@ export interface ReportSummary {
       percent: number;
       message: string;
     };
-    cancellation_booking: {
+    cancelled_booking: {
       count: number;
       percent: number;
       message: string;
