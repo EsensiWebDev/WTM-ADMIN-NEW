@@ -29,7 +29,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { createParser, useQueryStates } from "nuqs";
+import { useQueryStates } from "nuqs";
+import { dateParser, getDefaultDateRange } from "@/lib/date-utils";
 
 export const description = "An interactive area chart";
 
@@ -50,26 +51,6 @@ const chartConfig = {
 interface ChartAreaInteractiveProps {
   data?: { date: string; count: number }[]; // date can be ISO 8601 timestamp or date string
 }
-
-// Custom parser for date strings (YYYY-MM-DD)
-const dateParser = createParser({
-  parse: (value) => {
-    const date = new Date(value);
-    return isNaN(date.getTime()) ? null : date;
-  },
-  serialize: (value) => format(value, "yyyy-MM-dd"),
-});
-
-// Set default date range to last 7 days (6 days ago to today)
-const getDefaultDateRange = () => {
-  const today = new Date();
-  const fromDate = new Date(today);
-  fromDate.setDate(fromDate.getDate() - 6); // 6 days ago
-  return {
-    from: fromDate,
-    to: today,
-  };
-};
 
 export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   const isMobile = useIsMobile();

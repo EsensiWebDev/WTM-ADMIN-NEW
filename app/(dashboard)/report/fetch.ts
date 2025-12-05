@@ -7,22 +7,21 @@ import { format } from "date-fns";
 import { SearchParams } from "nuqs";
 import { ReportAgent, ReportAgentDetail, ReportSummary } from "./types";
 
+const getDefaultDateRange = () => {
+  const today = new Date();
+  const fromDate = new Date(today);
+  fromDate.setDate(fromDate.getDate() - 6); // 6 days ago
+  return {
+    date_from: format(fromDate, "yyyy-MM-dd"),
+    date_to: format(today, "yyyy-MM-dd"),
+  };
+};
+
 export const getReportSummary = async ({
   searchParams,
 }: {
   searchParams: SearchParams;
 }): Promise<ApiResponse<ReportSummary>> => {
-  // Set default date range to last 7 days (6 days ago to today) if not provided
-  const getDefaultDateRange = () => {
-    const today = new Date();
-    const fromDate = new Date(today);
-    fromDate.setDate(fromDate.getDate() - 6); // 6 days ago
-    return {
-      date_from: format(fromDate, "yyyy-MM-dd"),
-      date_to: format(today, "yyyy-MM-dd"),
-    };
-  };
-
   const defaultRange = getDefaultDateRange();
 
   const params = {
@@ -44,17 +43,6 @@ export const getReportAgent = async ({
 }: {
   searchParams: SearchParams;
 }): Promise<ApiResponse<ReportAgent[]>> => {
-  // Set default date range to last 7 days (6 days ago to today) if not provided
-  const getDefaultDateRange = () => {
-    const today = new Date();
-    const fromDate = new Date(today);
-    fromDate.setDate(fromDate.getDate() - 6); // 6 days ago
-    return {
-      date_from: format(fromDate, "yyyy-MM-dd"),
-      date_to: format(today, "yyyy-MM-dd"),
-    };
-  };
-
   const defaultRange = getDefaultDateRange();
 
   const params = {
@@ -82,6 +70,7 @@ export const getReportAgentDetail = async ({
   };
 
   const queryString = buildQueryParams(searchParamsWithDefaults);
+
   const url = `/reports/agent/detail${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<ReportAgentDetail[]>(url);
 

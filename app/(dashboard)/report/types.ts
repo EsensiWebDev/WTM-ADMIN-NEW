@@ -22,14 +22,14 @@ export interface ReportSummary {
 }
 
 export interface ReportAgent {
+  agent_id: number;
   agent_name: string;
   agent_company: string;
+  hotel_id: number;
   hotel_name: string;
   confirmed_booking: number;
   cancelled_booking: number;
   rejected_booking: number;
-  agent_id: number;
-  hotel_id: number;
 }
 
 export interface ReportAgentDetail {
