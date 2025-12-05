@@ -7,6 +7,7 @@ import { getCompanyOptions, getHotelOptions } from "@/server/general";
 import React from "react";
 import { getReportAgent, getReportSummary } from "./fetch";
 import { ReportPageProps } from "./types";
+import SummaryAsync from "@/components/dashboard/report/summary-async";
 
 const ReportPage = async (props: ReportPageProps) => {
   const searchParams = await props.searchParams;
@@ -15,19 +16,8 @@ const ReportPage = async (props: ReportPageProps) => {
     getReportAgent({ searchParams }),
     getCompanyOptions(),
     getHotelOptions(),
+    getReportSummary({ searchParams }),
   ]);
-
-  const reportSummary = await getReportSummary({
-    searchParams,
-  });
-
-  if (reportSummary.error) {
-    return <div>{reportSummary.error}</div>;
-  }
-
-  if (reportSummary.status !== 200) {
-    return <div>Failed to load data</div>;
-  }
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
@@ -52,8 +42,7 @@ const ReportPage = async (props: ReportPageProps) => {
           />
         }
       >
-        <SectionCards data={reportSummary.data.summary_data} />
-        <ChartAreaInteractive data={reportSummary.data.graphic_data || []} />
+        <SummaryAsync promises={promises} />
         <Separator />
         <ReportTable promises={promises} />
       </React.Suspense>

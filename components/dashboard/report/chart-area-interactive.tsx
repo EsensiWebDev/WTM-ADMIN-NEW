@@ -31,6 +31,7 @@ import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { useQueryStates } from "nuqs";
 import { dateParser, getDefaultDateRange } from "@/lib/date-utils";
+import { useRouter } from "next/navigation";
 
 export const description = "An interactive area chart";
 
@@ -56,6 +57,7 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
   const defaultRange = getDefaultDateRange();
+  const router = useRouter();
 
   // Use nuqs for URL-based state management
   const [{ date_from, date_to }, setDateRange] = useQueryStates(
@@ -64,7 +66,6 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
       date_to: dateParser.withDefault(defaultRange.to),
     },
     {
-      shallow: false,
       clearOnDefault: true,
     }
   );
@@ -232,26 +233,37 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
                   />
                 </CardContent>
                 <CardFooter className="flex flex-wrap gap-2 border-t px-4 !pt-4">
-                  {[
-                    { label: "Last 90 days", value: 90 },
-                    { label: "Last 30 days", value: 30 },
-                    { label: "Last 7 days", value: 7 },
-                    { label: "Yesterday", value: 1 },
-                    { label: "Today", value: 0 },
-                  ].map((preset) => (
-                    <Button
-                      key={preset.value}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                        setPresetRange(preset.value);
-                        setOpen(false);
-                      }}
-                    >
-                      {preset.label}
-                    </Button>
-                  ))}
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { label: "Last 90 days", value: 90 },
+                      { label: "Last 30 days", value: 30 },
+                      { label: "Last 7 days", value: 7 },
+                      { label: "Yesterday", value: 1 },
+                      { label: "Today", value: 0 },
+                    ].map((preset) => (
+                      <Button
+                        key={preset.value}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={async () => {
+                          setPresetRange(preset.value);
+                        }}
+                      >
+                        {preset.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      router.refresh();
+                      setOpen(false);
+                    }}
+                  >
+                    Apply
+                  </Button>
                 </CardFooter>
               </Card>
             </PopoverContent>

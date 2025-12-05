@@ -3,6 +3,7 @@
 import {
   getReportAgent,
   getReportAgentDetail,
+  getReportSummary,
 } from "@/app/(dashboard)/report/fetch";
 import { ReportAgent } from "@/app/(dashboard)/report/types";
 import { DataTable } from "@/components/data-table/data-table";
@@ -23,7 +24,8 @@ interface ReportTableProps {
     [
       Awaited<ReturnType<typeof getReportAgent>>,
       Awaited<ReturnType<typeof getCompanyOptions>>,
-      Awaited<ReturnType<typeof getHotelOptions>>
+      Awaited<ReturnType<typeof getHotelOptions>>,
+      Awaited<ReturnType<typeof getReportSummary>>
     ]
   >;
 }
