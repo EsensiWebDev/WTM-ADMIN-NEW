@@ -33,100 +33,6 @@ import { createParser, useQueryStates } from "nuqs";
 
 export const description = "An interactive area chart";
 
-const chartData = [
-  { date: "2025-04-01", confirmed: 222, rejected: 150 },
-  { date: "2025-04-02", confirmed: 97, rejected: 180 },
-  { date: "2025-04-03", confirmed: 167, rejected: 120 },
-  { date: "2025-04-04", confirmed: 242, rejected: 260 },
-  { date: "2025-04-05", confirmed: 373, rejected: 290 },
-  { date: "2025-04-06", confirmed: 301, rejected: 340 },
-  { date: "2025-04-07", confirmed: 245, rejected: 180 },
-  { date: "2025-04-08", confirmed: 409, rejected: 320 },
-  { date: "2025-04-09", confirmed: 59, rejected: 110 },
-  { date: "2025-04-10", confirmed: 261, rejected: 190 },
-  { date: "2025-04-11", confirmed: 327, rejected: 350 },
-  { date: "2025-04-12", confirmed: 292, rejected: 210 },
-  { date: "2025-04-13", confirmed: 342, rejected: 380 },
-  { date: "2025-04-14", confirmed: 137, rejected: 220 },
-  { date: "2025-04-15", confirmed: 120, rejected: 170 },
-  { date: "2025-04-16", confirmed: 138, rejected: 190 },
-  { date: "2025-04-17", confirmed: 446, rejected: 360 },
-  { date: "2025-04-18", confirmed: 364, rejected: 410 },
-  { date: "2025-04-19", confirmed: 243, rejected: 180 },
-  { date: "2025-04-20", confirmed: 89, rejected: 150 },
-  { date: "2025-04-21", confirmed: 137, rejected: 200 },
-  { date: "2025-04-22", confirmed: 224, rejected: 170 },
-  { date: "2025-04-23", confirmed: 138, rejected: 230 },
-  { date: "2025-04-24", confirmed: 387, rejected: 290 },
-  { date: "2025-04-25", confirmed: 215, rejected: 250 },
-  { date: "2025-04-26", confirmed: 75, rejected: 130 },
-  { date: "2025-04-27", confirmed: 383, rejected: 420 },
-  { date: "2025-04-28", confirmed: 122, rejected: 180 },
-  { date: "2025-04-29", confirmed: 315, rejected: 240 },
-  { date: "2025-04-30", confirmed: 454, rejected: 380 },
-  { date: "2025-05-01", confirmed: 165, rejected: 220 },
-  { date: "2025-05-02", confirmed: 293, rejected: 310 },
-  { date: "2025-05-03", confirmed: 247, rejected: 190 },
-  { date: "2025-05-04", confirmed: 385, rejected: 420 },
-  { date: "2025-05-05", confirmed: 481, rejected: 390 },
-  { date: "2025-05-06", confirmed: 498, rejected: 520 },
-  { date: "2025-05-07", confirmed: 388, rejected: 300 },
-  { date: "2025-05-08", confirmed: 149, rejected: 210 },
-  { date: "2025-05-09", confirmed: 227, rejected: 180 },
-  { date: "2025-05-10", confirmed: 293, rejected: 330 },
-  { date: "2025-05-11", confirmed: 335, rejected: 270 },
-  { date: "2025-05-12", confirmed: 197, rejected: 240 },
-  { date: "2025-05-13", confirmed: 197, rejected: 160 },
-  { date: "2025-05-14", confirmed: 448, rejected: 490 },
-  { date: "2025-05-15", confirmed: 473, rejected: 380 },
-  { date: "2025-05-16", confirmed: 338, rejected: 400 },
-  { date: "2025-05-17", confirmed: 499, rejected: 420 },
-  { date: "2025-05-18", confirmed: 315, rejected: 350 },
-  { date: "2025-05-19", confirmed: 235, rejected: 180 },
-  { date: "2025-05-20", confirmed: 177, rejected: 230 },
-  { date: "2025-05-21", confirmed: 82, rejected: 140 },
-  { date: "2025-05-22", confirmed: 81, rejected: 120 },
-  { date: "2025-05-23", confirmed: 252, rejected: 290 },
-  { date: "2025-05-24", confirmed: 294, rejected: 220 },
-  { date: "2025-05-25", confirmed: 201, rejected: 250 },
-  { date: "2025-05-26", confirmed: 213, rejected: 170 },
-  { date: "2025-05-27", confirmed: 420, rejected: 460 },
-  { date: "2025-05-28", confirmed: 233, rejected: 190 },
-  { date: "2025-05-29", confirmed: 78, rejected: 130 },
-  { date: "2025-05-30", confirmed: 340, rejected: 280 },
-  { date: "2025-05-31", confirmed: 178, rejected: 230 },
-  { date: "2025-06-01", confirmed: 178, rejected: 200 },
-  { date: "2025-06-02", confirmed: 470, rejected: 410 },
-  { date: "2025-06-03", confirmed: 103, rejected: 160 },
-  { date: "2025-06-04", confirmed: 439, rejected: 380 },
-  { date: "2025-06-05", confirmed: 88, rejected: 140 },
-  { date: "2025-06-06", confirmed: 294, rejected: 250 },
-  { date: "2025-06-07", confirmed: 323, rejected: 370 },
-  { date: "2025-06-08", confirmed: 385, rejected: 320 },
-  { date: "2025-06-09", confirmed: 438, rejected: 480 },
-  { date: "2025-06-10", confirmed: 155, rejected: 200 },
-  { date: "2025-06-11", confirmed: 92, rejected: 150 },
-  { date: "2025-06-12", confirmed: 492, rejected: 420 },
-  { date: "2025-06-13", confirmed: 81, rejected: 130 },
-  { date: "2025-06-14", confirmed: 426, rejected: 380 },
-  { date: "2025-06-15", confirmed: 307, rejected: 350 },
-  { date: "2025-06-16", confirmed: 371, rejected: 310 },
-  { date: "2025-06-17", confirmed: 475, rejected: 520 },
-  { date: "2025-06-18", confirmed: 107, rejected: 170 },
-  { date: "2025-06-19", confirmed: 341, rejected: 290 },
-  { date: "2025-06-20", confirmed: 408, rejected: 450 },
-  { date: "2025-06-21", confirmed: 169, rejected: 210 },
-  { date: "2025-06-22", confirmed: 317, rejected: 270 },
-  { date: "2025-06-23", confirmed: 480, rejected: 530 },
-  { date: "2025-06-24", confirmed: 132, rejected: 180 },
-  { date: "2025-06-25", confirmed: 141, rejected: 190 },
-  { date: "2025-06-26", confirmed: 434, rejected: 380 },
-  { date: "2025-06-27", confirmed: 448, rejected: 490 },
-  { date: "2025-06-28", confirmed: 149, rejected: 200 },
-  { date: "2025-06-29", confirmed: 103, rejected: 160 },
-  { date: "2025-06-30", confirmed: 446, rejected: 400 },
-];
-
 const chartConfig = {
   bookings: {
     label: "Bookings",
@@ -205,7 +111,7 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   // Transform and aggregate timestamp-based data into daily totals
   const transformedData = React.useMemo(() => {
     if (data.length === 0) {
-      return chartData; // Fallback to dummy data if no data provided
+      return [];
     }
 
     // Group bookings by calendar date and sum counts
@@ -226,8 +132,7 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
     return Object.entries(dailyTotals)
       .map(([date, count]) => ({
         date,
-        confirmed: count,
-        rejected: 0, // Use only the count field for confirmed bookings
+        bookings: count,
       }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [data]);
@@ -440,14 +345,7 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
                 }
               />
               <Area
-                dataKey="rejected"
-                type="natural"
-                fill="url(#fillRejected)"
-                stroke="var(--color-rejected)"
-                stackId="a"
-              />
-              <Area
-                dataKey="confirmed"
+                dataKey="bookings"
                 type="natural"
                 fill="url(#fillConfirmed)"
                 stroke="var(--color-confirmed)"

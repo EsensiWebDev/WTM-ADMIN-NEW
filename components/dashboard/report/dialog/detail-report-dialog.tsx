@@ -59,6 +59,17 @@ const columns: ColumnDef<ReportAgentDetail>[] = [
     enableSorting: false,
   },
   {
+    id: "status_booking",
+    accessorKey: "status_booking",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Status Booking" />
+    ),
+    cell: ({ row }) => row.original.status_booking,
+    enableColumnFilter: true,
+    enableHiding: false,
+    enableSorting: false,
+  },
+  {
     id: "room_type",
     accessorKey: "room_type",
     header: ({ column }) => (
