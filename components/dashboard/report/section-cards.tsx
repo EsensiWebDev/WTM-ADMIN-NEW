@@ -45,17 +45,17 @@ export function SectionCards({
         <CardHeader>
           <CardDescription>Confirmed Bookings</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {data.confirmed_booking.count}
+            {data.confirmed_booking?.count}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <TrendingIndicator percent={data.confirmed_booking.percent} />
+              <TrendingIndicator percent={data.confirmed_booking?.percent} />
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            {data.confirmed_booking.message}
+            {data.confirmed_booking?.message}
           </div>
         </CardFooter>
       </Card>
@@ -63,17 +63,17 @@ export function SectionCards({
         <CardHeader>
           <CardDescription>Cancellations Bookings</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {data.cancellation_booking.count}
+            {data.cancellation_booking?.count}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <TrendingIndicator percent={data.cancellation_booking.percent} />
+              <TrendingIndicator percent={data.cancellation_booking?.percent} />
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            {data.cancellation_booking.message}
+            {data.cancellation_booking?.message}
           </div>
         </CardFooter>
       </Card>
@@ -81,17 +81,17 @@ export function SectionCards({
         <CardHeader>
           <CardDescription>New Customer</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {data.new_customer.count}
+            {data.rejected_booking?.count}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <TrendingIndicator percent={data.new_customer.percent} />
+              <TrendingIndicator percent={data.rejected_booking?.percent} />
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            {data.new_customer.message}
+            {data.rejected_booking?.message}
           </div>
         </CardFooter>
       </Card>

@@ -12,7 +12,7 @@ export interface ReportSummary {
       percent: number;
       message: string;
     };
-    new_customer: {
+    rejected_booking: {
       count: number;
       percent: number;
       message: string;

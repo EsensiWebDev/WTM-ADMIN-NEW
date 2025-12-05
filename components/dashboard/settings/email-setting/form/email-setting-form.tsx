@@ -102,6 +102,7 @@ const EmailSettingForm = ({ defaultValues, type }: EmailSettingFormProps) => {
 
   function onSubmit(values: EmailSettingSchema) {
     const formData = new FormData();
+    formData.append("subject", defaultValues.subject);
     formData.append("body", values.body);
     formData.append("type", type);
 
