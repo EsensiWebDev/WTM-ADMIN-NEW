@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
       {
         hostname: "dev.api.thehotelbox.com",
       },
+      {
+        hostname: "dev-api.thehotelbox.com",
+      },
     ],
   },
 };
