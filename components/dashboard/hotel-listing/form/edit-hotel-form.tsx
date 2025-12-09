@@ -46,7 +46,7 @@ export const editHotelFormSchema = z.object({
   nearby_places: z
     .array(
       z.object({
-        distance: z.number().int("Distance must be a whole number"),
+        distance: z.number().positive("Distance must be a positive number"),
         name: z.string().min(1, "Place name is required"),
         id: z.number().int().optional(), // ID for existing places
       })
@@ -171,8 +171,8 @@ const EditHotelForm = ({ hotel, hotelId }: EditHotelFormProps) => {
       const currentNearbyPlaces = form.getValues("nearby_places") || [];
       const updatedNearbyPlaces = [...currentNearbyPlaces];
 
-      // Parse distance as integer, default to 0 if invalid
-      const distance = place.distance ? parseInt(place.distance, 10) : 0;
+      // Parse distance as float, default to 0 if invalid
+      const distance = place.distance ? parseFloat(place.distance) : 0;
 
       // Check if this is an existing place (has ID)
       const existingPlace = updatedNearbyPlaces[index];
@@ -752,11 +752,13 @@ const NearbyPlaceItem = ({
           <p className="text-destructive text-sm mt-1">{nameError.message}</p>
         )}
       </div>
-      <div className="w-20">
+      <div className="w-24">
         <div className="relative">
           <Input
-            type="string"
-            className="bg-gray-200 pr-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            type="number"
+            step="0.1"
+            min="0"
+            className="bg-gray-200 pr-8 "
             placeholder="Radius"
             value={place.distance}
             onChange={(e) =>

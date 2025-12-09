@@ -45,7 +45,7 @@ export const createHotelFormSchema = z.object({
   nearby_places: z
     .array(
       z.object({
-        distance: z.number().int("Distance must be a whole number"),
+        distance: z.number().positive("Distance must be a positive number"),
         name: z.string().min(1, "Place name is required"),
       })
     )
@@ -99,8 +99,8 @@ const NewHotelForm = () => {
       const currentNearbyPlaces = form.getValues("nearby_places") || [];
       const updatedNearbyPlaces = [...currentNearbyPlaces];
 
-      // Parse distance as integer, default to 0 if invalid
-      const distance = place.distance ? parseInt(place.distance, 10) : 0;
+      // Parse distance as float, default to 0 if invalid
+      const distance = place.distance ? parseFloat(place.distance) : 0;
 
       updatedNearbyPlaces[index] = {
         name: place.name,
@@ -603,7 +603,9 @@ const NearbyPlaceItem = ({
       <div className="w-20">
         <div className="relative">
           <Input
-            type="string"
+            type="number"
+            step="0.1"
+            min="0"
             className="bg-gray-200 pr-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             placeholder="Radius"
             value={place.distance}
