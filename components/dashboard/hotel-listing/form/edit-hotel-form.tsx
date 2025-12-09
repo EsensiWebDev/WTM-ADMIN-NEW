@@ -21,7 +21,7 @@ import {
 } from "@tabler/icons-react";
 import { Loader, MapPin, PlusCircle, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { ImageFile, ImageUpload } from "../create/image-upload";
@@ -46,7 +46,7 @@ export const editHotelFormSchema = z.object({
   nearby_places: z
     .array(
       z.object({
-        distance: z.number().int(),
+        distance: z.number().int("Distance must be a whole number"),
         name: z.string().min(1, "Place name is required"),
         id: z.number().int().optional(), // ID for existing places
       })
@@ -658,6 +658,7 @@ const EditHotelForm = ({ hotel, hotelId }: EditHotelFormProps) => {
                     index={index}
                     onUpdate={handleNearbyUpdate}
                     onRemove={handleNearbyRemove}
+                    form={form}
                   />
                 ))}
                 <div className="flex justify-end">
@@ -726,37 +727,60 @@ const NearbyPlaceItem = ({
   index,
   onUpdate,
   onRemove,
+  form,
 }: {
   place: { name: string; distance: string };
   index: number;
   onUpdate: (index: number, place: { name: string; distance: string }) => void;
   onRemove: (index: number) => void;
-}) => (
-  <div className="flex items-center gap-2">
-    <MapPin size={16} />
-    <Input
-      className="flex-1 bg-gray-200"
-      placeholder="Location Name"
-      value={place.name}
-      onChange={(e) => onUpdate(index, { ...place, name: e.target.value })}
-    />
-    <Input
-      className="w-18 bg-gray-200"
-      placeholder="Radius"
-      value={place.distance}
-      onChange={(e) => onUpdate(index, { ...place, distance: e.target.value })}
-    />
-    <Button
-      type="button"
-      variant="destructive"
-      size="icon"
-      aria-label={`Remove near place ${index + 1}`}
-      onClick={() => onRemove(index)}
-    >
-      <Trash2 className="size-4" />
-    </Button>
-  </div>
-);
+  form: UseFormReturn<EditHotelFormValues>;
+}) => {
+  const nameError = form.formState.errors?.nearby_places?.[index]?.name;
+  const distanceError = form.formState.errors?.nearby_places?.[index]?.distance;
+
+  return (
+    <div className="flex items-start gap-2">
+      <MapPin size={16} className="mt-2.5" />
+      <div className="flex-1">
+        <Input
+          className="bg-gray-200"
+          placeholder="Location Name"
+          value={place.name}
+          onChange={(e) => onUpdate(index, { ...place, name: e.target.value })}
+        />
+        {nameError && (
+          <p className="text-destructive text-sm mt-1">{nameError.message}</p>
+        )}
+      </div>
+      <div className="w-24">
+        <Input
+          type="number"
+          className="bg-gray-200"
+          placeholder="Radius"
+          value={place.distance}
+          onChange={(e) =>
+            onUpdate(index, { ...place, distance: e.target.value })
+          }
+        />
+        {distanceError && (
+          <p className="text-destructive text-sm mt-1">
+            {distanceError.message}
+          </p>
+        )}
+      </div>
+      <Button
+        type="button"
+        variant="destructive"
+        size="icon"
+        aria-label={`Remove near place ${index + 1}`}
+        onClick={() => onRemove(index)}
+        className="mt-0.5"
+      >
+        <Trash2 className="size-4" />
+      </Button>
+    </div>
+  );
+};
 
 // Facility item component
 const FacilityItem = ({
