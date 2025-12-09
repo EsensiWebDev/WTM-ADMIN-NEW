@@ -600,16 +600,21 @@ const NearbyPlaceItem = ({
           <p className="text-destructive text-sm mt-1">{nameError.message}</p>
         )}
       </div>
-      <div className="w-24">
-        <Input
-          type="number"
-          className="bg-gray-200"
-          placeholder="Radius"
-          value={place.distance}
-          onChange={(e) =>
-            onUpdate(index, { ...place, distance: e.target.value })
-          }
-        />
+      <div className="w-20">
+        <div className="relative">
+          <Input
+            type="string"
+            className="bg-gray-200 pr-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            placeholder="Radius"
+            value={place.distance}
+            onChange={(e) =>
+              onUpdate(index, { ...place, distance: e.target.value })
+            }
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+            m
+          </span>
+        </div>
         {distanceError && (
           <p className="text-destructive text-sm mt-1">
             {distanceError.message}
