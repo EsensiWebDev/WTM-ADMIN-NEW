@@ -52,6 +52,10 @@ const AgentControlTable = ({ promises }: AgentControlTableProps) => {
     return <div>{error}</div>;
   }
 
+  if (status === 403) {
+    return <div>You don’t have permission to access this page.</div>;
+  }
+
   if (status !== 200) {
     return <div>Failed to load data</div>;
   }
