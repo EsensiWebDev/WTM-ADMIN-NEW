@@ -62,6 +62,7 @@ export function getAdminTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "phone_number",
@@ -78,6 +79,7 @@ export function getAdminTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "status",

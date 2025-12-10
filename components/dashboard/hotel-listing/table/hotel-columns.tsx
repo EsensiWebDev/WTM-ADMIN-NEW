@@ -97,6 +97,7 @@ export function getHotelTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "Email",
@@ -106,6 +107,7 @@ export function getHotelTableColumns({
       ),
       cell: ({ row }) => row.original.email,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "approval_status",

@@ -64,6 +64,7 @@ export function getHistoryBookingLogTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "agent_name",
@@ -80,6 +81,7 @@ export function getHistoryBookingLogTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "booking_status_id",
@@ -107,6 +109,7 @@ export function getHistoryBookingLogTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "payment_status_id",
@@ -133,6 +136,7 @@ export function getHistoryBookingLogTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "check_in_date",
@@ -150,6 +154,7 @@ export function getHistoryBookingLogTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "check_out_date",
@@ -167,6 +172,7 @@ export function getHistoryBookingLogTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "hotel_name",
@@ -183,6 +189,7 @@ export function getHistoryBookingLogTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "room_type",
@@ -199,6 +206,7 @@ export function getHistoryBookingLogTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "room_night",
@@ -213,6 +221,8 @@ export function getHistoryBookingLogTableColumns({
         variant: "number",
       },
       enableColumnFilter: false,
+      enableHiding: false,
+      enableSorting: false,
     },
     {
       id: "capacity",
@@ -228,74 +238,8 @@ export function getHistoryBookingLogTableColumns({
         icon: Text,
       },
       enableColumnFilter: false,
+      enableHiding: false,
+      enableSorting: false,
     },
-    // {
-    //   id: "detail",
-    //   accessorKey: "detail",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader column={column} title="Booking Detail" />
-    //   ),
-    //   cell: ({ row }) => {
-    //     return (
-    //       <Button
-    //         size={"sm"}
-    //         onClick={() => setRowAction({ row, variant: "detail" })}
-    //       >
-    //         <EyeIcon className="h-4 w-4" />
-    //         See details
-    //       </Button>
-    //     );
-    //   },
-    //   enableHiding: false,
-    //   enableSorting: false,
-    // },
-    // {
-    //   id: "api_status",
-    //   accessorKey: "api_status",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader column={column} title="API Status" />
-    //   ),
-    //   cell: ({ row }) => (
-    //     <CloudOff className="size-5 text-red-500" aria-hidden="true" />
-    //   ),
-    //   enableHiding: false,
-    //   enableSorting: false,
-    //   size: 50,
-    // },
-    // {
-    //   id: "actions",
-    //   cell: function Cell({ row }) {
-    //     const [isUpdatePending, startUpdateTransition] = React.useTransition();
-
-    //     return (
-    //       <DropdownMenu>
-    //         <DropdownMenuTrigger asChild>
-    //           <Button
-    //             aria-label="Open menu"
-    //             variant="ghost"
-    //             className="flex size-8 p-0 data-[state=open]:bg-muted"
-    //           >
-    //             <Ellipsis className="size-4" aria-hidden="true" />
-    //           </Button>
-    //         </DropdownMenuTrigger>
-    //         <DropdownMenuContent align="end" className="w-40">
-    //           <DropdownMenuItem
-    //             onSelect={() => setRowAction({ row, variant: "update" })}
-    //           >
-    //             Edit
-    //           </DropdownMenuItem>
-    //           <DropdownMenuSeparator />
-    //           <DropdownMenuItem
-    //             variant="destructive"
-    //             onSelect={() => setRowAction({ row, variant: "delete" })}
-    //           >
-    //             Delete
-    //           </DropdownMenuItem>
-    //         </DropdownMenuContent>
-    //       </DropdownMenu>
-    //     );
-    //   },
-    //   size: 40,
-    // },
   ];
 }

@@ -57,6 +57,7 @@ export function getRoleBasedAccessTableColumns(
       ),
       cell: ({ row }) => <></>,
       enableSorting: false,
+      enableHiding: false,
     })
   );
 

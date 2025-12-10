@@ -109,6 +109,7 @@ const columns: ColumnDef<ReportAgentDetail>[] = [
       return <div className="text-sm">{format(dateOut, "dd MMMM yyyy")}</div>;
     },
     enableSorting: false,
+    enableHiding: false,
   },
   {
     id: "capacity",

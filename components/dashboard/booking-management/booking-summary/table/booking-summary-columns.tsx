@@ -83,6 +83,7 @@ export function getBookingSummaryTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "agent_company",
@@ -92,6 +93,7 @@ export function getBookingSummaryTableColumns({
       ),
       cell: ({ row }) => row.original.agent_company,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "group_promo",
@@ -101,6 +103,7 @@ export function getBookingSummaryTableColumns({
       ),
       cell: ({ row }) => row.original.group_promo,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "booking_id",
@@ -110,6 +113,7 @@ export function getBookingSummaryTableColumns({
       ),
       cell: ({ row }) => row.original.booking_id,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "booking_status_id",
@@ -292,6 +296,7 @@ export function getBookingSummaryTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "payment_status_id",
@@ -420,6 +425,7 @@ export function getBookingSummaryTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "promo_id",
@@ -429,6 +435,7 @@ export function getBookingSummaryTableColumns({
       ),
       cell: ({ row }) => row.original.group_promo,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "receipt",

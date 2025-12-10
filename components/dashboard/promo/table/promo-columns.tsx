@@ -44,6 +44,7 @@ export function getPromoTableColumns({
         <DataTableColumnHeader column={column} title="Promo ID" />
       ),
       cell: ({ row }) => row.original.id,
+      enableSorting: false,
       enableHiding: false,
     },
     {
@@ -78,6 +79,7 @@ export function getPromoTableColumns({
       },
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "duration",
@@ -87,6 +89,7 @@ export function getPromoTableColumns({
       ),
       cell: ({ row }) => `${row.original.duration} Nights`,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "start_date",
@@ -99,6 +102,7 @@ export function getPromoTableColumns({
         return formatDate(date);
       },
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "end_date",
@@ -111,6 +115,7 @@ export function getPromoTableColumns({
         return formatDate(date);
       },
       enableSorting: false,
+      enableHiding: false,
     },
 
     {

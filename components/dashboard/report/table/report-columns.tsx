@@ -37,6 +37,7 @@ export function getReportTableColumns({
       cell: ({ row }) => row.original.hotel_name,
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "agent_company",
@@ -47,6 +48,7 @@ export function getReportTableColumns({
       cell: ({ row }) => row.original.agent_company,
       enableColumnFilter: true,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "search",

@@ -118,6 +118,7 @@ export function getBannerTableColumns({
         </div>
       ),
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "order",
@@ -163,6 +164,7 @@ export function getBannerTableColumns({
         );
       },
       enableSorting: false,
+      enableHiding: false,
       size: 60,
     },
     {

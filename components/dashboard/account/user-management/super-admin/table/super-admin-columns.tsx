@@ -62,6 +62,7 @@ export function getSuperAdminTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "phone",
@@ -78,6 +79,7 @@ export function getSuperAdminTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "status",

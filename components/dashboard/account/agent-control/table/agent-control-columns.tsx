@@ -156,6 +156,7 @@ export function getAgentControlTableColumns({
       },
       enableColumnFilter: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "Email",
@@ -165,6 +166,7 @@ export function getAgentControlTableColumns({
       ),
       cell: ({ row }) => row.original.email,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       id: "detail",
