@@ -40,12 +40,14 @@ interface PromoFormProps<T extends FieldValues>
   children: React.ReactNode;
   form: UseFormReturn<T>;
   onSubmit: (data: T) => void;
+  isEdit?: boolean;
 }
 
 export function PromoForm<T extends FieldValues>({
   form,
   onSubmit,
   children,
+  isEdit = false,
 }: PromoFormProps<T>) {
   const {
     data: hotelOptions,
@@ -97,7 +99,7 @@ export function PromoForm<T extends FieldValues>({
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  disabled={isLoadingHotels}
+                  disabled={isLoadingHotels || isEdit}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
@@ -146,7 +148,7 @@ export function PromoForm<T extends FieldValues>({
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={isLoadingRoomTypes || !selectedHotelId}
+                  disabled={isLoadingRoomTypes || !selectedHotelId || isEdit}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
@@ -223,7 +225,11 @@ export function PromoForm<T extends FieldValues>({
               <FormItem>
                 <FormLabel>Promo Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter promo name" {...field} />
+                  <Input
+                    placeholder="Enter promo name"
+                    disabled={isEdit}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -384,7 +390,11 @@ export function PromoForm<T extends FieldValues>({
             <FormItem>
               <FormLabel>Promo Code</FormLabel>
               <FormControl>
-                <Input placeholder="Enter promo code" {...field} />
+                <Input
+                  placeholder="Enter promo code"
+                  {...field}
+                  disabled={isEdit}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -197,7 +197,7 @@ const EditPromoDialog = ({
         )}
 
         {!isLoading && !isError && (
-          <PromoForm form={form} onSubmit={onSubmit}>
+          <PromoForm form={form} onSubmit={onSubmit} isEdit>
             <DialogFooter className="gap-2 pt-2 sm:space-x-0">
               <DialogClose asChild>
                 <Button type="button" variant="outline">
