@@ -1,7 +1,7 @@
 "use client";
 
 import type { Column, Table } from "@tanstack/react-table";
-import { Loader, X } from "lucide-react";
+import { Loader, Search, X } from "lucide-react";
 import * as React from "react";
 
 import { DataTableDateFilter } from "@/components/data-table/data-table-date-filter";
@@ -10,7 +10,6 @@ import { DataTableSliderFilter } from "@/components/data-table/data-table-slider
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 
 interface DataTableToolbarProps<TData> extends React.ComponentProps<"div"> {
   table: Table<TData>;
@@ -24,6 +23,8 @@ export function DataTableToolbar<TData>({
   isPending = false,
   ...props
 }: DataTableToolbarProps<TData>) {
+  const [resetTrigger, setResetTrigger] = React.useState(0);
+
   const isFiltered = table.getState().columnFilters.some((filter) => {
     if (Array.isArray(filter.value) && filter.value.length === 0) return false;
     return true;
@@ -45,6 +46,7 @@ export function DataTableToolbar<TData>({
 
   const onReset = React.useCallback(async () => {
     table.resetColumnFilters();
+    setResetTrigger((prev) => prev + 1);
   }, [table]);
 
   return (
@@ -59,7 +61,11 @@ export function DataTableToolbar<TData>({
     >
       <div className="flex flex-1 flex-wrap items-center gap-2">
         {columns.map((column) => (
-          <DataTableToolbarFilter key={column.id} column={column} />
+          <DataTableToolbarFilter
+            key={column.id}
+            column={column}
+            resetTrigger={resetTrigger}
+          />
         ))}
         {isFiltered && (
           <Button
@@ -87,34 +93,68 @@ export function DataTableToolbar<TData>({
 }
 interface DataTableToolbarFilterProps<TData> {
   column: Column<TData>;
+  resetTrigger?: number;
 }
 
 function DataTableToolbarFilter<TData>({
   column,
+  resetTrigger,
 }: DataTableToolbarFilterProps<TData>) {
   {
     const columnMeta = column.columnDef.meta;
+    const [pendingTextValue, setPendingTextValue] = React.useState("");
+
+    React.useEffect(() => {
+      if (columnMeta?.variant === "text") {
+        const val = column.getFilterValue();
+        let textString = "";
+        if (Array.isArray(val)) {
+          textString = val.join(" ");
+        } else {
+          textString = (val as string) ?? "";
+        }
+        setPendingTextValue(textString);
+      }
+    }, [column, columnMeta?.variant, resetTrigger]);
+
+    const onApply = React.useCallback(() => {
+      if (columnMeta?.variant === "text") {
+        column.setFilterValue(pendingTextValue || undefined);
+      }
+    }, [column, pendingTextValue, columnMeta?.variant]);
+
+    const handleKeyDown = React.useCallback(
+      (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+          onApply();
+        }
+      },
+      [onApply]
+    );
 
     const onFilterRender = React.useCallback(() => {
       if (!columnMeta?.variant) return null;
 
       switch (columnMeta.variant) {
         case "text":
-          const val = column.getFilterValue();
-          let textString = "";
-          if (Array.isArray(val)) {
-            textString = val.join(" ");
-          } else {
-            textString = (val as string) ?? "";
-          }
-
           return (
-            <Input
-              placeholder={columnMeta.placeholder ?? columnMeta.label}
-              value={textString}
-              onChange={(event) => column.setFilterValue(event.target.value)}
-              className="h-8 w-40 lg:w-56 bg-white"
-            />
+            <div className="flex items-center gap-0">
+              <Input
+                placeholder={columnMeta.placeholder ?? columnMeta.label}
+                value={pendingTextValue}
+                onChange={(event) => setPendingTextValue(event.target.value)}
+                onKeyDown={handleKeyDown}
+                className="h-8 w-40 lg:w-56 bg-white rounded-r-none"
+              />
+              <Button
+                size="sm"
+                className="h-8 px-2 rounded-l-none"
+                aria-label="Search"
+                onClick={onApply}
+              >
+                <Search className="h-4 w-4" /> Search
+              </Button>
+            </div>
           );
 
         case "number":
@@ -169,7 +209,7 @@ function DataTableToolbarFilter<TData>({
         default:
           return null;
       }
-    }, [column, columnMeta]);
+    }, [column, columnMeta, pendingTextValue, handleKeyDown, onApply]);
 
     return onFilterRender();
   }

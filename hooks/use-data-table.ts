@@ -38,7 +38,7 @@ const PAGE_KEY = "page";
 const PER_PAGE_KEY = "limit";
 const SORT_KEY = "sort";
 const ARRAY_SEPARATOR = ",";
-const DEBOUNCE_MS = 600;
+const DEBOUNCE_MS = 300;
 const THROTTLE_MS = 50;
 
 interface UseDataTableProps<TData>
