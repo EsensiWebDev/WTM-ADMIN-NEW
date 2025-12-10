@@ -72,11 +72,6 @@ const ReportTable = ({ promises }: ReportTableProps) => {
     shallow: false,
     clearOnDefault: true,
     startTransition,
-    initialState: {
-      columnVisibility: {
-        period_date: false,
-      },
-    },
   });
 
   const query = useQuery({

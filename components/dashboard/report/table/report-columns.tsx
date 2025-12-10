@@ -29,34 +29,22 @@ export function getReportTableColumns({
       size: 40,
     },
     {
-      id: "hotel_id",
-      accessorKey: "hotel_id",
+      id: "hotel_name",
+      accessorKey: "hotel_name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Hotel Name" />
       ),
       cell: ({ row }) => row.original.hotel_name,
-      meta: {
-        label: "Hotel",
-        placeholder: "Search hotel...",
-        variant: "multiSelect",
-        options: hotelOptions,
-      },
       enableColumnFilter: true,
       enableSorting: false,
     },
     {
-      id: "agent_company_id",
-      accessorKey: "agent_company_id",
+      id: "agent_company",
+      accessorKey: "agent_company",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Agent Company" />
       ),
       cell: ({ row }) => row.original.agent_company,
-      meta: {
-        label: "Company",
-        placeholder: "Search company...",
-        variant: "multiSelect",
-        options: companyOptions,
-      },
       enableColumnFilter: true,
       enableSorting: false,
     },
@@ -77,33 +65,9 @@ export function getReportTableColumns({
       enableHiding: false,
       enableSorting: false,
     },
-
-    // {
-    //   id: "email",
-    //   accessorKey: "email",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader column={column} title="Email" />
-    //   ),
-    //   cell: ({ row }) => row.original.email,
-    // },
-
     {
-      id: "period_date",
-      header: "Date",
-      cell: ({ row }) => row.index + 1,
-      size: 40,
-      enableSorting: false,
-      enableHiding: false,
-      meta: {
-        label: "Period",
-        variant: "dateRange",
-        icon: CalendarIcon,
-      },
-      enableColumnFilter: false,
-    },
-    {
-      id: "confirmed_bookings",
-      accessorKey: "deconfirmed_bookingstail",
+      id: "confirmed_booking",
+      accessorKey: "confirmed_booking",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Confirmed Bookings" />
       ),
@@ -116,8 +80,8 @@ export function getReportTableColumns({
       enableSorting: false,
     },
     {
-      id: "rejected_bookings",
-      accessorKey: "rejected_bookings",
+      id: "rejected_booking",
+      accessorKey: "rejected_booking",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Rejected Bookings" />
       ),
@@ -130,8 +94,8 @@ export function getReportTableColumns({
       enableSorting: false,
     },
     {
-      id: "cancelled_bookings",
-      accessorKey: "cancelled_bookings",
+      id: "cancelled_booking",
+      accessorKey: "cancelled_booking",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Cancelled Bookings" />
       ),
@@ -161,40 +125,5 @@ export function getReportTableColumns({
       enableHiding: false,
       enableSorting: false,
     },
-    // {
-    //   id: "actions",
-    //   cell: function Cell({ row }) {
-    //     const [isUpdatePending, startUpdateTransition] = React.useTransition();
-
-    //     return (
-    //       <DropdownMenu>
-    //         <DropdownMenuTrigger asChild>
-    //           <Button
-    //             aria-label="Open menu"
-    //             variant="ghost"
-    //             className="flex size-8 p-0 data-[state=open]:bg-muted"
-    //           >
-    //             <Ellipsis className="size-4" aria-hidden="true" />
-    //           </Button>
-    //         </DropdownMenuTrigger>
-    //         <DropdownMenuContent align="end" className="w-40">
-    //           <DropdownMenuItem
-    //             onSelect={() => setRowAction({ row, variant: "update" })}
-    //           >
-    //             Edit
-    //           </DropdownMenuItem>
-    //           <DropdownMenuSeparator />
-    //           <DropdownMenuItem
-    //             variant="destructive"
-    //             onSelect={() => setRowAction({ row, variant: "delete" })}
-    //           >
-    //             Delete
-    //           </DropdownMenuItem>
-    //         </DropdownMenuContent>
-    //       </DropdownMenu>
-    //     );
-    //   },
-    //   size: 40,
-    // },
   ];
 }

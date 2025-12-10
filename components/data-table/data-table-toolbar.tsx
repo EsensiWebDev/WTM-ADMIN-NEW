@@ -10,6 +10,7 @@ import { DataTableSliderFilter } from "@/components/data-table/data-table-slider
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface DataTableToolbarProps<TData> extends React.ComponentProps<"div"> {
   table: Table<TData>;
@@ -42,7 +43,7 @@ export function DataTableToolbar<TData>({
     [table]
   );
 
-  const onReset = React.useCallback(() => {
+  const onReset = React.useCallback(async () => {
     table.resetColumnFilters();
   }, [table]);
 
@@ -99,10 +100,18 @@ function DataTableToolbarFilter<TData>({
 
       switch (columnMeta.variant) {
         case "text":
+          const val = column.getFilterValue();
+          let textString = "";
+          if (Array.isArray(val)) {
+            textString = val.join(" ");
+          } else {
+            textString = (val as string) ?? "";
+          }
+
           return (
             <Input
               placeholder={columnMeta.placeholder ?? columnMeta.label}
-              value={(column.getFilterValue() as string) ?? ""}
+              value={textString}
               onChange={(event) => column.setFilterValue(event.target.value)}
               className="h-8 w-40 lg:w-56 bg-white"
             />
