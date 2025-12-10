@@ -124,7 +124,11 @@ export function DataTableDateFilter<TData>({
   const formatDateRange = React.useCallback((range: DateRange) => {
     if (!range.from && !range.to) return "";
     if (range.from && range.to) {
-      return `${formatDate(range.from)} - ${formatDate(range.to)}`;
+      return `From: ${formatDate(range.from, {
+        month: "short",
+      })} - To: ${formatDate(range.to, {
+        month: "short",
+      })}`;
     }
     return formatDate(range.from ?? range.to);
   }, []);
