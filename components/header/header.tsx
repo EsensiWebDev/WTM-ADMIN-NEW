@@ -28,6 +28,12 @@ const menuItems: MenuItem[] = [
     name: "Account",
     href: "#link",
     childs: [
+      { name: "Agent Overview", href: "/account/agent-overview/agent-control" },
+      {
+        name: "Role Based Access",
+        href: "/account/role-based-access",
+        requiredRole: "Super Admin" as const, // Restrict to super admin only
+      },
       {
         name: "User Management",
         href: "/account/user-management/super-admin",
@@ -38,13 +44,12 @@ const menuItems: MenuItem[] = [
         href: "/account/user-management/support",
         requiredRole: "Admin" as const,
       },
-      { name: "Agent Overview", href: "/account/agent-overview/agent-control" },
-      {
-        name: "Role Based Access",
-        href: "/account/role-based-access",
-        requiredRole: "Super Admin" as const, // Restrict to super admin only
-      },
     ],
+  },
+  { name: "Banner", href: "/banner" },
+  {
+    name: "Booking Management",
+    href: "/booking-management/booking-summary",
   },
   {
     name: "Hotel Listing",
@@ -54,14 +59,9 @@ const menuItems: MenuItem[] = [
       { name: "Room Availability", href: "/hotel-listing/room-availability" },
     ],
   },
-  {
-    name: "Booking Management",
-    href: "/booking-management/booking-summary",
-  },
-  { name: "Report", href: "/report" },
   { name: "Promo", href: "/promo" },
   { name: "Promo Group", href: "/promo-group" },
-  { name: "Banner", href: "/banner" },
+  { name: "Report", href: "/report" },
 ];
 
 export const HeroHeader = () => {
