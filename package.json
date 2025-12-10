@@ -51,7 +51,7 @@
     "nuqs": "2.8.1",
     "react": "^19.1.2",
     "react-day-picker": "^9.8.0",
-    "react-dom": "^19.0.0",
+    "react-dom": "^19.1.2",
     "react-hook-form": "^7.58.1",
     "react-use-measure": "^2.1.7",
     "recharts": "^2.15.3",

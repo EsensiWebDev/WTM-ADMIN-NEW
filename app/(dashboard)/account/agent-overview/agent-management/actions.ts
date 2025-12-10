@@ -29,11 +29,6 @@ export async function deleteAgent(agentId: string) {
 
 export async function createAgent(formData: FormData) {
   try {
-    // return {
-    //   success: false,
-    //   message: "Failed to create agent",
-    // };
-
     const response = await apiCall("users", {
       method: "POST",
       body: formData,

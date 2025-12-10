@@ -3,6 +3,7 @@
 import { Hotel } from "@/app/(dashboard)/hotel-listing/types";
 import { apiCall } from "@/lib/api";
 import { Option } from "@/types/data-table";
+import dialCodeData from "@/data/dial_code.json";
 
 export const getCompanyOptions = async () => {
   const url = `/users/agent-companies?limit=0`;
@@ -91,4 +92,11 @@ export const getRegionOptions = async () => {
   }
 
   return [];
+};
+
+export const getCountryPhoneOptions = async (): Promise<Option[]> => {
+  return dialCodeData.map((dial) => ({
+    label: `${dial.name} (${dial.dial_code}) `,
+    value: dial.dial_code,
+  }));
 };

@@ -3,6 +3,7 @@ import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { Suspense } from "react";
 import { getAgentData, getPromoGroupSelect } from "./fetch";
 import { AgentPageProps } from "./types";
+import { getCountryPhoneOptions } from "@/server/general";
 
 const AgentPage = async (props: AgentPageProps) => {
   const searchParams = await props.searchParams;
@@ -12,6 +13,7 @@ const AgentPage = async (props: AgentPageProps) => {
       searchParams,
     }),
     getPromoGroupSelect(),
+    getCountryPhoneOptions(),
   ]);
 
   return (

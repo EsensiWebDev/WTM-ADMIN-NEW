@@ -17,20 +17,25 @@ import CreateAgentDialog from "../dialog/create-agent-dialog";
 import { DeleteAgentDialog } from "../dialog/delete-agent-dialog";
 import EditAgentDialog from "../dialog/edit-agent-dialog";
 import { getAgentTableColumns } from "./agent-columns";
+import { getCountryPhoneOptions } from "@/server/general";
 
 interface AgentTableProps {
   promises: Promise<
     [
       Awaited<ReturnType<typeof getAgentData>>,
-      Awaited<ReturnType<typeof getPromoGroupSelect>>
+      Awaited<ReturnType<typeof getPromoGroupSelect>>,
+      Awaited<ReturnType<typeof getCountryPhoneOptions>>
     ]
   >;
 }
 
 const AgentTable = ({ promises }: AgentTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pagination, status, error }, { data: promoGroupSelect }] =
-    React.use(promises);
+  const [
+    { data, pagination, status, error },
+    { data: promoGroupSelect },
+    countryOptions,
+  ] = React.use(promises);
 
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<Agent> | null>(null);
@@ -74,13 +79,17 @@ const AgentTable = ({ promises }: AgentTableProps) => {
               isExporting={isExporting}
               onDownload={handleDownload}
             />
-            <CreateAgentDialog promoGroupSelect={promoGroupSelect} />
+            <CreateAgentDialog
+              promoGroupSelect={promoGroupSelect}
+              countryOptions={countryOptions}
+            />
           </DataTableToolbar>
         </DataTable>
       </div>
       {rowAction?.variant === "update" && (
         <EditAgentDialog
           promoGroupSelect={promoGroupSelect}
+          countryOptions={countryOptions}
           open={rowAction?.variant === "update"}
           onOpenChange={() => setRowAction(null)}
           agent={rowAction?.row.original ?? null}

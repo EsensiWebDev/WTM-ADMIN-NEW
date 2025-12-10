@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { AgentForm } from "../form/agent-form";
+import { Option } from "@/types/data-table";
 
 export const editAgentSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
@@ -49,11 +50,13 @@ interface EditAgentDialogProps
   extends React.ComponentPropsWithRef<typeof Dialog> {
   agent: Agent | null;
   promoGroupSelect: PromoGroup[];
+  countryOptions?: Option[];
 }
 
 const EditAgentDialog = ({
   agent,
   promoGroupSelect,
+  countryOptions = [],
   ...props
 }: EditAgentDialogProps) => {
   const [isPending, startTransition] = React.useTransition();
@@ -88,7 +91,7 @@ const EditAgentDialog = ({
       // Only add fields that have values
       fd.append("full_name", input.full_name);
       fd.append("username", input.username);
-      if (input.agent_company) fd.append("agent_company", input.agent_company);
+      fd.append("agent_company", input.agent_company || "");
       fd.append("promo_group_id", input.promo_group_id);
       fd.append("email", input.email);
       fd.append("phone", input.phone);
@@ -131,6 +134,7 @@ const EditAgentDialog = ({
           form={form}
           onSubmit={onSubmit}
           promoGroupSelect={promoGroupSelect}
+          countryOptions={countryOptions}
           existingImages={{
             photo_selfie: formatUrl(agent?.photo),
             photo_id_card: formatUrl(agent?.id_card),

@@ -20,6 +20,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { AgentForm } from "../form/agent-form";
+import { Option } from "@/types/data-table";
 
 export const createAgentSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
@@ -60,8 +61,10 @@ export type CreateAgentSchema = z.infer<typeof createAgentSchema>;
 
 const CreateAgentDialog = ({
   promoGroupSelect,
+  countryOptions,
 }: {
   promoGroupSelect: PromoGroup[];
+  countryOptions: Option[];
 }) => {
   const [open, setOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
@@ -129,6 +132,7 @@ const CreateAgentDialog = ({
           form={form}
           onSubmit={onSubmit}
           promoGroupSelect={promoGroupSelect}
+          countryOptions={countryOptions}
         >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>

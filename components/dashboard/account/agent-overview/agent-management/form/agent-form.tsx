@@ -1,4 +1,4 @@
-import type * as React from "react";
+import * as React from "react";
 import type { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 
 import { PromoGroup } from "@/app/(dashboard)/promo-group/types";
@@ -20,8 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { Switch } from "@/components/ui/switch";
 import { FileInputPreview } from "./file-input-preview";
+import { Option } from "@/types/data-table";
 
 interface AgentFormProps<T extends FieldValues>
   extends Omit<React.ComponentPropsWithRef<"form">, "onSubmit"> {
@@ -29,6 +31,7 @@ interface AgentFormProps<T extends FieldValues>
   form: UseFormReturn<T>;
   onSubmit: (data: T) => void;
   promoGroupSelect: PromoGroup[];
+  countryOptions?: Option[];
   existingImages?: {
     photo_selfie?: string | null;
     photo_id_card?: string | null;
@@ -44,8 +47,42 @@ export function AgentForm<T extends FieldValues>({
   children,
   promoGroupSelect,
   existingImages,
+  countryOptions = [],
   isEditMode = false,
 }: AgentFormProps<T>) {
+  // Parse existing phone number to extract country code and number
+  const parsePhoneNumber = (fullPhone: string) => {
+    if (!fullPhone) return { countryCode: "+62", phoneNumber: "" };
+
+    // Find the country code from the options
+    const matchedCountry = countryOptions.find((option) =>
+      fullPhone.startsWith(option.value)
+    );
+
+    if (matchedCountry) {
+      const phoneNumber = fullPhone.substring(matchedCountry.value.length);
+      return { countryCode: matchedCountry.value, phoneNumber };
+    }
+
+    // Default to +62 if no match
+    return { countryCode: "+62", phoneNumber: fullPhone.replace(/^\+/, "") };
+  };
+
+  const initialPhone = form.getValues("phone" as FieldPath<T>) as string;
+  const { countryCode: initialCountryCode, phoneNumber: initialPhoneNumber } =
+    parsePhoneNumber(initialPhone || "");
+
+  const [selectedCountryCode, setSelectedCountryCode] =
+    React.useState<string>(initialCountryCode);
+  const [phoneNumber, setPhoneNumber] =
+    React.useState<string>(initialPhoneNumber);
+
+  // Update form value when country code or phone number changes
+  React.useEffect(() => {
+    const fullPhone = phoneNumber ? `${selectedCountryCode}${phoneNumber}` : "";
+    form.setValue("phone" as FieldPath<T>, fullPhone as any);
+  }, [selectedCountryCode, phoneNumber, form]);
+
   return (
     <Form {...form}>
       <form
@@ -143,9 +180,37 @@ export function AgentForm<T extends FieldValues>({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Phone*</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter phone number" {...field} />
-              </FormControl>
+              <div className="flex gap-2">
+                <Combobox
+                  options={countryOptions}
+                  value={selectedCountryCode}
+                  onValueChange={(value) => {
+                    setSelectedCountryCode(value);
+                    // Trigger validation
+                    field.onChange(`${value}${phoneNumber}`);
+                  }}
+                  placeholder="Code"
+                  searchPlaceholder="Search country code..."
+                  emptyText="No country found."
+                  className="w-[160px]"
+                />
+                <FormControl>
+                  <Input
+                    placeholder="Enter phone number"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, ""); // Only digits
+                      setPhoneNumber(value);
+                      // Update the form field for validation
+                      field.onChange(`${selectedCountryCode}${value}`);
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                    className="flex-1"
+                  />
+                </FormControl>
+              </div>
               <FormMessage />
             </FormItem>
           )}
