@@ -25,7 +25,7 @@ const ReportPage = async (props: ReportPageProps) => {
         <h1 className="text-3xl font-bold">Report</h1>
       </div>
       <React.Suspense
-        key={JSON.stringify(searchParams) || ""}
+        key={`summary-${JSON.stringify(searchParams)}` || ""}
         fallback={
           <DataTableSkeleton
             columnCount={7}
@@ -43,7 +43,25 @@ const ReportPage = async (props: ReportPageProps) => {
         }
       >
         <SummaryAsync promises={promises} />
-        <Separator />
+      </React.Suspense>
+      <Separator />
+      <React.Suspense
+        fallback={
+          <DataTableSkeleton
+            columnCount={7}
+            filterCount={2}
+            cellWidths={[
+              "10rem",
+              "30rem",
+              "10rem",
+              "10rem",
+              "6rem",
+              "6rem",
+              "6rem",
+            ]}
+          />
+        }
+      >
         <ReportTable promises={promises} />
       </React.Suspense>
     </div>
