@@ -93,8 +93,8 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
                       </FormLabel>
                       <FormControl>
                         <Input
-                          disabled={!isSuperAdmin}
-                          readOnly={!isSuperAdmin}
+                          disabled={true}
+                          readOnly={true}
                           placeholder="Enter your username"
                           {...field}
                         />
@@ -168,7 +168,7 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
                     aria-hidden="true"
                   />
                 )}
-                Change Password
+                Save Changes
               </Button>
             </div>
           </div>
