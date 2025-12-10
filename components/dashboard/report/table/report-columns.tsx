@@ -59,7 +59,7 @@ export function getReportTableColumns({
       cell: ({ row }) => row.original.agent_name,
       meta: {
         label: "Name",
-        placeholder: "Search agent name...",
+        placeholder: "Search by hotel/agent name/agent company",
         variant: "text",
         icon: Text,
       },
