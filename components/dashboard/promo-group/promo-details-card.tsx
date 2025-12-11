@@ -44,8 +44,8 @@ const PromoDetailsCard = ({
       {
         id: "id",
         accessorKey: "id",
-        header: "Promo ID",
-        cell: ({ row }) => row.original.promo_id,
+        header: "Promo Code",
+        cell: ({ row }) => row.original.promo_code,
         enableHiding: false,
       },
       {

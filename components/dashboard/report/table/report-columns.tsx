@@ -29,23 +29,35 @@ export function getReportTableColumns({
       size: 40,
     },
     {
-      id: "hotel_name",
-      accessorKey: "hotel_name",
+      id: "hotel_id",
+      accessorKey: "hotel_id",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Hotel Name" />
       ),
       cell: ({ row }) => row.original.hotel_name,
+      meta: {
+        label: "Hotel",
+        placeholder: "Search hotel...",
+        variant: "multiSelect",
+        options: hotelOptions,
+      },
       enableColumnFilter: true,
       enableSorting: false,
       enableHiding: false,
     },
     {
-      id: "agent_company",
-      accessorKey: "agent_company",
+      id: "agent_company_id",
+      accessorKey: "agent_company_id",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Agent Company" />
       ),
       cell: ({ row }) => row.original.agent_company,
+      meta: {
+        label: "Company",
+        placeholder: "Search company...",
+        variant: "multiSelect",
+        options: companyOptions,
+      },
       enableColumnFilter: true,
       enableSorting: false,
       enableHiding: false,
