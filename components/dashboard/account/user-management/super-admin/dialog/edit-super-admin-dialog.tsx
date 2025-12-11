@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { SuperAdminForm } from "../form/super-admin-form";
+import { type Option } from "@/types/data-table";
 
 export const editSuperAdminSchema = z.object({
   full_name: z.string().optional(),
@@ -33,10 +34,12 @@ export type EditSuperAdminSchema = z.infer<typeof editSuperAdminSchema>;
 interface EditSuperAdminDialogProps
   extends React.ComponentPropsWithRef<typeof Dialog> {
   superAdmin: SuperAdmin | null;
+  countryOptions?: Option[];
 }
 
 const EditSuperAdminDialog = ({
   superAdmin,
+  countryOptions,
   ...props
 }: EditSuperAdminDialogProps) => {
   const [isPending, startTransition] = React.useTransition();
@@ -82,6 +85,7 @@ const EditSuperAdminDialog = ({
           form={form}
           onSubmit={onSubmit}
           isEdit={true}
+          countryOptions={countryOptions}
         >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>

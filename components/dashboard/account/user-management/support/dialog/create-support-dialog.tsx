@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { SupportForm } from "../form/support-form";
+import { type Option } from "@/types/data-table";
 
 export const createSupportSchema = z.object({
   full_name: z.string(),
@@ -29,7 +30,11 @@ export const createSupportSchema = z.object({
 
 export type CreateSupportSchema = z.infer<typeof createSupportSchema>;
 
-const CreateSupportDialog = () => {
+const CreateSupportDialog = ({
+  countryOptions,
+}: {
+  countryOptions: Option[];
+}) => {
   const [open, setOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
 
@@ -71,7 +76,11 @@ const CreateSupportDialog = () => {
             Fill in the details below to create a new support
           </DialogDescription>
         </DialogHeader>
-        <SupportForm form={form} onSubmit={onSubmit}>
+        <SupportForm
+          form={form}
+          onSubmit={onSubmit}
+          countryOptions={countryOptions}
+        >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>
               <Button type="button" variant="outline">

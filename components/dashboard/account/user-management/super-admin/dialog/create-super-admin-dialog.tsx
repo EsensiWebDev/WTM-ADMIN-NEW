@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { SuperAdminForm } from "../form/super-admin-form";
+import { type Option } from "@/types/data-table";
 
 export const createSuperAdminSchema = z.object({
   full_name: z.string(),
@@ -31,7 +32,13 @@ export const createSuperAdminSchema = z.object({
 
 export type CreateSuperAdminSchema = z.infer<typeof createSuperAdminSchema>;
 
-const CreateSuperAdminDialog = () => {
+interface CreateSuperAdminDialogProps {
+  countryOptions?: Option[];
+}
+
+const CreateSuperAdminDialog = ({
+  countryOptions = [],
+}: CreateSuperAdminDialogProps) => {
   const [open, setOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
 
@@ -78,7 +85,11 @@ const CreateSuperAdminDialog = () => {
             Fill in the details below to create a new super admin
           </DialogDescription>
         </DialogHeader>
-        <SuperAdminForm form={form} onSubmit={onSubmit}>
+        <SuperAdminForm
+          form={form}
+          onSubmit={onSubmit}
+          countryOptions={countryOptions}
+        >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>
               <Button type="button" variant="outline">

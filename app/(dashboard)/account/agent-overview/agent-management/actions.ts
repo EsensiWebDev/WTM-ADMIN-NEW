@@ -34,8 +34,6 @@ export async function createAgent(formData: FormData) {
       body: formData,
     });
 
-    console.log({ response, message: response.message });
-
     if (response.status !== 200) {
       return {
         success: false,

@@ -10,14 +10,20 @@ import React, { useTransition } from "react";
 import CreateAdminDialog from "../dialog/create-admin-dialog";
 import EditAdminDialog from "../dialog/edit-admin-dialog";
 import { getAdminTableColumns } from "./admin-columns";
+import { getCountryPhoneOptions } from "@/server/general";
 
 interface AdminTableProps {
-  promises: Promise<[Awaited<ReturnType<typeof getAdminData>>]>;
+  promises: Promise<
+    [
+      Awaited<ReturnType<typeof getAdminData>>,
+      Awaited<ReturnType<typeof getCountryPhoneOptions>>
+    ]
+  >;
 }
 
 const AdminTable = ({ promises }: AdminTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [response] = React.use(promises);
+  const [response, countryOptions] = React.use(promises);
   const { status, data, pagination, error } = response;
 
   const [rowAction, setRowAction] =
@@ -55,7 +61,7 @@ const AdminTable = ({ promises }: AdminTableProps) => {
       <div className="relative">
         <DataTable table={table} isPending={isPending}>
           <DataTableToolbar table={table} isPending={isPending}>
-            <CreateAdminDialog />
+            <CreateAdminDialog countryOptions={countryOptions} />
           </DataTableToolbar>
         </DataTable>
       </div>
@@ -64,6 +70,7 @@ const AdminTable = ({ promises }: AdminTableProps) => {
           open={rowAction?.variant === "update"}
           onOpenChange={() => setRowAction(null)}
           admin={rowAction?.row.original ?? null}
+          countryOptions={countryOptions}
         />
       )}
     </>

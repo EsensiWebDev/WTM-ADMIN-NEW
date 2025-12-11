@@ -20,10 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Combobox } from "@/components/ui/combobox";
 import { Switch } from "@/components/ui/switch";
 import { FileInputPreview } from "./file-input-preview";
 import { Option } from "@/types/data-table";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { usePhoneInput } from "@/hooks/use-phone-input";
 
 interface AgentFormProps<T extends FieldValues>
   extends Omit<React.ComponentPropsWithRef<"form">, "onSubmit"> {
@@ -50,38 +51,11 @@ export function AgentForm<T extends FieldValues>({
   countryOptions = [],
   isEditMode = false,
 }: AgentFormProps<T>) {
-  // Parse existing phone number to extract country code and number
-  const parsePhoneNumber = (fullPhone: string) => {
-    if (!fullPhone) return { countryCode: "+62", phoneNumber: "" };
-
-    // Find the country code from the options
-    const matchedCountry = countryOptions.find((option) =>
-      fullPhone.startsWith(option.value)
-    );
-
-    if (matchedCountry) {
-      const phoneNumber = fullPhone.substring(matchedCountry.value.length);
-      return { countryCode: matchedCountry.value, phoneNumber };
-    }
-
-    // Default to +62 if no match
-    return { countryCode: "+62", phoneNumber: fullPhone.replace(/^\+/, "") };
-  };
-
   const initialPhone = form.getValues("phone" as FieldPath<T>) as string;
-  const { countryCode: initialCountryCode, phoneNumber: initialPhoneNumber } =
-    parsePhoneNumber(initialPhone || "");
-
-  const [selectedCountryCode, setSelectedCountryCode] =
-    React.useState<string>(initialCountryCode);
-  const [phoneNumber, setPhoneNumber] =
-    React.useState<string>(initialPhoneNumber);
-
-  // Update form value when country code or phone number changes
-  React.useEffect(() => {
-    const fullPhone = phoneNumber ? `${selectedCountryCode}${phoneNumber}` : "";
-    form.setValue("phone" as FieldPath<T>, fullPhone as any);
-  }, [selectedCountryCode, phoneNumber, form]);
+  const phoneInput = usePhoneInput({
+    initialPhone: initialPhone || "",
+    countryOptions,
+  });
 
   return (
     <Form {...form}>
@@ -177,43 +151,35 @@ export function AgentForm<T extends FieldValues>({
         <FormField
           control={form.control}
           name={"phone" as FieldPath<T>}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone*</FormLabel>
-              <div className="flex gap-2">
-                <Combobox
-                  options={countryOptions}
-                  value={selectedCountryCode}
-                  onValueChange={(value) => {
-                    setSelectedCountryCode(value);
-                    // Trigger validation
-                    field.onChange(`${value}${phoneNumber}`);
-                  }}
-                  placeholder="Code"
-                  searchPlaceholder="Search country code..."
-                  emptyText="No country found."
-                  className="w-[160px]"
-                />
+          render={({ field }) => {
+            // Update form value when phone input changes
+            React.useEffect(() => {
+              field.onChange(phoneInput.fullPhoneValue);
+            }, [phoneInput.fullPhoneValue]);
+
+            return (
+              <FormItem>
+                <FormLabel>Phone*</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter phone number"
-                    value={phoneNumber}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, ""); // Only digits
-                      setPhoneNumber(value);
-                      // Update the form field for validation
-                      field.onChange(`${selectedCountryCode}${value}`);
+                  <PhoneInput
+                    countryOptions={countryOptions}
+                    selectedCountryCode={phoneInput.selectedCountryCode}
+                    phoneNumber={phoneInput.phoneNumber}
+                    onCountryCodeChange={(code) => {
+                      phoneInput.setSelectedCountryCode(code);
+                    }}
+                    onPhoneNumberChange={(number) => {
+                      phoneInput.setPhoneNumber(number);
                     }}
                     onBlur={field.onBlur}
                     name={field.name}
                     ref={field.ref}
-                    className="flex-1"
                   />
                 </FormControl>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         <FormField
           control={form.control}

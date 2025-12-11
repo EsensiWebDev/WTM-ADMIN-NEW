@@ -3,8 +3,10 @@ import EditProfileForm from "@/components/dashboard/settings/account-setting/edi
 import { ProfilePhotoUploader } from "@/components/dashboard/settings/account-setting/profile-photo-uploader";
 import { fetchAccountProfile } from "./fetch";
 import { formatUrl } from "@/lib/format";
+import { getCountryPhoneOptions } from "@/server/general";
 
 const AccountSettingPage = async () => {
+  const countryOptions = await getCountryPhoneOptions();
   const { data: accountProfile } = await fetchAccountProfile();
 
   return (
@@ -15,7 +17,10 @@ const AccountSettingPage = async () => {
         <AccountSettingForm defaultValues={accountProfile} />
         <hr className="my-8" />
         {/* Edit Profile Section */}
-        <EditProfileForm defaultValues={accountProfile} />
+        <EditProfileForm
+          defaultValues={accountProfile}
+          countryOptions={countryOptions}
+        />
       </div>
       {/* Right: Profile Photo */}
       <div className="flex flex-col">

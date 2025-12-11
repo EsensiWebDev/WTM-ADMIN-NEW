@@ -5,6 +5,7 @@ import { getAdminData } from "./fetch";
 import { AdminPageProps } from "./types";
 import { requireAuthorization } from "@/lib/server-authorization";
 import { redirect } from "next/navigation";
+import { getCountryPhoneOptions } from "@/server/general";
 
 const AdminPage = async (props: AdminPageProps) => {
   const searchParams = await props.searchParams;
@@ -13,6 +14,7 @@ const AdminPage = async (props: AdminPageProps) => {
     getAdminData({
       searchParams,
     }),
+    getCountryPhoneOptions(),
   ]);
 
   return (

@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { SupportForm } from "../form/support-form";
+import { type Option } from "@/types/data-table";
 
 export const editSupportSchema = z.object({
   full_name: z.string().optional(),
@@ -33,9 +34,14 @@ export type EditSupportSchema = z.infer<typeof editSupportSchema>;
 interface EditSupportDialogProps
   extends React.ComponentPropsWithRef<typeof Dialog> {
   support: Support | null;
+  countryOptions?: Option[];
 }
 
-const EditSupportDialog = ({ support, ...props }: EditSupportDialogProps) => {
+const EditSupportDialog = ({
+  support,
+  countryOptions,
+  ...props
+}: EditSupportDialogProps) => {
   const [isPending, startTransition] = React.useTransition();
 
   const form = useForm<EditSupportSchema>({
@@ -79,6 +85,7 @@ const EditSupportDialog = ({ support, ...props }: EditSupportDialogProps) => {
           form={form}
           onSubmit={onSubmit}
           isEdit={true}
+          countryOptions={countryOptions}
         >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>

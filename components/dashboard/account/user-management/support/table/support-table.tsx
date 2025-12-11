@@ -10,14 +10,20 @@ import React, { useTransition } from "react";
 import CreateSupportDialog from "../dialog/create-support-dialog";
 import EditSupportDialog from "../dialog/edit-support-dialog";
 import { getSupportTableColumns } from "./support-columns";
+import { getCountryPhoneOptions } from "@/server/general";
 
 interface SupportTableProps {
-  promises: Promise<[Awaited<ReturnType<typeof getSupportData>>]>;
+  promises: Promise<
+    [
+      Awaited<ReturnType<typeof getSupportData>>,
+      Awaited<ReturnType<typeof getCountryPhoneOptions>>
+    ]
+  >;
 }
 
 const SupportTable = ({ promises }: SupportTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [response] = React.use(promises);
+  const [response, countryOptions] = React.use(promises);
   const { status, data, pagination, error } = response;
 
   const [rowAction, setRowAction] =
@@ -55,7 +61,7 @@ const SupportTable = ({ promises }: SupportTableProps) => {
       <div className="relative">
         <DataTable table={table} isPending={isPending}>
           <DataTableToolbar table={table} isPending={isPending}>
-            <CreateSupportDialog />
+            <CreateSupportDialog countryOptions={countryOptions} />
           </DataTableToolbar>
         </DataTable>
       </div>
@@ -64,6 +70,7 @@ const SupportTable = ({ promises }: SupportTableProps) => {
           open={rowAction?.variant === "update"}
           onOpenChange={() => setRowAction(null)}
           support={rowAction?.row.original ?? null}
+          countryOptions={countryOptions}
         />
       )}
     </>

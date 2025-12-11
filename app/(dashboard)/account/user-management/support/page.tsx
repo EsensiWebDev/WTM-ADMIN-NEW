@@ -3,7 +3,7 @@ import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { Suspense } from "react";
 import { getSupportData } from "./fetch";
 import { SupportPageProps } from "./types";
-import { requireAuthorization } from "@/lib/server-authorization";
+import { getCountryPhoneOptions } from "@/server/general";
 
 const SupportPage = async (props: SupportPageProps) => {
   const searchParams = await props.searchParams;
@@ -12,6 +12,7 @@ const SupportPage = async (props: SupportPageProps) => {
     getSupportData({
       searchParams,
     }),
+    getCountryPhoneOptions(),
   ]);
 
   return (

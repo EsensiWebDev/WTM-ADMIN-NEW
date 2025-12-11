@@ -5,7 +5,7 @@ import { AgentControl } from "@/app/(dashboard)/account/agent-overview/agent-con
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useDataTable } from "@/hooks/use-data-table";
-import { getCompanyOptions } from "@/server/general";
+import { getCompanyOptions, getCountryPhoneOptions } from "@/server/general";
 import type { DataTableRowAction } from "@/types/data-table";
 import React, { useTransition } from "react";
 import { DeleteAgentControlDialog } from "../dialog/delete-agent-control-dialog";
@@ -17,14 +17,15 @@ interface AgentControlTableProps {
   promises: Promise<
     [
       Awaited<ReturnType<typeof getData>>,
-      Awaited<ReturnType<typeof getCompanyOptions>>
+      Awaited<ReturnType<typeof getCompanyOptions>>,
+      Awaited<ReturnType<typeof getCountryPhoneOptions>>
     ]
   >;
 }
 
 const AgentControlTable = ({ promises }: AgentControlTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pagination, status, error }, companyOptions] =
+  const [{ data, pagination, status, error }, companyOptions, countryOptions] =
     React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<AgentControl> | null>(null);
@@ -80,6 +81,7 @@ const AgentControlTable = ({ promises }: AgentControlTableProps) => {
           open={rowAction?.variant === "update"}
           onOpenChange={() => setRowAction(null)}
           agent={rowAction?.row.original ?? null}
+          countryOptions={countryOptions}
         />
       )}
       <DeleteAgentControlDialog

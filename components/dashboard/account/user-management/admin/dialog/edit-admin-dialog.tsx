@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { AdminForm } from "../form/admin-form";
+import { type Option } from "@/types/data-table";
 
 export const editAdminSchema = z.object({
   full_name: z.string().optional(),
@@ -33,9 +34,14 @@ export type EditAdminSchema = z.infer<typeof editAdminSchema>;
 interface EditAdminDialogProps
   extends React.ComponentPropsWithRef<typeof Dialog> {
   admin: Admin | null;
+  countryOptions?: Option[];
 }
 
-const EditAdminDialog = ({ admin, ...props }: EditAdminDialogProps) => {
+const EditAdminDialog = ({
+  admin,
+  countryOptions = [],
+  ...props
+}: EditAdminDialogProps) => {
   const [isPending, startTransition] = React.useTransition();
 
   const form = useForm<EditAdminSchema>({
@@ -79,6 +85,7 @@ const EditAdminDialog = ({ admin, ...props }: EditAdminDialogProps) => {
           form={form}
           onSubmit={onSubmit}
           isEdit={true}
+          countryOptions={countryOptions}
         >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>

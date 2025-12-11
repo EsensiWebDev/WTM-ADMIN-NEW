@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { AdminForm } from "../form/admin-form";
+import { type Option } from "@/types/data-table";
 
 export const createAdminSchema = z.object({
   full_name: z.string(),
@@ -29,7 +30,11 @@ export const createAdminSchema = z.object({
 
 export type CreateAdminSchema = z.infer<typeof createAdminSchema>;
 
-const CreateAdminDialog = () => {
+interface CreateAdminDialogProps {
+  countryOptions?: Option[];
+}
+
+const CreateAdminDialog = ({ countryOptions = [] }: CreateAdminDialogProps) => {
   const [open, setOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
 
@@ -71,7 +76,11 @@ const CreateAdminDialog = () => {
             Fill in the details below to create a new admin
           </DialogDescription>
         </DialogHeader>
-        <AdminForm form={form} onSubmit={onSubmit}>
+        <AdminForm
+          form={form}
+          onSubmit={onSubmit}
+          countryOptions={countryOptions}
+        >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>
               <Button type="button" variant="outline">

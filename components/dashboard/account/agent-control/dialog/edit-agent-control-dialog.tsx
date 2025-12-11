@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { AgentControlForm } from "../form/agent-control-form";
+import { type Option } from "@/types/data-table";
 
 export const editAgentSchema = z.object({
   name: z.string().optional(),
@@ -31,19 +32,15 @@ export type EditAgentSchema = z.infer<typeof editAgentSchema>;
 interface EditAgentControlDialogProps
   extends React.ComponentPropsWithRef<typeof Dialog> {
   agent: AgentControl | null;
+  countryOptions?: Option[];
 }
 
 const EditAgentControlDialog = ({
   agent,
+  countryOptions,
   ...props
 }: EditAgentControlDialogProps) => {
   const [isPending, startTransition] = React.useTransition();
-
-  console.log({
-    name: agent?.name,
-    email: agent?.email,
-    phone: agent?.phone_number,
-  });
 
   const form = useForm<EditAgentSchema>({
     resolver: zodResolver(editAgentSchema),
@@ -83,7 +80,11 @@ const EditAgentControlDialog = ({
             Edit details below and save the changes
           </DialogDescription>
         </DialogHeader>
-        <AgentControlForm<EditAgentSchema> form={form} onSubmit={onSubmit}>
+        <AgentControlForm<EditAgentSchema>
+          form={form}
+          onSubmit={onSubmit}
+          countryOptions={countryOptions}
+        >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>
               <Button type="button" variant="outline">

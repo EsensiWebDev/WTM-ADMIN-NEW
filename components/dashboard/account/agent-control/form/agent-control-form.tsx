@@ -1,6 +1,6 @@
 "use client";
 
-import type * as React from "react";
+import * as React from "react";
 import type { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 
 import {
@@ -12,20 +12,29 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { usePhoneInput } from "@/hooks/use-phone-input";
+import { type Option } from "@/types/data-table";
 
 interface AgentControlFormProps<T extends FieldValues>
   extends Omit<React.ComponentPropsWithRef<"form">, "onSubmit"> {
   children: React.ReactNode;
   form: UseFormReturn<T>;
   onSubmit: (data: T) => void;
+  countryOptions?: Option[];
 }
 
 export function AgentControlForm<T extends FieldValues>({
   form,
   onSubmit,
   children,
+  countryOptions = [],
 }: AgentControlFormProps<T>) {
-  console.log({ form });
+  const initialPhone = form.getValues("phone" as FieldPath<T>) as string;
+  const phoneInput = usePhoneInput({
+    initialPhone: initialPhone || "",
+    countryOptions,
+  });
 
   return (
     <Form {...form}>
@@ -62,15 +71,35 @@ export function AgentControlForm<T extends FieldValues>({
         <FormField
           control={form.control}
           name={"phone" as FieldPath<T>}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter phone number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            // Update form value when phone input changes
+            React.useEffect(() => {
+              field.onChange(phoneInput.fullPhoneValue);
+            }, [phoneInput.fullPhoneValue]);
+
+            return (
+              <FormItem>
+                <FormLabel>Phone*</FormLabel>
+                <FormControl>
+                  <PhoneInput
+                    countryOptions={countryOptions}
+                    selectedCountryCode={phoneInput.selectedCountryCode}
+                    phoneNumber={phoneInput.phoneNumber}
+                    onCountryCodeChange={(code) => {
+                      phoneInput.setSelectedCountryCode(code);
+                    }}
+                    onPhoneNumberChange={(number) => {
+                      phoneInput.setPhoneNumber(number);
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         {children}
       </form>

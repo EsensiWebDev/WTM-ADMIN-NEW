@@ -12,13 +12,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { usePhoneInput } from "@/hooks/use-phone-input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+import { type Option } from "@/types/data-table";
 
 const profileSchema = z.object({
   full_name: z
@@ -55,9 +58,13 @@ export type ProfileSchema = z.infer<typeof profileSchema>;
 
 interface EditProfileFormProps {
   defaultValues: AccountProfile;
+  countryOptions?: Option[];
 }
 
-const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
+const EditProfileForm = ({
+  defaultValues,
+  countryOptions = [],
+}: EditProfileFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -68,6 +75,11 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
       email: defaultValues.email,
       phone: defaultValues.phone,
     },
+  });
+
+  const phoneInput = usePhoneInput({
+    initialPhone: defaultValues.phone || "",
+    countryOptions,
   });
 
   function onSubmit(values: ProfileSchema) {
@@ -126,17 +138,37 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
               <FormField
                 control={form.control}
                 name="phone"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="text-sm font-medium">
-                      Phone Number
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter phone number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Update form value when phone input changes
+                  React.useEffect(() => {
+                    field.onChange(phoneInput.fullPhoneValue);
+                  }, [phoneInput.fullPhoneValue]);
+
+                  return (
+                    <FormItem className="col-span-2">
+                      <FormLabel className="text-sm font-medium">
+                        Phone Number*
+                      </FormLabel>
+                      <FormControl>
+                        <PhoneInput
+                          countryOptions={countryOptions}
+                          selectedCountryCode={phoneInput.selectedCountryCode}
+                          phoneNumber={phoneInput.phoneNumber}
+                          onCountryCodeChange={(code) => {
+                            phoneInput.setSelectedCountryCode(code);
+                          }}
+                          onPhoneNumberChange={(number) => {
+                            phoneInput.setPhoneNumber(number);
+                          }}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
             <Button className="mt-6" type="submit" disabled={isLoading}>
