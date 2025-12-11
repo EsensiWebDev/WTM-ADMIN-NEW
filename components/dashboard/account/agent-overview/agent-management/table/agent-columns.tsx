@@ -55,7 +55,7 @@ export function getAgentTableColumns({
       cell: ({ row }) => row.original.name,
       meta: {
         label: "Name",
-        placeholder: "Search name...",
+        placeholder: "Search by name/email/phone...",
         variant: "text",
         icon: Text,
       },

@@ -133,7 +133,7 @@ export function getAgentControlTableColumns({
       cell: ({ row }) => row.original.name,
       meta: {
         label: "Agent Name",
-        placeholder: "Search agent name...",
+        placeholder: "Search by name/email/phone...",
         variant: "text",
         icon: Text,
       },
