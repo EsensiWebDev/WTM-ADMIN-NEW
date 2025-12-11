@@ -137,7 +137,7 @@ const CreatePromoDialog = () => {
           Create Promo
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Create Promo</DialogTitle>
           <DialogDescription>

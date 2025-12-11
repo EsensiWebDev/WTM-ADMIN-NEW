@@ -70,7 +70,7 @@ const ViewReceiptDialog: React.FC<ViewReceiptDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] min-w-4xl bg-white px-8">
+      <DialogContent className="max-h-[90vh] sm:min-w-[90vw] bg-white px-8">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">

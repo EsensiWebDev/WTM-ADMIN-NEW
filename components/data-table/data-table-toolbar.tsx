@@ -59,34 +59,33 @@ export function DataTableToolbar<TData>({
       )}
       {...props}
     >
-      <div className="flex flex-1 flex-wrap items-center gap-2">
-        {columns.map((column) => (
-          <DataTableToolbarFilter
-            key={column.id}
-            column={column}
-            resetTrigger={resetTrigger}
-          />
-        ))}
-        {isFiltered && (
-          <Button
-            aria-label="Reset filters"
-            variant="outline"
-            size="sm"
-            className="border-dashed bg-white"
-            onClick={onReset}
-          >
-            <X />
-            Reset
-          </Button>
-        )}
-        {isPending && (
-          <Loader className="size-4 animate-spin" aria-hidden="true" />
-        )}
-      </div>
+      <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          {columns.map((column) => (
+            <DataTableToolbarFilter
+              key={column.id}
+              column={column}
+              resetTrigger={resetTrigger}
+            />
+          ))}
+          {isFiltered && (
+            <Button
+              aria-label="Reset filters"
+              variant="outline"
+              size="sm"
+              className="border-dashed bg-white"
+              onClick={onReset}
+            >
+              <X />
+              Reset
+            </Button>
+          )}
+          {isPending && (
+            <Loader className="size-4 animate-spin" aria-hidden="true" />
+          )}
+        </div>
 
-      <div className="flex items-center gap-2">
-        {children}
-        {/* <DataTableViewOptions table={table} /> */}
+        <div className="flex items-center gap-2">{children}</div>
       </div>
     </div>
   );

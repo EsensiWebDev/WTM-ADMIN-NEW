@@ -121,7 +121,7 @@ const CreateAgentDialog = ({
           Add
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl sm:max-h-[90vh] overflow-auto">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Create Agent</DialogTitle>
           <DialogDescription>

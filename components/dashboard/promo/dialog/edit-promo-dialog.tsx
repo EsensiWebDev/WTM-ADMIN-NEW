@@ -177,7 +177,7 @@ const EditPromoDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Edit Promo</DialogTitle>
           <DialogDescription>
