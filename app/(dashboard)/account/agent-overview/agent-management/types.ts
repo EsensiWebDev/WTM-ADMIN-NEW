@@ -2,6 +2,7 @@ import { SearchParams } from "@/types";
 
 export interface Agent {
   id: number;
+  external_id: string;
   name: string;
   username: string;
   agent_company_name: string;

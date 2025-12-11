@@ -111,7 +111,7 @@ const exportColumns: ExportColumn<Agent>[] = [
   {
     key: "id",
     header: "ID",
-    accessor: (item) => item.id,
+    accessor: (item) => item.external_id,
     width: 8,
   },
   {
@@ -179,6 +179,11 @@ export async function exportAgent(
       throw new Error(message);
       // return { success: false, message: message || "Failed to export data" };
     }
+
+    // const modifiedData = data.map(({ id, external_id, ...rest }) => ({
+    //   id: external_id,
+    //   ...rest,
+    // }));
 
     return await ExportService.exportData(
       data,
