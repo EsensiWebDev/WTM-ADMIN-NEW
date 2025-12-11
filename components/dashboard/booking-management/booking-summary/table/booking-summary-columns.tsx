@@ -60,7 +60,7 @@ export function getBookingSummaryTableColumns({
       cell: ({ row }) => row.original.guest_name?.join(", "),
       meta: {
         label: "Guest Name",
-        placeholder: "Search by guest/agent name/agent company...",
+        placeholder: "Search by ID/guest/agent name/agent company...",
         variant: "text",
         icon: Text,
       },

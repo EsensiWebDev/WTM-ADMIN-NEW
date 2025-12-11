@@ -70,10 +70,7 @@ export const getPromoGroupMembersById = async (
   return apiResponse;
 };
 
-export const getUnassignedPromos = async (
-  promo_group_id: string,
-  searchKey: string
-) => {
+export const getUnassignedPromos = async (promo_group_id: string) => {
   const url = `/promo-groups/unassigned-promos?promo_group_id=${promo_group_id}`;
   const apiResponse = await apiCall<{ id: number; name: string }[]>(url);
 

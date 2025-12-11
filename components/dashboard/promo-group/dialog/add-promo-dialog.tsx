@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, Loader, PlusCircle } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -54,6 +54,7 @@ interface AddPromoDialogProps {
 }
 
 const AddPromoDialog = ({ promoGroupId }: AddPromoDialogProps) => {
+  const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   const [openPopover, setOpenPopover] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
@@ -70,10 +71,10 @@ const AddPromoDialog = ({ promoGroupId }: AddPromoDialogProps) => {
     isLoading: isLoadingPromoOptions,
     // isError: isErrorPromoOptions,
   } = useQuery({
-    queryKey: ["promo-options", promoGroupId, ""],
+    queryKey: ["promo-options", promoGroupId],
     queryFn: async () => {
       if (!promoGroupId) return [];
-      return getUnassignedPromos(promoGroupId, "");
+      return getUnassignedPromos(promoGroupId);
     },
     enabled: !!promoGroupId,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -91,6 +92,9 @@ const AddPromoDialog = ({ promoGroupId }: AddPromoDialogProps) => {
         toast.error("Failed to add promo");
         return;
       }
+      queryClient.invalidateQueries({
+        queryKey: ["promo-options", promoGroupId],
+      });
       form.reset();
       setOpen(false);
       toast.success("Promo added to group");
@@ -162,6 +166,7 @@ const AddPromoDialog = ({ promoGroupId }: AddPromoDialogProps) => {
                               <CommandItem
                                 value={option.label}
                                 key={option.value}
+                                keywords={[option.label]}
                                 onSelect={() => {
                                   form.setValue("promo_id", option.value);
                                   setOpenPopover(false);

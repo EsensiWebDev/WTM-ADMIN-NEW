@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import AddPromoDialog from "./dialog/add-promo-dialog";
 import { PromoGroupPromos } from "@/app/(dashboard)/promo-group/types";
 import { removePromoGroupPromos } from "@/app/(dashboard)/promo-group/actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PromoDetailsCardProps {
   promos: PromoGroupPromos[];
@@ -25,6 +26,7 @@ const PromoDetailsCard = ({
   promoGroupId,
   pageCount,
 }: PromoDetailsCardProps) => {
+  const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -126,6 +128,10 @@ const PromoDetailsCard = ({
         toast.error(message || "Failed to remove promo");
         return;
       }
+
+      queryClient.invalidateQueries({
+        queryKey: ["promo-options", promoGroupId],
+      });
 
       toast.success(message || "Promo removed successfully");
 
