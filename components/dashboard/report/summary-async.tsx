@@ -25,6 +25,10 @@ const SummaryAsync = ({ promises }: SummaryAsyncProps) => {
     return <div>{reportSummary.error}</div>;
   }
 
+  if (reportSummary.status === 403) {
+    return <div>You don’t have permission to access this page.</div>;
+  }
+
   if (reportSummary.status !== 200) {
     return <div>Failed to load data</div>;
   }

@@ -103,7 +103,8 @@ const ReportTable = ({ promises }: ReportTableProps) => {
   }
 
   if (status === 403) {
-    return <div>You don’t have permission to access this page.</div>;
+    return;
+    // return <div>You don’t have permission to access this page.</div>;
   }
 
   if (status !== 200) {
