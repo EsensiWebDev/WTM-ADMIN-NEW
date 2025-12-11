@@ -39,8 +39,8 @@ const EmailLogTable = ({ promises }: EmailLogTableProps) => {
     data: data || [],
     columns,
     pageCount: pagination?.total_pages || 1,
-    getRowId: (originalRow) =>
-      `${originalRow.date_time}_${originalRow.hotel_name}`,
+    getRowId: (originalRow, index) =>
+      `${index}_${originalRow.date_time}_${originalRow.hotel_name}`,
     shallow: false,
     clearOnDefault: true,
     startTransition,
