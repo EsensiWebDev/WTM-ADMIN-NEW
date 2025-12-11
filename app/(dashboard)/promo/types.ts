@@ -8,7 +8,7 @@ export type PromoType =
 
 export interface Promo {
   duration: number;
-  id: number;
+  id: string;
   is_active: boolean;
   promo_code: string;
   promo_description: string;
