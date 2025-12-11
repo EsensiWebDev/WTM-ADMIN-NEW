@@ -82,22 +82,19 @@ const EditProfileForm = ({
     countryOptions,
   });
 
-  function onSubmit(values: ProfileSchema) {
+  async function onSubmit(values: ProfileSchema) {
     setIsLoading(true);
-    toast.promise(updateAccountProfile(values), {
-      loading: "Saving profile changes...",
-      success: (data) => {
-        setIsLoading(false);
-        queryClient.invalidateQueries({
-          queryKey: ["profile"],
-        });
-        return data.message || "Profile updated successfully";
-      },
-      error: (error) => {
-        setIsLoading(false);
-        return error.message || "Failed to update profile";
-      },
+    const { success, message } = await updateAccountProfile(values);
+    if (!success) {
+      setIsLoading(false);
+      toast.error(message || "Failed to update profile");
+      return;
+    }
+    setIsLoading(false);
+    queryClient.invalidateQueries({
+      queryKey: ["profile"],
     });
+    toast.success(message || "Profile updated successfully");
   }
 
   return (

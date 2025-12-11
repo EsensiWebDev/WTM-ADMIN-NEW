@@ -81,12 +81,18 @@ export function DetailAgentControlDialog({
 
     if (!agentControl) return;
 
-    startUpdateTransition(() => {
-      toast.promise(updateAgentStatus(agentControl.id.toString(), variant), {
-        loading: "Updating agent status...",
-        success: (data) => data.message,
-        error: "Failed to update agent status",
-      });
+    startUpdateTransition(async () => {
+      const { success, message } = await updateAgentStatus(
+        agentControl.id.toString(),
+        variant
+      );
+      if (!success) {
+        toast.error(message || "Failed to update agent status");
+        return;
+      }
+
+      toast.success(message || "Agent status updated successfully");
+
       props.onOpenChange?.(false);
       onSuccess?.();
       setVariant(null);

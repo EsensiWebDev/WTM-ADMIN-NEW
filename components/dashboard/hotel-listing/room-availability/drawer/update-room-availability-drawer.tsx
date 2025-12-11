@@ -227,13 +227,17 @@ export const UpdateRoomAvailabilityDrawer = ({
       return;
     }
     startUpdateTransition(async () => {
-      toast.promise(
-        updateRoomAvailability(format(date, "yyyy-MM"), localHotel),
-        {
-          success: (data) => data.message,
-          error: "Failed to update room availability",
-        }
+      const { success, message } = await updateRoomAvailability(
+        format(date, "yyyy-MM"),
+        localHotel
       );
+      if (!success) {
+        toast.error(message || "Failed to update room availability");
+        return;
+      }
+
+      toast.success(message || "Room availability updated successfully");
+
       setOpen(false);
       props.onOpenChange?.(false);
       onSuccess?.();

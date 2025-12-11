@@ -113,16 +113,14 @@ const EmailSettingForm = ({ defaultValues, type }: EmailSettingFormProps) => {
       formData.append("signature_image", values.signature_image);
     }
 
-    startTransition(() => {
-      toast.promise(saveEmailSetting(formData), {
-        loading: "Saving email settings...",
-        success: (data) => {
-          return data.message || "Email settings saved successfully";
-        },
-        error: (error) => {
-          return error.message || "Failed to save email settings";
-        },
-      });
+    startTransition(async () => {
+      const result = await saveEmailSetting(formData);
+      if (!result.success) {
+        toast.error(result.message || "Failed to save email settings");
+        return;
+      }
+
+      toast.success(result.message || "Email settings saved successfully");
     });
   }
 

@@ -39,17 +39,17 @@ const DeletePromoGroupMemberDialog = ({
 
   const handleDelete = () => {
     startTransition(async () => {
-      toast.promise(
-        removePromoGroupMembers({
-          promo_group_id: Number(promoGroupId),
-          member_id: Number(member.id),
-        }),
-        {
-          loading: "Removing member...",
-          success: (data) => data.message,
-          error: "Failed to remove member",
-        }
-      );
+      const { success, message } = await removePromoGroupMembers({
+        promo_group_id: Number(promoGroupId),
+        member_id: Number(member.id),
+      });
+      if (!success) {
+        toast.error(message || "Failed to remove member");
+        return;
+      }
+
+      toast.success(message || "Member removed successfully");
+
       onOpenChange(false);
       onSuccess?.();
     });

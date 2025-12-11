@@ -118,17 +118,16 @@ const PromoDetailsCard = ({
     if (!promoToDelete) return;
 
     startTransition(async () => {
-      toast.promise(
-        removePromoGroupPromos({
-          promo_group_id: Number(promoGroupId),
-          promo_id: Number(promoToDelete.promo_id),
-        }),
-        {
-          loading: "Removing promo...",
-          success: (data) => data.message,
-          error: "Failed to remove promo",
-        }
-      );
+      const { success, message } = await removePromoGroupPromos({
+        promo_group_id: Number(promoGroupId),
+        promo_id: Number(promoToDelete.promo_id),
+      });
+      if (!success) {
+        toast.error(message || "Failed to remove promo");
+        return;
+      }
+
+      toast.success(message || "Promo removed successfully");
 
       setDeleteDialogOpen(false);
     });

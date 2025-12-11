@@ -129,18 +129,17 @@ export function getBannerTableColumns({
       cell: ({ row }) => {
         const [isUpdatePending, startUpdateTransition] = React.useTransition();
         const handleOrderChange = (direction: "up" | "down") => {
-          startUpdateTransition(() => {
-            toast.promise(
-              changeBannerOrder({
-                id: String(row.original.id),
-                order: direction,
-              }),
-              {
-                loading: "Updating banner order...",
-                success: (data) => data.message,
-                error: "Failed to update banner order",
-              }
-            );
+          startUpdateTransition(async () => {
+            const { success, message } = await changeBannerOrder({
+              id: String(row.original.id),
+              order: direction,
+            });
+            if (!success) {
+              toast.error(message || "Failed to update banner order");
+              return;
+            }
+
+            toast.success(message || "Banner order updated successfully");
           });
         };
 
@@ -185,17 +184,18 @@ export function getBannerTableColumns({
               disabled={isUpdatePending}
               checked={row.original.is_active}
               onCheckedChange={(checked) => {
-                startUpdateTransition(() => {
-                  toast.promise(
-                    changeBannerStatus({
-                      id: String(row.original.id),
-                      status: checked,
-                    }),
-                    {
-                      loading: "Updating banner status...",
-                      success: (data) => data.message,
-                      error: "Failed to update banner status",
-                    }
+                startUpdateTransition(async () => {
+                  const { success, message } = await changeBannerStatus({
+                    id: String(row.original.id),
+                    status: checked,
+                  });
+                  if (!success) {
+                    toast.error(message || "Failed to update banner status");
+                    return;
+                  }
+
+                  toast.success(
+                    message || "Banner status updated successfully"
                   );
                 });
               }}

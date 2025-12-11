@@ -51,11 +51,13 @@ export function DeleteHotelDialog({
     startDeleteTransition(async () => {
       const hotelId = hotel[0].id;
 
-      toast.promise(deleteHotel(hotelId), {
-        loading: "Deleting hotel...",
-        success: (data) => data.message,
-        error: "Failed to delete hotel",
-      });
+      const { success, message } = await deleteHotel(hotelId);
+      if (!success) {
+        toast.error(message || "Failed to delete hotel");
+        return;
+      }
+
+      toast.success(message || "Deleted successfully");
 
       props.onOpenChange?.(false);
       onSuccess?.();

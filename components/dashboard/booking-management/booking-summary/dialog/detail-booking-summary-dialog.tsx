@@ -502,17 +502,16 @@ const getDetailBookingColumns = ({
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const handleCancel = () => {
-        toast.promise(
-          new Promise((resolve) =>
+      const handleCancel = async () => {
+        try {
+          // Simulating an async operation
+          await new Promise((resolve) =>
             setTimeout(() => resolve({ success: true }), 1000)
-          ),
-          {
-            loading: "Cancelling booking...",
-            success: "Booking cancelled successfully",
-            error: "Failed to cancel booking",
-          }
-        );
+          );
+          toast.success("Booking cancelled successfully");
+        } catch (error) {
+          toast.error("Failed to cancel booking");
+        }
       };
 
       const handleUploadReceipt = () => {

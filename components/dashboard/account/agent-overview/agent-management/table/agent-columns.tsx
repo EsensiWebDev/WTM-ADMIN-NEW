@@ -96,19 +96,17 @@ export function getAgentTableColumns({
               disabled={isUpdatePending}
               defaultValue={String(row.original.promo_group_id)}
               onValueChange={(value) => {
-                startUpdateTransition(() => {
-                  toast.promise(
-                    addPromoGroupMembers({
-                      promo_group_id: String(value),
-                      member_id: String(row.original.id),
-                    }),
-                    // updatePromoGroup(row.original.id, Number(value)),
-                    {
-                      loading: "Updating promo group...",
-                      success: (data) => data.message,
-                      error: "Failed to change promo group",
-                    }
-                  );
+                startUpdateTransition(async () => {
+                  const { success, message } = await addPromoGroupMembers({
+                    promo_group_id: String(value),
+                    member_id: String(row.original.id),
+                  });
+                  if (!success) {
+                    toast.error(message || "Failed to change promo group");
+                    return;
+                  }
+
+                  toast.success(message || "Promo group updated successfully");
                 });
               }}
             >

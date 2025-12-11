@@ -177,15 +177,18 @@ const NewHotelForm = () => {
         });
         formData.append("social_medias", JSON.stringify(data.social_medias));
 
-        toast.promise(createHotelNew(formData), {
-          loading: "Creating hotel...",
-          success: ({ data, message }) => {
-            form.reset();
-            if (data) router.push(`/hotel-listing/${data.hotel_id}/edit`);
-            return message || `Hotel created successfully!`;
-          },
-          error: "An unexpected error occurred. Please try again.",
-        });
+        const result = await createHotelNew(formData);
+        if (!result.success) {
+          toast.error(
+            result.message || "An unexpected error occurred. Please try again."
+          );
+          return;
+        }
+
+        form.reset();
+        if (result.data)
+          router.push(`/hotel-listing/${result.data.hotel_id}/edit`);
+        toast.success(result.message || "Hotel created successfully!");
       });
     },
     [form]

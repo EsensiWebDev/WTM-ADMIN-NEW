@@ -50,10 +50,13 @@ export function DeleteBookingSummaryDialog({
     startDeleteTransition(async () => {
       const bookingId = bookingSummary[0].booking_id;
 
-      toast.promise(deleteBooking(String(bookingId)), {
-        success: (data) => data.message,
-        error: "Failed to delete booking",
-      });
+      const { success, message } = await deleteBooking(String(bookingId));
+      if (!success) {
+        toast.error(message || "Failed to delete booking");
+        return;
+      }
+
+      toast.success(message || "Deleted successfully");
 
       props.onOpenChange?.(false);
       onSuccess?.();

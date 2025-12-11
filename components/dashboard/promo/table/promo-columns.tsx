@@ -136,16 +136,18 @@ export function getPromoTableColumns({
               disabled={isUpdatePending}
               checked={row.original.is_active}
               onCheckedChange={(checked) => {
-                startUpdateTransition(() => {
+                startUpdateTransition(async () => {
                   const fd = new FormData();
                   fd.append("promo_id", String(row.original.id));
                   fd.append("is_active", String(checked));
 
-                  toast.promise(updatePromoStatus(fd), {
-                    loading: "Updating promo status...",
-                    success: (data) => data.message,
-                    error: "Failed to update promo status",
-                  });
+                  const { success, message } = await updatePromoStatus(fd);
+                  if (!success) {
+                    toast.error(message || "Failed to update promo status");
+                    return;
+                  }
+
+                  toast.success(message || "Promo status updated successfully");
                 });
               }}
               id={`${row.original.id}-status`}

@@ -53,26 +53,20 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
     },
   });
 
-  function onSubmit(values: PasswordChangeSchema) {
+  async function onSubmit(values: PasswordChangeSchema) {
     setIsLoading(true);
 
-    toast.promise(
-      changePassword({
-        ...values,
-      }),
-      {
-        loading: "Changing password...",
-        success: (data) => {
-          setIsLoading(false);
-          form.reset();
-          return data.message || "Password changed successfully";
-        },
-        error: (error) => {
-          setIsLoading(false);
-          return error.message || "Failed to change password";
-        },
-      }
-    );
+    const { success, message } = await changePassword(values);
+    if (!success) {
+      setIsLoading(false);
+
+      toast.error(message || "Failed to change password");
+      return;
+    }
+
+    setIsLoading(false);
+    form.reset();
+    toast.success(message || "Password changed successfully");
   }
 
   return (

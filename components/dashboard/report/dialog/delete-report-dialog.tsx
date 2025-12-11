@@ -52,11 +52,13 @@ export function DeleteReportDialog({
       // const reportId = report[0].id
       const reportId = "1";
 
-      toast.promise(deleteReport(reportId), {
-        // loading: "Deleting report...",
-        success: (data) => data.message,
-        error: "Failed to delete report",
-      });
+      const { success, message } = await deleteReport(reportId);
+      if (!success) {
+        toast.error(message || "Failed to delete report");
+        return;
+      }
+
+      toast.success(message || "Deleted successfully");
 
       props.onOpenChange?.(false);
       onSuccess?.();
