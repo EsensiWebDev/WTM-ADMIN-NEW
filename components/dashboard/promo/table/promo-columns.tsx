@@ -73,7 +73,7 @@ export function getPromoTableColumns({
       cell: ({ row }) => row.original.promo_name,
       meta: {
         label: "Promo Name",
-        placeholder: "Search by promo id/code/name",
+        placeholder: "Search by promo id/code/name...",
         variant: "text",
         icon: Text,
       },

@@ -144,7 +144,7 @@ function DataTableToolbarFilter<TData>({
                 value={pendingTextValue}
                 onChange={(event) => setPendingTextValue(event.target.value)}
                 onKeyDown={handleKeyDown}
-                className="h-8 w-40 lg:w-56 bg-white rounded-r-none"
+                className="h-8 w-40 lg:w-80 bg-white rounded-r-none"
               />
               <Button
                 size="sm"

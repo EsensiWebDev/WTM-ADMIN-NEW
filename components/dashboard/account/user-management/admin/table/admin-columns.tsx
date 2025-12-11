@@ -39,7 +39,7 @@ export function getAdminTableColumns({
       cell: ({ row }) => row.original.name,
       meta: {
         label: "Name",
-        placeholder: "Search by name/email/phone",
+        placeholder: "Search by name/email/phone...",
         variant: "text",
         icon: Text,
       },
