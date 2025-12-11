@@ -96,7 +96,7 @@ export const getRegionOptions = async () => {
 
 export const getCountryPhoneOptions = async (): Promise<Option[]> => {
   return dialCodeData.map((dial) => ({
-    label: `${dial.name} (${dial.dial_code}) `,
+    label: `(${dial.dial_code}) ${dial.name}`,
     value: dial.dial_code,
   }));
 };

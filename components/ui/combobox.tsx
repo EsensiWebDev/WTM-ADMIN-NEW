@@ -59,10 +59,16 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn(
+            "justify-between",
+            !value && "text-muted-foreground",
+            className
+          )}
           disabled={disabled}
         >
-          {selectedOption ? selectedOption.label : placeholder}
+          <div className="truncate">
+            {selectedOption ? selectedOption.label : placeholder}
+          </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
