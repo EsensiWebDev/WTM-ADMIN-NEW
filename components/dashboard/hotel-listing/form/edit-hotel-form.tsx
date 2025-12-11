@@ -347,7 +347,30 @@ const EditHotelForm = ({ hotel, hotelId }: EditHotelFormProps) => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <section className="space-y-6">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold">{"Upload Hotel Images"}</h2>
+            <div className="flex justify-between">
+              <h2 className="text-2xl font-bold">Upload Hotel Images</h2>
+
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => window.history.back()}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? (
+                    <>
+                      <Loader className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Hotel"
+                  )}
+                </Button>
+              </div>
+            </div>
+
             <p className="text-sm text-muted-foreground">
               Edit existing images or upload new ones. Existing images are
               marked with a blue badge.
@@ -697,25 +720,7 @@ const EditHotelForm = ({ hotel, hotelId }: EditHotelFormProps) => {
         </section>
 
         {/* Form Actions */}
-        <div className="flex justify-end space-x-4 pb-6 border-b">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => window.history.back()}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
-              <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              "Update Hotel"
-            )}
-          </Button>
-        </div>
+        <div className="flex justify-end space-x-4 pb-6 border-b"></div>
       </form>
     </Form>
   );

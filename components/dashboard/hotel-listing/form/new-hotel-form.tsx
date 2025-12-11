@@ -199,7 +199,28 @@ const NewHotelForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <section className="space-y-6">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold">{"Upload Hotel Images"}</h2>
+            <div className="flex justify-between">
+              <h2 className="text-2xl font-bold">Upload Hotel Images</h2>
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => window.history.back()}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? (
+                    <>
+                      <Loader className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Hotel"
+                  )}
+                </Button>
+              </div>
+            </div>
             <p className="text-sm text-muted-foreground">
               Edit existing images or upload new ones. Existing images are
               marked with a blue badge.
@@ -546,27 +567,6 @@ const NewHotelForm = () => {
             </div>
           </div>
         </section>
-
-        {/* Form Actions */}
-        <div className="flex justify-end space-x-4 pt-6 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => window.history.back()}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
-              <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              "Create Hotel"
-            )}
-          </Button>
-        </div>
       </form>
     </Form>
   );
