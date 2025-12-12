@@ -41,17 +41,8 @@ const profileSchema = z.object({
     .email("Please enter a valid email address"),
   phone: z
     .string()
-    .min(1, "Phone number is required")
-    .regex(
-      /^\+[1-9]\d{1,14}$/,
-      "Phone number must start with '+' followed by country code and national number (E.164 format)"
-    )
-    .refine((value) => {
-      // Validate E.164 format: +[1-9]{1-3}[0-9]{6,14}
-      // This allows for country codes (1-3 digits) and national numbers (6-14 digits)
-      const match = value.match(/^\+(\d{1,3})(\d{6,14})$/);
-      return match !== null;
-    }, "Phone number must follow E.164 format: + then 1-3 digit country code, then 6-14 digit national number"),
+    .min(8, "Phone number must be at least 8 characters")
+    .max(15, "Phone number must be at most 15 characters"),
 });
 
 export type ProfileSchema = z.infer<typeof profileSchema>;
