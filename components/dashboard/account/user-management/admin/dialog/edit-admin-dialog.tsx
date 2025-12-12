@@ -24,7 +24,10 @@ import { type Option } from "@/types/data-table";
 export const editAdminSchema = z.object({
   full_name: z.string().optional(),
   email: z.string().email().optional(),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .min(8, "Phone number must be at least 8 characters")
+    .max(15, "Phone number must be at most 15 characters"),
   is_active: z.boolean().optional(),
   username: z.string(),
 });

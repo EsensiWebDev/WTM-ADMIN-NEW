@@ -24,9 +24,10 @@ import { type Option } from "@/types/data-table";
 export const createSuperAdminSchema = z.object({
   full_name: z.string(),
   email: z.string().email(),
-  phone: z.string().regex(/^\+[1-9]\d{1,14}$/, {
-    message: "Phone number must be in E.164 format (e.g., +1234567890)",
-  }),
+  phone: z
+    .string()
+    .min(8, "Phone number must be at least 8 characters")
+    .max(15, "Phone number must be at most 15 characters"),
   is_active: z.boolean(),
 });
 

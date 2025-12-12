@@ -32,10 +32,7 @@ export const editAgentSchema = z.object({
   phone: z
     .string()
     .min(8, "Phone number must be at least 8 characters")
-    .regex(
-      /^\+\d+$/,
-      "Phone number must start with a country code (e.g., +62) followed by digits only"
-    ),
+    .max(15, "Phone number must be at most 15 characters"),
   is_active: z.boolean(),
   kakao_talk_id: z.string().min(1, "KakaoTalk ID is required").max(25),
   photo_selfie: z.instanceof(File).optional(),
