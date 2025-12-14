@@ -102,7 +102,11 @@ const EditHotelForm = ({ hotel, hotelId }: EditHotelFormProps) => {
       unchanged_nearby_place_ids:
         hotel.nearby_place?.map((place) => place.id) || [],
       facilities: hotel.facilities || [],
-      social_medias: hotel.social_media || [],
+      social_medias: hotel.social_media || [
+        { link: "", platform: "instagram" },
+        { link: "", platform: "tiktok" },
+        { link: "", platform: "website" },
+      ],
     },
   });
 

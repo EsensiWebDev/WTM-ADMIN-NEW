@@ -78,7 +78,11 @@ const NewHotelForm = () => {
       rating: 0,
       nearby_places: [],
       facilities: [],
-      social_medias: [],
+      social_medias: [
+        { link: "", platform: "instagram" },
+        { link: "", platform: "tiktok" },
+        { link: "", platform: "website" },
+      ],
     },
   });
 
