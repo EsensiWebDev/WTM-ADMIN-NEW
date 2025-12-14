@@ -1,5 +1,31 @@
 import { SearchParams } from "@/types";
 
+export type AdditionalServiceCategory = "price" | "pax";
+
+export interface AdditionalService {
+  name: string;
+  category: AdditionalServiceCategory;
+  price?: number; // Only set when category="price"
+  pax?: number; // Only set when category="pax"
+  is_required: boolean;
+}
+
+// For API responses (with ID)
+export interface AdditionalServiceWithID extends AdditionalService {
+  id: number;
+}
+
+// Constants
+export const ADDITIONAL_SERVICE_CATEGORIES = {
+  PRICE: "price" as const,
+  PAX: "pax" as const,
+} as const;
+
+export const ADDITIONAL_SERVICE_CATEGORY_OPTIONS = [
+  { value: "price", label: "Price" },
+  { value: "pax", label: "Pax" },
+] as const;
+
 export interface Room {
   name: string;
   price: number;
@@ -22,7 +48,7 @@ export interface RoomDetail {
   max_occupancy: number;
   bed_types: string[];
   is_smoking_room: boolean;
-  additional: Array<{ id: number; name: string; price: number }>;
+  additional: Array<AdditionalServiceWithID>;
   description: string;
   photos: string[];
 }
