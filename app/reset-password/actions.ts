@@ -36,7 +36,6 @@ export async function resetPasswordAction(token: string, password: string) {
       cache: "no-store",
     });
 
-    console.log("Password reset attempted with token:", validatedData.token);
 
     if (!response.ok) {
       const errorData = await response.json();

@@ -5,7 +5,10 @@ import {
   removeHotelRoomType,
   updateHotelRoomType,
 } from "@/app/(dashboard)/hotel-listing/actions";
-import { RoomDetail } from "@/app/(dashboard)/hotel-listing/types";
+import {
+  OtherPreference,
+  RoomDetail,
+} from "@/app/(dashboard)/hotel-listing/types";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -234,11 +237,13 @@ const RoomForm = ({
                 bed_types: room.bed_types,
                 is_smoking_room: room.is_smoking_room,
                 description: room.description,
-                other_preferences:
-                  room.other_preferences?.map((pref) => ({
-                    id: pref.id,
-                    name: pref.name,
-                  })) || [],
+                other_preferences: (
+                  (room as { other_preferences?: OtherPreference[] })
+                    .other_preferences ?? []
+                ).map((pref: OtherPreference) => ({
+                  id: pref.id,
+                  name: pref.name,
+                })),
               }}
               {
                 ...(room.id > 0

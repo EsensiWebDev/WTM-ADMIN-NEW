@@ -6,7 +6,6 @@ import { apiCall } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 
 export async function updateAgentStatus(agentId: string, status: string) {
-  console.log("Update Agent Status");
   console.table({ agentId, status: status.toLowerCase() === "active" });
 
   try {
@@ -20,7 +19,6 @@ export async function updateAgentStatus(agentId: string, status: string) {
       body: JSON.stringify(body),
     });
 
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
@@ -55,7 +53,6 @@ export async function updateAgentStatus(agentId: string, status: string) {
 }
 
 export async function deleteAgent(agentId: string) {
-  console.log("Delete Agent");
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -64,8 +61,6 @@ export async function deleteAgent(agentId: string) {
 }
 
 export async function createAgent(input: CreateAgentSchema) {
-  console.log("Create Agent:");
-  console.log({ input });
 
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -75,8 +70,6 @@ export async function createAgent(input: CreateAgentSchema) {
 }
 
 export async function editAgent(input: EditAgentSchema & { id: string }) {
-  console.log("Edit Agent:");
-  console.log({ input });
 
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));

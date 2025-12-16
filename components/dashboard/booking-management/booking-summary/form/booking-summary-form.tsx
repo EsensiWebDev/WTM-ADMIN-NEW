@@ -159,9 +159,9 @@ export function BookingSummaryForm<T extends FieldValues>({
           name={"promo_id" as FieldPath<T>}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Promo ID</FormLabel>
+              <FormLabel>Promo Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter promo ID" {...field} />
+                <Input placeholder="Enter promo name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

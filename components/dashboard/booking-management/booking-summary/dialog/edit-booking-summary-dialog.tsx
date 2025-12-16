@@ -56,7 +56,10 @@ const EditBookingSummaryDialog = ({
       booking_id: String(booking?.booking_id) ?? "",
       booking_status: booking?.booking_status ?? "confirmed",
       payment_status: booking?.payment_status ?? "paid",
-      promo_id: booking?.group_promo ?? "",
+      promo_id:
+        booking?.detail_promo?.name ??
+        booking?.promo_name ??
+        "",
     },
   });
 

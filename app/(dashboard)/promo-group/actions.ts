@@ -103,8 +103,6 @@ export async function createPromoGroup(
 export async function editPromoGroup(
   input: EditPromoGroupSchema & { id: string }
 ): Promise<ActionResponse> {
-  console.log("Edit Promo:");
-  console.log({ input });
 
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));

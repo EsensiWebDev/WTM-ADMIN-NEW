@@ -38,7 +38,9 @@ interface EditorProps {
  * @example
  * <Editor
  *   content="<p>Hello .GuestName, your booking is confirmed for .BookingPeriod.</p>"
- *   onChange={(content) => console.log(content)}
+ *   onChange={(content) => {
+ *     // handle editor content change
+ *   }}
  * />
  */
 const Editor = ({ content, onChange, placeholder, className }: EditorProps) => {

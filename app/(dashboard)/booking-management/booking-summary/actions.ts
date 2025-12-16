@@ -39,8 +39,6 @@ export async function updateBookingStatus(input: {
       message: response.message || "Booking status updated successfully",
     };
   } catch (error) {
-    console.error("Error editing promo:", error);
-
     // Handle API error responses with specific messages
     if (error && typeof error === "object" && "message" in error) {
       return {
@@ -76,7 +74,6 @@ export async function updatePaymentStatus(input: {
       body: JSON.stringify(cleanBody(body)),
     });
 
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
@@ -92,8 +89,6 @@ export async function updatePaymentStatus(input: {
       message: response.message || "Payment status updated successfully",
     };
   } catch (error) {
-    console.error("Error updating payment status:", error);
-
     // Handle API error responses with specific messages
     if (error && typeof error === "object" && "message" in error) {
       return {
@@ -113,7 +108,6 @@ export async function updatePaymentStatus(input: {
 }
 
 export async function deleteBooking(bookingId: string) {
-  console.log("Delete Booking");
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -122,8 +116,6 @@ export async function deleteBooking(bookingId: string) {
 }
 
 export async function createBooking(input: CreateBookingSummarySchema) {
-  console.log("Create Booking:");
-  console.log({ input });
 
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -135,8 +127,6 @@ export async function createBooking(input: CreateBookingSummarySchema) {
 export async function editBooking(
   input: EditBookingSummarySchema & { id: string }
 ) {
-  console.log("Edit Booking:");
-  console.log({ input });
 
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -158,18 +148,11 @@ export async function uploadReceipt(formData: FormData) {
       };
     }
 
-    // Log for debugging purposes
-    console.log("Upload Receipt:");
-    console.log({
-      formData,
-    });
-
     const response = await apiCall("bookings/receipt", {
       method: "POST",
       body: formData,
     });
 
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
@@ -186,12 +169,57 @@ export async function uploadReceipt(formData: FormData) {
       message: response.message || "Receipt uploaded successfully",
     };
   } catch (error) {
-    console.error("Error uploading receipt:", error);
-
     return {
       success: false,
       message:
         error instanceof Error ? error.message : "Failed to upload receipt",
+    };
+  }
+}
+
+export async function saveAdminNote(input: {
+  sub_booking_id: string;
+  admin_notes: string;
+}) {
+  try {
+    const body = {
+      sub_booking_id: input.sub_booking_id,
+      admin_notes: input.admin_notes,
+    };
+
+    const response = await apiCall(`bookings/admin-notes`, {
+      method: "POST",
+      body: JSON.stringify(cleanBody(body)),
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to save admin note",
+      };
+    }
+
+    revalidatePath("/booking-management/booking-summary", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Admin note saved successfully",
+    };
+  } catch (error) {
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to save admin note",
     };
   }
 }

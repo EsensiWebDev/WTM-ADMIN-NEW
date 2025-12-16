@@ -20,7 +20,6 @@ export async function forgotPasswordAction(email: string) {
       email: validatedData.email,
     };
 
-    console.log({ body });
 
     const response = await fetch(`${AUTH_API_BASE_URL}/forgot-password`, {
       method: "POST",
@@ -31,7 +30,6 @@ export async function forgotPasswordAction(email: string) {
       cache: "no-store",
     });
 
-    console.log("Password reset requested for:", validatedData.email);
 
     if (!response.ok) {
       const errorData = await response.json();

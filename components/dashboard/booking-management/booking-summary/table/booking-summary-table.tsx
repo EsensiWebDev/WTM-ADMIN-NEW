@@ -32,6 +32,7 @@ const BookingSummaryTable = ({ promises }: BookingSummaryTableProps) => {
   const [isPending, startTransition] = useTransition();
   const [{ data, pagination }, bookingStatusOptions, paymentStatusOptions] =
     React.use(promises);
+
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<BookingSummary> | null>(null);
   const [uploadReceiptOpen, setUploadReceiptOpen] = React.useState(false);

@@ -9,14 +9,12 @@ export async function updateRBA(body: {
   role: string;
   allowed: boolean;
 }) {
-  console.log({ body });
   try {
     const response = await apiCall("role-access", {
       method: "PUT",
       body: JSON.stringify(body),
     });
 
-    console.log({ response, message: response.message });
 
     if (response.status !== 200) {
       return {
@@ -50,19 +48,16 @@ export async function updateRBA(body: {
 }
 
 export async function createRoleBasedAccessPage(input: any) {
-  console.log("Create Role Based Access Page:", input);
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return { success: true, message: `Role Based Access Page created` };
 }
 
 export async function editRoleBasedAccessPage(input: any) {
-  console.log("Edit Role Based Access Page:", input);
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return { success: true, message: `Role Based Access Page edited` };
 }
 
 export async function deleteRoleBasedAccessPage(id: string) {
-  console.log("Delete Role Based Access Page:", id);
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return { success: true, message: `Role Based Access Page deleted` };
 }
