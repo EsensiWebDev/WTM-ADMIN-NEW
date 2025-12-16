@@ -6,6 +6,11 @@ export interface Room {
   price_with_breakfast: number;
 }
 
+export interface OtherPreference {
+  id: number;
+  name: string;
+}
+
 export interface RoomDetail {
   id: number;
   name: string;
@@ -22,7 +27,12 @@ export interface RoomDetail {
   max_occupancy: number;
   bed_types: string[];
   is_smoking_room: boolean;
+<<<<<<< Updated upstream
   additional: Array<{ id: number; name: string; price: number }>;
+=======
+  additional: Array<AdditionalServiceWithID>;
+  other_preferences?: Array<OtherPreference>;
+>>>>>>> Stashed changes
   description: string;
   photos: string[];
 }

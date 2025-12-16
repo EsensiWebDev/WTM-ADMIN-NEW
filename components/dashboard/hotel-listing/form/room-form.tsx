@@ -67,6 +67,14 @@ const RoomForm = ({
       .map((addition) => ({ name: addition.name, price: addition.price }));
 
     formData.append("additional", JSON.stringify(newAdditions));
+
+    // Process other preferences for creation - send only non-empty names
+    const otherPreferences =
+      (data.other_preferences || [])
+        .map((pref) => pref.name.trim())
+        .filter((name) => name.length > 0);
+
+    formData.append("other_preferences", JSON.stringify(otherPreferences));
     formData.append("description", data.description || "");
 
     const { success, message } = await createHotelRoomType(formData);
@@ -93,6 +101,12 @@ const RoomForm = ({
     );
 
     toast.success(message || "Room type removed");
+  };
+
+  const handleCancelNewRoom = (tempRoomId: number) => {
+    setRoomList((prevRoomList) =>
+      prevRoomList.filter((room) => room.id !== tempRoomId)
+    );
   };
 
   // Create a wrapper function that includes roomId for the update operation
@@ -143,6 +157,25 @@ const RoomForm = ({
 
       formData.append("additional", JSON.stringify(additionsToSend));
 
+      // Process other preferences for update
+      const otherPreferences = data.other_preferences || [];
+
+      const unchangedPreferenceIds = otherPreferences
+        .map((pref) => pref.id)
+        .filter((id): id is number => typeof id === "number");
+
+      const newPreferences = otherPreferences
+        .filter((pref) => pref.id === undefined && pref.name.trim() !== "")
+        .map((pref) => pref.name.trim());
+
+      formData.append("other_preferences", JSON.stringify(newPreferences));
+
+      if (unchangedPreferenceIds.length > 0) {
+        unchangedPreferenceIds.forEach((id) => {
+          formData.append("unchanged_preference_ids", String(id));
+        });
+      }
+
       // Send unchanged addition IDs separately
       if (unchangedIds.length > 0) {
         unchangedIds.forEach((id) => {
@@ -174,7 +207,7 @@ const RoomForm = ({
           onClick={addNewRoom}
           className="inline-flex items-center gap-2"
         >
-          Add new room
+          Add New Room
         </Button>
       </div>
 
@@ -201,11 +234,19 @@ const RoomForm = ({
                 bed_types: room.bed_types,
                 is_smoking_room: room.is_smoking_room,
                 description: room.description,
+                other_preferences:
+                  room.other_preferences?.map((pref) => ({
+                    id: pref.id,
+                    name: pref.name,
+                  })) || [],
               }}
               {
                 ...(room.id > 0
                   ? { onUpdate: createUpdateHandler(String(room.id)), onRemove } // For existing rooms (positive IDs from database)
-                  : { onCreate }) // For new rooms (negative temporary IDs)
+                  : {
+                      onCreate,
+                      onCancelNewRoom: () => handleCancelNewRoom(room.id),
+                    }) // For new rooms (negative temporary IDs)
               }
             />
           );

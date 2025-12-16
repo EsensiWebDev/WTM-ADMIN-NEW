@@ -3,6 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Form,
   FormControl,
   FormField,
@@ -31,7 +39,6 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { ImageUpload } from "./image-upload";
-import { useRouter } from "next/navigation";
 
 // Define the Zod schema for room data validation
 const withoutBreakfastSchema = z.object({
@@ -65,6 +72,11 @@ const additionalSchema = z.object({
   id: z.number().int().optional(), // ID for existing additions
   name: z.string().min(1, "Additional name is required"),
   price: z.number().min(0, "Price must be a positive number"),
+});
+
+const otherPreferenceSchema = z.object({
+  id: z.number().int().optional(),
+  name: z.string().min(1, "Preference name is required"),
 });
 
 export const roomFormSchema = z
@@ -101,6 +113,7 @@ export const roomFormSchema = z
     is_smoking_room: z.boolean(),
     additional: z.array(additionalSchema).optional(),
     unchanged_additions_ids: z.array(z.number().int()).optional(),
+    other_preferences: z.array(otherPreferenceSchema).optional(),
     description: z.string().min(1, "Description is required"),
   })
   .refine(
@@ -165,6 +178,7 @@ interface RoomCardInputProps {
   onUpdate?: (room: RoomFormValues) => void;
   onRemove?: (id: string) => void;
   onCreate?: (data: RoomFormValues) => void;
+  onCancelNewRoom?: () => void;
 }
 
 export function RoomCardInput({
@@ -175,9 +189,11 @@ export function RoomCardInput({
   onUpdate,
   onRemove,
   onCreate,
+  onCancelNewRoom,
 }: RoomCardInputProps) {
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   // Track original additions with their IDs for comparison
   const [originalAdditions, setOriginalAdditions] = useState(
@@ -213,7 +229,24 @@ export function RoomCardInput({
           id: addition.id,
           name: addition.name,
           price: addition.price,
+<<<<<<< Updated upstream
         })) || [],
+=======
+          pax: addition.pax,
+          is_required: addition.is_required ?? false,
+        })) as Array<{
+          id?: number;
+          name: string;
+          category: AdditionalServiceCategory;
+          price?: number;
+          pax?: number;
+          is_required: boolean;
+        }>,
+      other_preferences:
+        (defaultValues?.other_preferences as
+          | Array<{ id?: number; name: string }>
+          | undefined) || [],
+>>>>>>> Stashed changes
       unchanged_additions_ids:
         initialAdditions.map((addition) => addition.id) || [],
       description: defaultValues?.description || "",
@@ -248,6 +281,10 @@ export function RoomCardInput({
       bed_types: defaultValues?.bed_types || [""],
       is_smoking_room: defaultValues?.is_smoking_room || false,
       additional: additions,
+      other_preferences:
+        (defaultValues?.other_preferences as
+          | Array<{ id?: number; name: string }>
+          | undefined) || [],
       unchanged_additions_ids:
         initialAdditions.map((addition) => addition.id) || [],
       description: defaultValues?.description || "",
@@ -264,6 +301,21 @@ export function RoomCardInput({
     name: "additional",
   });
 
+<<<<<<< Updated upstream
+=======
+  // Watch all additional fields at once to avoid hooks in map
+  const watchedAdditional = form.watch("additional");
+
+  const {
+    fields: otherPreferenceFields,
+    append: appendPreference,
+    remove: removePreference,
+  } = useFieldArray({
+    control: form.control,
+    name: "other_preferences",
+  });
+
+>>>>>>> Stashed changes
   // Handle bed types as a regular form field since useFieldArray doesn't work with it
   const bedTypes = form.watch("bed_types") || [];
 
@@ -427,6 +479,68 @@ export function RoomCardInput({
   const isWithoutBreakfast = form.watch("without_breakfast");
   const isWithBreakfast = form.watch("with_breakfast");
 
+  const isNewRoom = !!onCreate && !onUpdate;
+
+  const handleCancel = useCallback(() => {
+    if (isNewRoom && onCancelNewRoom) {
+      onCancelNewRoom();
+      return;
+    }
+
+    const additions = initialAdditions.map((addition) => ({
+      id: addition.id,
+      name: addition.name,
+      category: (addition.category || "price") as AdditionalServiceCategory,
+      price: addition.price,
+      pax: addition.pax,
+      is_required: addition.is_required ?? false,
+    })) as Array<{
+      id?: number;
+      name: string;
+      category: AdditionalServiceCategory;
+      price?: number;
+      pax?: number;
+      is_required: boolean;
+    }>;
+
+    setOriginalAdditions(additions);
+
+    form.reset({
+      name: defaultValues?.name || "",
+      photos: [],
+      unchanged_room_photos: initialPhotos,
+      without_breakfast: defaultValues?.without_breakfast || {
+        is_show: true,
+        price: 0,
+      },
+      with_breakfast: defaultValues?.with_breakfast || {
+        is_show: true,
+        pax: 2,
+        price: 0,
+      },
+      room_size: defaultValues?.room_size || 0,
+      max_occupancy: defaultValues?.max_occupancy || 1,
+      bed_types: defaultValues?.bed_types || [""],
+      is_smoking_room: defaultValues?.is_smoking_room || false,
+      additional: additions,
+      other_preferences:
+        (defaultValues?.other_preferences as
+          | Array<{ id?: number; name: string }>
+          | undefined) || [],
+      unchanged_additions_ids:
+        initialAdditions.map((addition) => addition.id) || [],
+      description: defaultValues?.description || "",
+    });
+  }, [
+    defaultValues,
+    form,
+    initialAdditions,
+    initialPhotos,
+    isNewRoom,
+    onCancelNewRoom,
+    setOriginalAdditions,
+  ]);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
@@ -451,19 +565,55 @@ export function RoomCardInput({
                 )}
               />
               {onRemove && roomId && (
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="destructive"
-                  disabled={isPending}
-                  onClick={() => {
-                    startTransition(async () => {
-                      onRemove(roomId);
-                    });
-                  }}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={isPending}
+                    className="inline-flex items-center gap-2"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="size-4" />
+                    <span className="text-sm font-medium">Delete Room Type</span>
+                  </Button>
+
+                  <Dialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                  >
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Delete Room Type</DialogTitle>
+                        <DialogDescription>
+                          Are you sure you want to delete this room type? This
+                          action cannot be undone.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter className="flex flex-row justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsDeleteDialogOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          disabled={isPending}
+                          onClick={() => {
+                            startTransition(async () => {
+                              await onRemove(roomId);
+                              setIsDeleteDialogOpen(false);
+                            });
+                          }}
+                        >
+                          Yes, delete
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </>
               )}
             </div>
           </div>
@@ -778,6 +928,49 @@ export function RoomCardInput({
                 </div>
               </div>
 
+              {/* Other Preferences */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Other Preferences</h3>
+                {otherPreferenceFields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-3">
+                    <FormField
+                      control={form.control}
+                      name={`other_preferences.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1 min-w-[200px]">
+                          <FormControl>
+                            <Input
+                              className="bg-gray-200"
+                              placeholder="Preference name (e.g., High Floor, Sea View)"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => removePreference(index)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    className="inline-flex items-center gap-2"
+                    variant="outline"
+                    onClick={() => appendPreference({ name: "" })}
+                  >
+                    <PlusCircle className="size-4" /> Add Preference
+                  </Button>
+                </div>
+              </div>
+
               <div className="mt-auto pt-10 lg:pt-4">
                 <div className="mb-4 flex flex-wrap gap-4 md:gap-6">
                   {/* Room Size */}
@@ -1002,10 +1195,46 @@ export function RoomCardInput({
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/hotel-listing")}
+              onClick={() => setIsCancelDialogOpen(true)}
             >
               Cancel
             </Button>
+            <Dialog
+              open={isCancelDialogOpen}
+              onOpenChange={setIsCancelDialogOpen}
+            >
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {isNewRoom ? "Discard New Room Type" : "Discard Changes"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {isNewRoom
+                      ? "Are you sure you want to cancel and remove this new room type? All unsaved data for this room will be lost."
+                      : "Are you sure you want to cancel your changes to this room type? All unsaved changes will be lost."}
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="flex flex-row justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCancelDialogOpen(false)}
+                  >
+                    Go back
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                      handleCancel();
+                      setIsCancelDialogOpen(false);
+                    }}
+                  >
+                    Yes, discard
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Button type="submit" disabled={isPending}>
               {isPending ? (
                 <>
