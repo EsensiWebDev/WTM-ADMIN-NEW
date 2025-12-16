@@ -11,6 +11,7 @@ export interface Agent {
   email: string;
   kakao_talk_id: string;
   phone_number: string;
+  currency?: string; // Agent currency preference
   status: string;
   photo?: string; // url link photo agent selfie
   id_card?: string; // url link photo agent id card

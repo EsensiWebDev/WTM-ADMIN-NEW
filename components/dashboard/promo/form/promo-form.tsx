@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormattedCurrencyInput } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { getHotelOptions } from "@/server/general";
+import { MultiCurrencyPriceInput } from "@/components/dashboard/hotel-listing/create/multi-currency-price-input";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -217,7 +218,7 @@ export function PromoForm<T extends FieldValues>({
         </div>
 
         {/* First Row: Promo Name, Promo Type, Extra Input Based on Promo Type */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 ${form.watch("promo_type" as FieldPath<T>) === "2" ? "md:grid-cols-1" : "md:grid-cols-3"} gap-4`}>
           <FormField
             control={form.control}
             name={"promo_name" as FieldPath<T>}
@@ -287,34 +288,20 @@ export function PromoForm<T extends FieldValues>({
             />
           )}
           {form.watch("promo_type" as FieldPath<T>) === "2" && (
-            <FormField
-              control={form.control}
-              name={"detail" as FieldPath<T>}
-              render={({ field }) => {
-                const { displayValue, handleChange, handleBlur } =
-                  useFormattedCurrencyInput(
-                    field.value,
-                    field.onChange,
-                    "id-ID"
-                  );
-
-                return (
-                  <FormItem>
-                    <FormLabel>Price Discount (IDR)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Enter amount (e.g., 50.000)"
-                        value={displayValue}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+            <div className="col-span-1 md:col-span-3">
+              <MultiCurrencyPriceInput
+                form={form}
+                fieldName={"prices" as FieldPath<T>}
+                label="Fixed Price (Multi-Currency)"
+                required={true}
+              />
+              {/* Keep detail field for backward compatibility, but hide it */}
+              <FormField
+                control={form.control}
+                name={"detail" as FieldPath<T>}
+                render={() => null}
+              />
+            </div>
           )}
           {form.watch("promo_type" as FieldPath<T>) === "3" && (
             <FormField

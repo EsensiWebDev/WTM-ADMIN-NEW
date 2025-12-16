@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import z from "zod";
 import { AgentForm } from "../form/agent-form";
 import { Option } from "@/types/data-table";
+import { getCurrencyOptions } from "@/app/(dashboard)/currency/fetch";
 
 export const editAgentSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
@@ -33,6 +34,7 @@ export const editAgentSchema = z.object({
     .string()
     .min(8, "Phone number must be at least 8 characters")
     .max(15, "Phone number must be at most 15 characters"),
+  currency: z.string().min(1, "Currency is required"),
   is_active: z.boolean(),
   kakao_talk_id: z.string().min(1, "KakaoTalk ID is required").max(25),
   photo_selfie: z.instanceof(File).optional(),
@@ -57,6 +59,13 @@ const EditAgentDialog = ({
   ...props
 }: EditAgentDialogProps) => {
   const [isPending, startTransition] = React.useTransition();
+  const [currencyOptions, setCurrencyOptions] = React.useState<Option[]>([]);
+
+  React.useEffect(() => {
+    getCurrencyOptions().then((options) => {
+      setCurrencyOptions(options);
+    });
+  }, []);
 
   const form = useForm<EditAgentSchema>({
     resolver: zodResolver(editAgentSchema),
@@ -67,6 +76,7 @@ const EditAgentDialog = ({
       promo_group_id: String(agent?.promo_group_id) || "0",
       email: agent?.email,
       phone: agent?.phone_number,
+      currency: agent?.currency || "IDR",
       is_active: agent?.status === "Active" ? true : false,
       kakao_talk_id: agent?.kakao_talk_id,
       photo_selfie: undefined,
@@ -92,6 +102,7 @@ const EditAgentDialog = ({
       fd.append("promo_group_id", input.promo_group_id);
       fd.append("email", input.email);
       fd.append("phone", input.phone);
+      fd.append("currency", input.currency);
       if (input.kakao_talk_id) fd.append("kakao_talk_id", input.kakao_talk_id);
       if (input.is_active !== undefined)
         fd.append("is_active", String(input.is_active));
@@ -132,6 +143,7 @@ const EditAgentDialog = ({
           onSubmit={onSubmit}
           promoGroupSelect={promoGroupSelect}
           countryOptions={countryOptions}
+          currencyOptions={currencyOptions}
           existingImages={{
             photo_selfie: formatUrl(agent?.photo),
             photo_id_card: formatUrl(agent?.id_card),

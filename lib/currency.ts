@@ -1,5 +1,13 @@
 import { useState } from "react";
 
+export interface CurrencyInfo {
+  code: string;
+  name: string;
+  symbol: string;
+  locale?: string;
+  decimalPlaces?: number;
+}
+
 /**
  * Formats a numeric value with locale-specific separators for display purposes.
  * The actual value stored remains unformatted.
@@ -127,4 +135,110 @@ export function useFormattedCurrencyInput(
     handleChange,
     handleBlur,
   };
+}
+
+/**
+ * Formats a currency value with its symbol based on currency code.
+ * 
+ * @param value - The numeric value to format
+ * @param currencyCode - The currency code (e.g., 'USD', 'IDR', 'EUR')
+ * @param currencySymbol - The currency symbol (e.g., '$', 'Rp', '€')
+ * @param locale - The locale to use for formatting (default: 'id-ID')
+ * @param options - Additional Intl.NumberFormat options
+ * @returns Formatted string with currency symbol
+ * 
+ * @example
+ * formatCurrencyWithSymbol(50000, 'IDR', 'Rp') // Returns "Rp 50.000"
+ * formatCurrencyWithSymbol(100, 'USD', '$') // Returns "$100"
+ */
+export function formatCurrencyWithSymbol(
+  value: number | string,
+  currencyCode: string,
+  currencySymbol: string,
+  locale: string = "id-ID",
+  options: Intl.NumberFormatOptions = {}
+): string {
+  if (value === "" || value === null || value === undefined) return "";
+
+  const numericValue =
+    typeof value === "string"
+      ? parseFloat(value.replace(/[^0-9.-]/g, ""))
+      : value;
+
+  if (isNaN(numericValue)) return "";
+
+  // Determine decimal places based on currency
+  const decimalPlaces = getDecimalPlacesForCurrency(currencyCode);
+  
+  const formatted = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+    ...options,
+  }).format(numericValue);
+
+  // Format with symbol (symbol before for most currencies, after for some)
+  const symbolPosition = getSymbolPosition(currencyCode);
+  return symbolPosition === "before"
+    ? `${currencySymbol} ${formatted}`
+    : `${formatted} ${currencySymbol}`;
+}
+
+/**
+ * Gets the number of decimal places for a currency.
+ * Most currencies use 2 decimal places, but some use 0 (JPY, KRW, IDR, VND).
+ */
+export function getDecimalPlacesForCurrency(currencyCode: string): number {
+  const zeroDecimalCurrencies = ["JPY", "KRW", "IDR", "VND"];
+  return zeroDecimalCurrencies.includes(currencyCode.toUpperCase()) ? 0 : 2;
+}
+
+/**
+ * Gets the symbol position for a currency (before or after the amount).
+ */
+export function getSymbolPosition(currencyCode: string): "before" | "after" {
+  // Most currencies place symbol before, but some place after
+  const afterSymbolCurrencies: string[] = []; // Add currencies that place symbol after if needed
+  return afterSymbolCurrencies.includes(currencyCode.toUpperCase())
+    ? "after"
+    : "before";
+}
+
+/**
+ * Formats a multi-currency price map for display.
+ * 
+ * @param prices - Map of currency codes to prices
+ * @param currencies - Array of currency info objects
+ * @returns Formatted string showing all prices
+ * 
+ * @example
+ * formatMultiCurrencyPrices(
+ *   { IDR: 1600000, USD: 100 },
+ *   [{ code: 'IDR', symbol: 'Rp' }, { code: 'USD', symbol: '$' }]
+ * ) // Returns "Rp 1.600.000 / $100"
+ */
+export function formatMultiCurrencyPrices(
+  prices: Record<string, number>,
+  currencies: CurrencyInfo[]
+): string {
+  if (!prices || Object.keys(prices).length === 0) return "";
+
+  const currencyMap = new Map(
+    currencies.map((c) => [c.code.toUpperCase(), c])
+  );
+
+  return Object.entries(prices)
+    .map(([code, value]) => {
+      const currency = currencyMap.get(code.toUpperCase());
+      if (!currency) return null;
+      
+      const formatted = formatCurrencyWithSymbol(
+        value,
+        code,
+        currency.symbol,
+        currency.locale || "id-ID"
+      );
+      return formatted;
+    })
+    .filter((formatted): formatted is string => formatted !== null)
+    .join(" / ");
 }

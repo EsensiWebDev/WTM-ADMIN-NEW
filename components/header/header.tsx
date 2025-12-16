@@ -36,13 +36,13 @@ const menuItems: MenuItem[] = [
       },
       {
         name: "User Management",
-        href: "/account/user-management/super-admin",
-        requiredRole: "Super Admin" as const,
+        href: "/account/user-management/support",
+        requiredRole: "Admin" as const,
       },
       {
         name: "User Management",
-        href: "/account/user-management/support",
-        requiredRole: "Admin" as const,
+        href: "/account/user-management/super-admin",
+        requiredRole: "Super Admin" as const,
       },
     ],
   },
@@ -51,6 +51,7 @@ const menuItems: MenuItem[] = [
     name: "Booking Management",
     href: "/booking-management/booking-summary",
   },
+  { name: "Currency", href: "/currency" },
   {
     name: "Hotel Listing",
     href: "#link",

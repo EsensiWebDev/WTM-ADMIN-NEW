@@ -15,11 +15,13 @@ export interface RoomDetail {
   id: number;
   name: string;
   without_breakfast: {
-    price: number;
+    price?: number; // DEPRECATED
+    prices?: Record<string, number>; // NEW: Multi-currency prices
     is_show: boolean;
   };
   with_breakfast: {
-    price: number;
+    price?: number; // DEPRECATED
+    prices?: Record<string, number>; // NEW: Multi-currency prices
     pax: number;
     is_show: boolean;
   };
@@ -27,7 +29,7 @@ export interface RoomDetail {
   max_occupancy: number;
   bed_types: string[];
   is_smoking_room: boolean;
-  additional: Array<{ id: number; name: string; price: number }>;
+  additional: Array<{ id: number; name: string; price?: number; prices?: Record<string, number> }>;
   other_preferences?: Array<OtherPreference>;
   description: string;
   photos: string[];

@@ -15,6 +15,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { ImageUpload } from "./image-upload";
+import { MultiCurrencyPriceInput } from "./multi-currency-price-input";
 
 // Type definition for additional service category
 export type AdditionalServiceCategory = "pax" | "price";
@@ -53,7 +55,15 @@ const withoutBreakfastSchema = z.object({
       required_error: "Price is required",
       invalid_type_error: "Price must be a valid number",
     })
-    .nonnegative("Price cannot be negative"),
+    .nonnegative("Price cannot be negative")
+    .optional(), // DEPRECATED: Keep for backward compatibility
+  prices: z
+    .record(z.string(), z.number().nonnegative("Price cannot be negative"))
+    .refine(
+      (prices) => prices && "IDR" in prices,
+      "IDR price is required (mandatory currency)"
+    )
+    .optional(),
 });
 
 const withBreakfastSchema = z.object({
@@ -70,14 +80,29 @@ const withBreakfastSchema = z.object({
       required_error: "Price is required",
       invalid_type_error: "Price must be a valid number",
     })
-    .nonnegative("Price cannot be negative"),
+    .nonnegative("Price cannot be negative")
+    .optional(), // DEPRECATED: Keep for backward compatibility
+  prices: z
+    .record(z.string(), z.number().nonnegative("Price cannot be negative"))
+    .refine(
+      (prices) => prices && "IDR" in prices,
+      "IDR price is required (mandatory currency)"
+    )
+    .optional(),
 });
 
 const additionalSchema = z.object({
   id: z.number().int().optional(), // ID for existing additions
   name: z.string().min(1, "Additional name is required"),
   category: z.enum(["pax", "price"]),
-  price: z.number().min(0, "Price must be a positive number").optional(),
+  price: z.number().min(0, "Price must be a positive number").optional(), // DEPRECATED
+  prices: z
+    .record(z.string(), z.number().nonnegative("Price cannot be negative"))
+    .refine(
+      (prices) => !prices || "IDR" in prices,
+      "IDR price is required (mandatory currency)"
+    )
+    .optional(),
   pax: z.number().int().positive("Pax must be at least 1").optional(),
   is_required: z.boolean(),
 });
@@ -148,28 +173,42 @@ export const roomFormSchema = z
   )
   .refine(
     (data) => {
-      // If without_breakfast is enabled, price must be greater than 0
-      if (data.without_breakfast.is_show && data.without_breakfast.price <= 0) {
+      // If without_breakfast is enabled, prices must have IDR > 0
+      if (data.without_breakfast.is_show) {
+        if (data.without_breakfast.prices && data.without_breakfast.prices.IDR) {
+          return data.without_breakfast.prices.IDR > 0;
+        }
+        // Fallback to deprecated price field
+        if (data.without_breakfast.price) {
+          return data.without_breakfast.price > 0;
+        }
         return false;
       }
       return true;
     },
     {
-      message: "Price must be greater than 0 when option is enabled",
-      path: ["without_breakfast.price"],
+      message: "IDR price must be greater than 0 when option is enabled",
+      path: ["without_breakfast.prices"],
     }
   )
   .refine(
     (data) => {
-      // If with_breakfast is enabled, price must be greater than 0
-      if (data.with_breakfast.is_show && data.with_breakfast.price <= 0) {
+      // If with_breakfast is enabled, prices must have IDR > 0
+      if (data.with_breakfast.is_show) {
+        if (data.with_breakfast.prices && data.with_breakfast.prices.IDR) {
+          return data.with_breakfast.prices.IDR > 0;
+        }
+        // Fallback to deprecated price field
+        if (data.with_breakfast.price) {
+          return data.with_breakfast.price > 0;
+        }
         return false;
       }
       return true;
     },
     {
-      message: "Price must be greater than 0 when option is enabled",
-      path: ["with_breakfast.price"],
+      message: "IDR price must be greater than 0 when option is enabled",
+      path: ["with_breakfast.prices"],
     }
   );
 
@@ -185,7 +224,8 @@ interface RoomCardInputProps {
   initialAdditions?: Array<{
     id: number;
     name: string;
-    price: number;
+    price?: number; // DEPRECATED
+    prices?: Record<string, number>; // NEW: Multi-currency prices
     pax?: number;
     is_required?: boolean;
     category?: AdditionalServiceCategory;
@@ -212,14 +252,22 @@ export function RoomCardInput({
 
   // Track original additions with their IDs for comparison
   const [originalAdditions, setOriginalAdditions] = useState<
-    Array<{ id: number; name: string; price: number }>
+    Array<{ id: number; name: string; price?: number; prices?: Record<string, number> }>
   >(
     initialAdditions.map((addition) => ({
       id: addition.id,
       name: addition.name,
       price: addition.price,
+      prices: addition.prices,
     }))
   );
+
+  // Store original defaultValues for reset on cancel (for existing rooms only)
+  const [originalDefaultValues] = useState<Partial<RoomFormValues> | undefined>(
+    () => defaultValues
+  );
+  const [originalInitialPhotos] = useState<string[]>(() => initialPhotos);
+  const [originalInitialAdditions] = useState(() => initialAdditions);
 
   const form = useForm<RoomFormValues>({
     resolver: zodResolver(roomFormSchema),
@@ -228,15 +276,32 @@ export function RoomCardInput({
       name: defaultValues?.name || "",
       photos: [],
       unchanged_room_photos: initialPhotos,
-      without_breakfast: defaultValues?.without_breakfast || {
-        is_show: true,
-        price: 0,
-      },
-      with_breakfast: defaultValues?.with_breakfast || {
-        is_show: true,
-        pax: 2,
-        price: 0,
-      },
+      without_breakfast: defaultValues?.without_breakfast
+        ? {
+            is_show: defaultValues.without_breakfast.is_show ?? true,
+            price: defaultValues.without_breakfast.price, // DEPRECATED
+            prices: defaultValues.without_breakfast.prices || 
+                    (defaultValues.without_breakfast.price ? { IDR: defaultValues.without_breakfast.price } : { IDR: 0 }),
+          }
+        : {
+            is_show: true,
+            price: 0,
+            prices: { IDR: 0 },
+          },
+      with_breakfast: defaultValues?.with_breakfast
+        ? {
+            is_show: defaultValues.with_breakfast.is_show ?? true,
+            pax: defaultValues.with_breakfast.pax ?? 2,
+            price: defaultValues.with_breakfast.price, // DEPRECATED
+            prices: defaultValues.with_breakfast.prices || 
+                    (defaultValues.with_breakfast.price ? { IDR: defaultValues.with_breakfast.price } : { IDR: 0 }),
+          }
+        : {
+            is_show: true,
+            pax: 2,
+            price: 0,
+            prices: { IDR: 0 },
+          },
       room_size: defaultValues?.room_size || 0,
       max_occupancy: defaultValues?.max_occupancy || 1,
       bed_types: defaultValues?.bed_types || [""],
@@ -246,14 +311,16 @@ export function RoomCardInput({
           id: addition.id,
           name: addition.name,
           category: (addition.category || "price") as AdditionalServiceCategory,
-          price: addition.price,
+          price: addition.price, // DEPRECATED
+          prices: addition.prices || (addition.price ? { IDR: addition.price } : { IDR: 0 }),
           pax: addition.pax,
           is_required: addition.is_required ?? false,
         })) as Array<{
           id?: number;
           name: string;
           category: AdditionalServiceCategory;
-          price?: number;
+          price?: number; // DEPRECATED
+          prices?: Record<string, number>;
           pax?: number;
           is_required: boolean;
         }>,
@@ -273,7 +340,8 @@ export function RoomCardInput({
       id: addition.id,
       name: addition.name,
       category: (addition.category || "price") as AdditionalServiceCategory,
-      price: addition.price,
+      price: addition.price, // DEPRECATED
+      prices: addition.prices || (addition.price ? { IDR: addition.price } : { IDR: 0 }),
       pax: addition.pax,
       is_required: addition.is_required ?? false,
     }));
@@ -290,15 +358,32 @@ export function RoomCardInput({
       name: defaultValues?.name || "",
       photos: [],
       unchanged_room_photos: initialPhotos,
-      without_breakfast: defaultValues?.without_breakfast || {
-        is_show: true,
-        price: 0,
-      },
-      with_breakfast: defaultValues?.with_breakfast || {
-        is_show: true,
-        pax: 2,
-        price: 0,
-      },
+      without_breakfast: defaultValues?.without_breakfast
+        ? {
+            is_show: defaultValues.without_breakfast.is_show ?? true,
+            price: defaultValues.without_breakfast.price, // DEPRECATED
+            prices: defaultValues.without_breakfast.prices || 
+                    (defaultValues.without_breakfast.price ? { IDR: defaultValues.without_breakfast.price } : { IDR: 0 }),
+          }
+        : {
+            is_show: true,
+            price: 0,
+            prices: { IDR: 0 },
+          },
+      with_breakfast: defaultValues?.with_breakfast
+        ? {
+            is_show: defaultValues.with_breakfast.is_show ?? true,
+            pax: defaultValues.with_breakfast.pax ?? 2,
+            price: defaultValues.with_breakfast.price, // DEPRECATED
+            prices: defaultValues.with_breakfast.prices || 
+                    (defaultValues.with_breakfast.price ? { IDR: defaultValues.with_breakfast.price } : { IDR: 0 }),
+          }
+        : {
+            is_show: true,
+            pax: 2,
+            price: 0,
+            prices: { IDR: 0 },
+          },
       room_size: defaultValues?.room_size || 0,
       max_occupancy: defaultValues?.max_occupancy || 1,
       bed_types: defaultValues?.bed_types || [""],
@@ -401,7 +486,8 @@ export function RoomCardInput({
     appendAdditional({
       name: "",
       category: "price" as AdditionalServiceCategory,
-      price: 0,
+      price: 0, // DEPRECATED
+      prices: { IDR: 0 },
       pax: undefined,
       is_required: false,
     }); // New additions don't have ID
@@ -517,68 +603,90 @@ export function RoomCardInput({
   const isNewRoom = !!onCreate && !onUpdate;
 
   const handleCancel = useCallback(() => {
+    // For new rooms, remove the card
     if (isNewRoom && onCancelNewRoom) {
       onCancelNewRoom();
       return;
     }
 
-    const additions = initialAdditions.map((addition) => ({
+    // For existing rooms, reset to original values
+    const additions = originalInitialAdditions.map((addition) => ({
       id: addition.id,
       name: addition.name,
       category: (addition.category || "price") as AdditionalServiceCategory,
-      price: addition.price,
+      price: addition.price, // DEPRECATED
+      prices: addition.prices || (addition.price ? { IDR: addition.price } : { IDR: 0 }),
       pax: addition.pax,
       is_required: addition.is_required ?? false,
     })) as Array<{
       id?: number;
       name: string;
       category: AdditionalServiceCategory;
-      price?: number;
+      price?: number; // DEPRECATED
+      prices?: Record<string, number>;
       pax?: number;
       is_required: boolean;
     }>;
 
     setOriginalAdditions(
-      initialAdditions.map((addition) => ({
+      originalInitialAdditions.map((addition) => ({
         id: addition.id,
         name: addition.name,
         price: addition.price,
+        prices: addition.prices,
       }))
     );
 
     form.reset({
-      name: defaultValues?.name || "",
+      name: originalDefaultValues?.name || "",
       photos: [],
-      unchanged_room_photos: initialPhotos,
-      without_breakfast: defaultValues?.without_breakfast || {
-        is_show: true,
-        price: 0,
-      },
-      with_breakfast: defaultValues?.with_breakfast || {
-        is_show: true,
-        pax: 2,
-        price: 0,
-      },
-      room_size: defaultValues?.room_size || 0,
-      max_occupancy: defaultValues?.max_occupancy || 1,
-      bed_types: defaultValues?.bed_types || [""],
-      is_smoking_room: defaultValues?.is_smoking_room || false,
+      unchanged_room_photos: originalInitialPhotos,
+      without_breakfast: originalDefaultValues?.without_breakfast
+        ? {
+            is_show: originalDefaultValues.without_breakfast.is_show ?? true,
+            price: originalDefaultValues.without_breakfast.price, // DEPRECATED
+            prices: originalDefaultValues.without_breakfast.prices || 
+                    (originalDefaultValues.without_breakfast.price ? { IDR: originalDefaultValues.without_breakfast.price } : { IDR: 0 }),
+          }
+        : {
+            is_show: true,
+            price: 0,
+            prices: { IDR: 0 },
+          },
+      with_breakfast: originalDefaultValues?.with_breakfast
+        ? {
+            is_show: originalDefaultValues.with_breakfast.is_show ?? true,
+            pax: originalDefaultValues.with_breakfast.pax ?? 2,
+            price: originalDefaultValues.with_breakfast.price, // DEPRECATED
+            prices: originalDefaultValues.with_breakfast.prices || 
+                    (originalDefaultValues.with_breakfast.price ? { IDR: originalDefaultValues.with_breakfast.price } : { IDR: 0 }),
+          }
+        : {
+            is_show: true,
+            pax: 2,
+            price: 0,
+            prices: { IDR: 0 },
+          },
+      room_size: originalDefaultValues?.room_size || 0,
+      max_occupancy: originalDefaultValues?.max_occupancy || 1,
+      bed_types: originalDefaultValues?.bed_types || [""],
+      is_smoking_room: originalDefaultValues?.is_smoking_room || false,
       additional: additions,
       other_preferences:
-        (defaultValues?.other_preferences as
+        (originalDefaultValues?.other_preferences as
           | Array<{ id?: number; name: string }>
           | undefined) || [],
       unchanged_additions_ids:
-        initialAdditions.map((addition) => addition.id) || [],
-      description: defaultValues?.description || "",
+        originalInitialAdditions.map((addition) => addition.id) || [],
+      description: originalDefaultValues?.description || "",
     });
   }, [
-    defaultValues,
     form,
-    initialAdditions,
-    initialPhotos,
     isNewRoom,
     onCancelNewRoom,
+    originalDefaultValues,
+    originalInitialAdditions,
+    originalInitialPhotos,
     setOriginalAdditions,
   ]);
 
@@ -691,52 +799,12 @@ export function RoomCardInput({
                       <div>
                         <h4 className="font-medium">Without Breakfast</h4>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <FormField
-                              control={form.control}
-                              name="without_breakfast.price"
-                              render={({ field }) => {
-                                const {
-                                  displayValue,
-                                  handleChange,
-                                  handleBlur,
-                                } = useFormattedCurrencyInput(
-                                  field.value,
-                                  field.onChange,
-                                  "id-ID"
-                                );
-
-                                return (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        type="text"
-                                        className="bg-gray-200 pl-10"
-                                        placeholder="0"
-                                        value={displayValue}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold">
-                              Rp
-                            </span>
-                          </div>
-                        </div>
-                        <FormField
-                          control={form.control}
-                          name="without_breakfast.price"
-                          render={() => (
-                            <FormItem>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                      <div className="w-full">
+                        <MultiCurrencyPriceInput
+                          form={form}
+                          fieldName="without_breakfast.prices"
+                          label=""
+                          required={false}
                         />
                       </div>
                     </div>
@@ -770,88 +838,41 @@ export function RoomCardInput({
                       <div>
                         <h4 className="font-medium">With Breakfast</h4>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <FormField
-                              control={form.control}
-                              name={`with_breakfast.price`}
-                              render={({ field }) => {
-                                const {
-                                  displayValue,
-                                  handleChange,
-                                  handleBlur,
-                                } = useFormattedCurrencyInput(
-                                  field.value,
-                                  field.onChange,
-                                  "id-ID"
-                                );
-
-                                return (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        type="text"
-                                        className="bg-gray-200 pl-10"
-                                        placeholder="0"
-                                        value={displayValue}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold">
-                              Rp
-                            </span>
-                          </div>
-                          <div>
-                            <FormField
-                              control={form.control}
-                              name={`with_breakfast.pax`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      className="bg-gray-200 w-20"
-                                      placeholder="Pax"
-                                      {...field}
-                                      value={field.value || ""}
-                                      onChange={(e) =>
-                                        field.onChange(
-                                          e.target.value
-                                            ? Number(e.target.value)
-                                            : 1
-                                        )
-                                      }
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`with_breakfast.pax`}
-                              render={() => (
-                                <FormItem>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-                        <FormField
-                          control={form.control}
-                          name={`with_breakfast.price`}
-                          render={() => (
-                            <FormItem>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                      <div className="w-full space-y-2">
+                        <MultiCurrencyPriceInput
+                          form={form}
+                          fieldName="with_breakfast.prices"
+                          label=""
+                          required={false}
                         />
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name={`with_breakfast.pax`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Pax</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    className="bg-gray-200 w-20"
+                                    placeholder="Pax"
+                                    {...field}
+                                    value={field.value || ""}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        e.target.value
+                                          ? Number(e.target.value)
+                                          : 1
+                                      )
+                                    }
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -959,48 +980,13 @@ export function RoomCardInput({
                             }}
                           />
                           {category === "price" && (
-                            <div className="relative flex-1">
-                              <FormField
-                                control={form.control}
-                                name={`additional.${index}.price`}
-                                render={({ field }) => {
-                                  const {
-                                    displayValue,
-                                    handleChange,
-                                    handleBlur,
-                                  } = useFormattedCurrencyInput(
-                                    field.value ?? 0,
-                                    (numValue) => {
-                                      field.onChange(numValue);
-                                      handleAdditionChange(
-                                        index,
-                                        "price",
-                                        numValue
-                                      );
-                                    },
-                                    "id-ID"
-                                  );
-
-                                  return (
-                                    <FormItem>
-                                      <FormControl>
-                                        <Input
-                                          type="text"
-                                          className="bg-gray-200 pl-8"
-                                          placeholder="0"
-                                          value={displayValue}
-                                          onChange={handleChange}
-                                          onBlur={handleBlur}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  );
-                                }}
+                            <div className="flex-1">
+                              <MultiCurrencyPriceInput
+                                form={form}
+                                fieldName={`additional.${index}.prices` as any}
+                                label=""
+                                required={false}
                               />
-                              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold">
-                                Rp
-                              </span>
                             </div>
                           )}
                           {category === "pax" && (

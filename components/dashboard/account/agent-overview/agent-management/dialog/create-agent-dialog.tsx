@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import z from "zod";
 import { AgentForm } from "../form/agent-form";
 import { Option } from "@/types/data-table";
+import { getCurrencyOptions } from "@/app/(dashboard)/currency/fetch";
 
 export const createAgentSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
@@ -31,6 +32,7 @@ export const createAgentSchema = z.object({
     .string()
     .min(8, "Phone number must be at least 8 characters")
     .max(15, "Phone number must be at most 15 characters"),
+  currency: z.string().min(1, "Currency is required"),
   is_active: z.boolean(),
   kakao_talk_id: z.string().min(1, "KakaoTalk ID is required").max(25),
   photo_selfie: z
@@ -65,6 +67,13 @@ const CreateAgentDialog = ({
 }) => {
   const [open, setOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
+  const [currencyOptions, setCurrencyOptions] = React.useState<Option[]>([]);
+
+  React.useEffect(() => {
+    getCurrencyOptions().then((options) => {
+      setCurrencyOptions(options);
+    });
+  }, []);
 
   const form = useForm<CreateAgentSchema>({
     resolver: zodResolver(createAgentSchema),
@@ -74,6 +83,7 @@ const CreateAgentDialog = ({
       promo_group_id: "",
       email: "",
       phone: "",
+      currency: "IDR",
       is_active: true, //
       kakao_talk_id: "",
       photo_selfie: undefined,
@@ -90,6 +100,7 @@ const CreateAgentDialog = ({
     fd.append("promo_group_id", input.promo_group_id);
     fd.append("email", input.email);
     fd.append("phone", input.phone);
+    fd.append("currency", input.currency);
     // fd.append("is_active", input.is_active)
     fd.append("kakao_talk_id", input.kakao_talk_id);
     fd.append("photo_selfie", input.photo_selfie);
@@ -130,6 +141,7 @@ const CreateAgentDialog = ({
           onSubmit={onSubmit}
           promoGroupSelect={promoGroupSelect}
           countryOptions={countryOptions}
+          currencyOptions={currencyOptions}
         >
           <DialogFooter className="gap-2 pt-2 sm:space-x-0">
             <DialogClose asChild>

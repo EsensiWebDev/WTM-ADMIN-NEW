@@ -33,6 +33,7 @@ interface AgentFormProps<T extends FieldValues>
   onSubmit: (data: T) => void;
   promoGroupSelect: PromoGroup[];
   countryOptions?: Option[];
+  currencyOptions?: Option[];
   existingImages?: {
     photo_selfie?: string | null;
     photo_id_card?: string | null;
@@ -49,6 +50,7 @@ export function AgentForm<T extends FieldValues>({
   promoGroupSelect,
   existingImages,
   countryOptions = [],
+  currencyOptions = [],
   isEditMode = false,
 }: AgentFormProps<T>) {
   const initialPhone = form.getValues("phone" as FieldPath<T>) as string;
@@ -129,6 +131,34 @@ export function AgentForm<T extends FieldValues>({
                   <SelectItemLink href={"/promo-group"}>
                     Create New Group
                   </SelectItemLink>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={"currency" as FieldPath<T>}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Currency*</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value || "IDR"}>
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {currencyOptions.length > 0 ? (
+                    currencyOptions.map((currency) => (
+                      <SelectItem key={currency.value} value={currency.value}>
+                        {currency.label}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="IDR">IDR - Indonesian Rupiah</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

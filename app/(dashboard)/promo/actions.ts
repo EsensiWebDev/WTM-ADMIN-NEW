@@ -83,9 +83,19 @@ export async function deletePromo(promoId: string) {
 
 export async function createPromo(input: CreatePromoSchema) {
   try {
-    const body = {
+    // For fixed price promo type (2), use prices if available, otherwise fall back to detail
+    let detailValue: string;
+    if (input.promo_type === "2" && input.prices && Object.keys(input.prices).length > 0) {
+      // Multi-currency prices - backend expects prices in the detail field as JSON or separate prices field
+      // For now, we'll send both detail (for backward compatibility) and prices
+      detailValue = input.prices.IDR?.toString() || "0";
+    } else {
+      detailValue = input.detail?.toString() || "";
+    }
+
+    const body: any = {
       description: input.description,
-      detail: input.detail.toString(),
+      detail: detailValue,
       end_date: input.end_date,
       promo_code: input.promo_code,
       promo_name: input.promo_name,
@@ -98,6 +108,11 @@ export async function createPromo(input: CreatePromoSchema) {
       ],
       start_date: input.start_date,
     };
+
+    // Add prices if it's a fixed price promo and prices are provided
+    if (input.promo_type === "2" && input.prices && Object.keys(input.prices).length > 0) {
+      body.prices = input.prices;
+    }
 
     const response = await apiCall("promos", {
       method: "POST",
@@ -138,9 +153,17 @@ export async function createPromo(input: CreatePromoSchema) {
 
 export async function editPromo(input: EditPromoSchema & { id: string }) {
   try {
-    const body = {
+    // For fixed price promo type (2), use prices if available, otherwise fall back to detail
+    let detailValue: string;
+    if (input.promo_type === "2" && input.prices && Object.keys(input.prices).length > 0) {
+      detailValue = input.prices.IDR?.toString() || "0";
+    } else {
+      detailValue = input.detail?.toString() || "";
+    }
+
+    const body: any = {
       description: input.description,
-      detail: input.detail.toString(),
+      detail: detailValue,
       end_date: input.end_date,
       is_active: input.is_active,
       promo_code: input.promo_code,
@@ -154,6 +177,11 @@ export async function editPromo(input: EditPromoSchema & { id: string }) {
       ],
       start_date: input.start_date,
     };
+
+    // Add prices if it's a fixed price promo and prices are provided
+    if (input.promo_type === "2" && input.prices && Object.keys(input.prices).length > 0) {
+      body.prices = input.prices;
+    }
 
     const response = await apiCall(`promos/${input.id}`, {
       method: "PUT",
