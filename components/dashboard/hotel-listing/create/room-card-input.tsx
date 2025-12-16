@@ -25,6 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useFormattedCurrencyInput } from "@/lib/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,6 +41,9 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { ImageUpload } from "./image-upload";
+
+// Type definition for additional service category
+export type AdditionalServiceCategory = "pax" | "price";
 
 // Define the Zod schema for room data validation
 const withoutBreakfastSchema = z.object({
@@ -71,7 +76,10 @@ const withBreakfastSchema = z.object({
 const additionalSchema = z.object({
   id: z.number().int().optional(), // ID for existing additions
   name: z.string().min(1, "Additional name is required"),
-  price: z.number().min(0, "Price must be a positive number"),
+  category: z.enum(["pax", "price"]),
+  price: z.number().min(0, "Price must be a positive number").optional(),
+  pax: z.number().int().positive("Pax must be at least 1").optional(),
+  is_required: z.boolean(),
 });
 
 const otherPreferenceSchema = z.object({
@@ -174,7 +182,14 @@ interface RoomCardInputProps {
   roomId?: string;
   defaultValues?: Partial<RoomFormValues>;
   initialPhotos?: string[]; // URLs of existing room photos for edit mode
-  initialAdditions?: Array<{ id: number; name: string; price: number }>; // Existing additions with IDs
+  initialAdditions?: Array<{
+    id: number;
+    name: string;
+    price: number;
+    pax?: number;
+    is_required?: boolean;
+    category?: AdditionalServiceCategory;
+  }>; // Existing additions with IDs
   onUpdate?: (room: RoomFormValues) => void;
   onRemove?: (id: string) => void;
   onCreate?: (data: RoomFormValues) => void;
@@ -196,7 +211,9 @@ export function RoomCardInput({
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   // Track original additions with their IDs for comparison
-  const [originalAdditions, setOriginalAdditions] = useState(
+  const [originalAdditions, setOriginalAdditions] = useState<
+    Array<{ id: number; name: string; price: number }>
+  >(
     initialAdditions.map((addition) => ({
       id: addition.id,
       name: addition.name,
@@ -228,10 +245,8 @@ export function RoomCardInput({
         initialAdditions.map((addition) => ({
           id: addition.id,
           name: addition.name,
+          category: (addition.category || "price") as AdditionalServiceCategory,
           price: addition.price,
-<<<<<<< Updated upstream
-        })) || [],
-=======
           pax: addition.pax,
           is_required: addition.is_required ?? false,
         })) as Array<{
@@ -246,7 +261,6 @@ export function RoomCardInput({
         (defaultValues?.other_preferences as
           | Array<{ id?: number; name: string }>
           | undefined) || [],
->>>>>>> Stashed changes
       unchanged_additions_ids:
         initialAdditions.map((addition) => addition.id) || [],
       description: defaultValues?.description || "",
@@ -258,10 +272,19 @@ export function RoomCardInput({
     const additions = initialAdditions.map((addition) => ({
       id: addition.id,
       name: addition.name,
+      category: (addition.category || "price") as AdditionalServiceCategory,
       price: addition.price,
+      pax: addition.pax,
+      is_required: addition.is_required ?? false,
     }));
 
-    setOriginalAdditions(additions);
+    setOriginalAdditions(
+      initialAdditions.map((addition) => ({
+        id: addition.id,
+        name: addition.name,
+        price: addition.price,
+      }))
+    );
 
     form.reset({
       name: defaultValues?.name || "",
@@ -301,8 +324,6 @@ export function RoomCardInput({
     name: "additional",
   });
 
-<<<<<<< Updated upstream
-=======
   // Watch all additional fields at once to avoid hooks in map
   const watchedAdditional = form.watch("additional");
 
@@ -315,7 +336,6 @@ export function RoomCardInput({
     name: "other_preferences",
   });
 
->>>>>>> Stashed changes
   // Handle bed types as a regular form field since useFieldArray doesn't work with it
   const bedTypes = form.watch("bed_types") || [];
 
@@ -335,6 +355,11 @@ export function RoomCardInput({
     },
     [bedTypes, form]
   );
+
+  const addBedType = useCallback(() => {
+    const newBedTypes = [...bedTypes, ""];
+    form.setValue("bed_types", newBedTypes);
+  }, [bedTypes, form]);
 
   // Handle image uploads from ImageUpload component
   const handleImageChange = useCallback(
@@ -373,7 +398,13 @@ export function RoomCardInput({
   );
 
   const handleAddAdditional = useCallback(() => {
-    appendAdditional({ name: "", price: 0 }); // New additions don't have ID
+    appendAdditional({
+      name: "",
+      category: "price" as AdditionalServiceCategory,
+      price: 0,
+      pax: undefined,
+      is_required: false,
+    }); // New additions don't have ID
   }, [appendAdditional]);
 
   const handleRemoveAdditional = useCallback(
@@ -397,7 +428,11 @@ export function RoomCardInput({
 
   // Track changes to additions
   const handleAdditionChange = useCallback(
-    (index: number, field: "name" | "price", value: string | number) => {
+    (
+      index: number,
+      field: "name" | "price" | "category" | "pax" | "is_required",
+      value: string | number | boolean
+    ) => {
       const currentAdditions = form.getValues("additional") || [];
       const addition = currentAdditions[index];
 
@@ -503,7 +538,13 @@ export function RoomCardInput({
       is_required: boolean;
     }>;
 
-    setOriginalAdditions(additions);
+    setOriginalAdditions(
+      initialAdditions.map((addition) => ({
+        id: addition.id,
+        name: addition.name,
+        price: addition.price,
+      }))
+    );
 
     form.reset({
       name: defaultValues?.name || "",
@@ -845,78 +886,193 @@ export function RoomCardInput({
               {/* Additional Services */}
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">Additional Services</h3>
-                {additionalFields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-3">
-                    <FormField
-                      control={form.control}
-                      name={`additional.${index}.name`}
-                      render={({ field }) => (
-                        <FormItem className="flex-1">
-                          <FormControl>
-                            <Input
-                              className="bg-gray-200"
-                              placeholder="Service name"
-                              {...field}
-                              onChange={(e) => {
-                                field.onChange(e);
-                                handleAdditionChange(
-                                  index,
-                                  "name",
-                                  e.target.value
-                                );
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="relative w-40">
-                      <FormField
-                        control={form.control}
-                        name={`additional.${index}.price`}
-                        render={({ field }) => {
-                          const { displayValue, handleChange, handleBlur } =
-                            useFormattedCurrencyInput(
-                              field.value,
-                              (numValue) => {
-                                field.onChange(numValue);
-                                handleAdditionChange(index, "price", numValue);
-                              },
-                              "id-ID"
-                            );
+                {additionalFields.map((field, index) => {
+                  const watchedCategory = form.watch(
+                    `additional.${index}.category`
+                  ) as AdditionalServiceCategory | undefined;
+                  const category = watchedCategory || "price";
 
-                          return (
-                            <FormItem>
+                  return (
+                    <div
+                      key={field.id}
+                      className="flex flex-col gap-3 rounded-lg border p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FormField
+                          control={form.control}
+                          name={`additional.${index}.name`}
+                          render={({ field }) => (
+                            <FormItem className="flex-[2]">
                               <FormControl>
                                 <Input
-                                  type="text"
-                                  className="bg-gray-200 pl-8"
-                                  placeholder="0"
-                                  value={displayValue}
-                                  onChange={handleChange}
-                                  onBlur={handleBlur}
+                                  className="bg-gray-200"
+                                  placeholder="Service name"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    handleAdditionChange(
+                                      index,
+                                      "name",
+                                      e.target.value
+                                    );
+                                  }}
                                 />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
-                          );
-                        }}
-                      />
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold">
-                        Rp
-                      </span>
+                          )}
+                        />
+                        <div className="flex items-center gap-3 flex-1">
+                          <FormField
+                            control={form.control}
+                            name={`additional.${index}.category`}
+                            render={({ field }) => {
+                              // Ensure category is always set to a valid value
+                              const categoryValue = field.value || "price";
+                              
+                              return (
+                                <FormItem className="w-40">
+                                  <Select
+                                    value={categoryValue}
+                                    onValueChange={(value) => {
+                                      field.onChange(value);
+                                      handleAdditionChange(
+                                        index,
+                                        "category",
+                                        value
+                                      );
+                                    }}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger className="bg-gray-200 w-40">
+                                        <SelectValue placeholder="Category" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="price">Price</SelectItem>
+                                      <SelectItem value="pax">Pax</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              );
+                            }}
+                          />
+                          {category === "price" && (
+                            <div className="relative flex-1">
+                              <FormField
+                                control={form.control}
+                                name={`additional.${index}.price`}
+                                render={({ field }) => {
+                                  const {
+                                    displayValue,
+                                    handleChange,
+                                    handleBlur,
+                                  } = useFormattedCurrencyInput(
+                                    field.value ?? 0,
+                                    (numValue) => {
+                                      field.onChange(numValue);
+                                      handleAdditionChange(
+                                        index,
+                                        "price",
+                                        numValue
+                                      );
+                                    },
+                                    "id-ID"
+                                  );
+
+                                  return (
+                                    <FormItem>
+                                      <FormControl>
+                                        <Input
+                                          type="text"
+                                          className="bg-gray-200 pl-8"
+                                          placeholder="0"
+                                          value={displayValue}
+                                          onChange={handleChange}
+                                          onBlur={handleBlur}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold">
+                                Rp
+                              </span>
+                            </div>
+                          )}
+                          {category === "pax" && (
+                            <div className="flex-1">
+                              <FormField
+                                control={form.control}
+                                name={`additional.${index}.pax`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        className="bg-gray-200"
+                                        placeholder="Pax"
+                                        {...field}
+                                        value={field.value || ""}
+                                        onChange={(e) => {
+                                          const value = e.target.value
+                                            ? Number(e.target.value)
+                                            : undefined;
+                                          field.onChange(value);
+                                          handleAdditionChange(
+                                            index,
+                                            "pax",
+                                            value || 1
+                                          );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )}
+                          <FormField
+                            control={form.control}
+                            name={`additional.${index}.is_required`}
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value || false}
+                                    onCheckedChange={(checked) => {
+                                      field.onChange(checked);
+                                      handleAdditionChange(
+                                        index,
+                                        "is_required",
+                                        checked as boolean
+                                      );
+                                    }}
+                                  />
+                                </FormControl>
+                                <Label className="text-sm font-normal whitespace-nowrap">
+                                  Required
+                                </Label>
+                              </FormItem>
+                            )}
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleRemoveAdditional(index)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => handleRemoveAdditional(index)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
                 <div className="flex justify-end">
                   <Button
                     type="button"
@@ -1032,7 +1188,7 @@ export function RoomCardInput({
                                 <Input
                                   type="number"
                                   placeholder="0"
-                                  className="bg-gray-200 w-28"
+                                  className="bg-gray-200 w-32 pr-20"
                                   {...field}
                                   value={field.value || ""}
                                   onChange={(e) =>
@@ -1047,7 +1203,7 @@ export function RoomCardInput({
                             </FormItem>
                           )}
                         />
-                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold">
+                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold whitespace-nowrap">
                           Guest(s)
                         </span>
                       </div>
@@ -1079,7 +1235,7 @@ export function RoomCardInput({
                                   field.onChange(value === "smoking")
                                 }
                               >
-                                <SelectTrigger className="bg-gray-200 w-32">
+                                <SelectTrigger className="bg-gray-200 w-40">
                                   <SelectValue placeholder="Select smoking" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1113,46 +1269,59 @@ export function RoomCardInput({
 
                   {/* Bed Types */}
                   <div>
-                    <div className="flex items-center gap-2">
-                      <IconBed className="h-5 w-5" />
-                      <FormField
-                        control={form.control}
-                        name="bed_types"
-                        render={() => (
-                          <FormItem>
-                            <FormControl>
-                              <div className="space-y-2">
-                                {bedTypes.map((bedType, index) => (
-                                  <div
-                                    key={index}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <Input
-                                      placeholder="Bed type"
-                                      className="bg-gray-200 w-26"
-                                      value={bedType}
-                                      onChange={(e) =>
-                                        updateBedType(index, e.target.value)
-                                      }
-                                    />
-                                    {bedTypes.length > 1 && (
-                                      <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        onClick={() => removeBedType(index)}
-                                      >
-                                        <Trash2 className="size-4" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                ))}
+                    <FormField
+                      control={form.control}
+                      name="bed_types"
+                      render={() => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="space-y-2">
+                              {bedTypes.map((bedType, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-2"
+                                >
+                                  {index === 0 && (
+                                    <IconBed className="h-5 w-5" />
+                                  )}
+                                  {index !== 0 && <div className="w-5" />}
+                                  <Input
+                                    placeholder="Bed type"
+                                    className="bg-gray-200 w-48"
+                                    value={bedType}
+                                    onChange={(e) =>
+                                      updateBedType(index, e.target.value)
+                                    }
+                                  />
+                                  {bedTypes.length > 1 && (
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="icon"
+                                      onClick={() => removeBedType(index)}
+                                    >
+                                      <Trash2 className="size-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                              <div className="flex items-center gap-2">
+                                <div className="w-5" />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="inline-flex items-center gap-2"
+                                  onClick={addBedType}
+                                >
+                                  <PlusCircle className="size-4" /> Add Bed Type
+                                </Button>
                               </div>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                            </div>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="bed_types"
