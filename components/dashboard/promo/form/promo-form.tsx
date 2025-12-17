@@ -33,7 +33,7 @@ import { MultiCurrencyPriceInput } from "@/components/dashboard/hotel-listing/cr
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import type * as React from "react";
+import * as React from "react";
 import type { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 
 interface PromoFormProps<T extends FieldValues>
@@ -82,6 +82,29 @@ export function PromoForm<T extends FieldValues>({
 
   // Get selected room type ID
   const selectedRoomTypeId = form.watch("room_type_id" as FieldPath<T>);
+  
+  // Watch promo type to handle prices field
+  const promoType = form.watch("promo_type" as FieldPath<T>);
+
+  // Handle promo type changes - clear prices when switching away from fixed price (type 2)
+  React.useEffect(() => {
+    if (promoType !== "2") {
+      // Clear prices when not using fixed price promo
+      const currentPrices = form.getValues("prices" as FieldPath<T>);
+      if (currentPrices && Object.keys(currentPrices as Record<string, number>).length > 0) {
+        form.setValue("prices" as FieldPath<T>, undefined as any);
+      }
+    } else {
+      // Initialize prices for fixed price promo if not set
+      const currentPrices = form.getValues("prices" as FieldPath<T>) as Record<string, number> | undefined;
+      if (!currentPrices || Object.keys(currentPrices).length === 0) {
+        form.setValue("prices" as FieldPath<T>, { IDR: 0 } as any);
+      } else if (!currentPrices.IDR && currentPrices.IDR !== 0) {
+        // Ensure IDR exists
+        form.setValue("prices" as FieldPath<T>, { ...currentPrices, IDR: 0 } as any);
+      }
+    }
+  }, [promoType, form]);
 
   return (
     <Form {...form}>
@@ -299,7 +322,7 @@ export function PromoForm<T extends FieldValues>({
               <FormField
                 control={form.control}
                 name={"detail" as FieldPath<T>}
-                render={() => null}
+                render={() => <></>}
               />
             </div>
           )}

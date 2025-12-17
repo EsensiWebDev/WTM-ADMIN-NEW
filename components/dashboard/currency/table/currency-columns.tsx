@@ -33,6 +33,35 @@ export function getCurrencyTableColumns({
       size: 40,
     },
     {
+      id: "search",
+      accessorFn: (row) => `${row.code} ${row.name}`,
+      header: () => null,
+      cell: () => null,
+      enableHiding: true,
+      enableSorting: false,
+      enableColumnFilter: true,
+      size: 0,
+      minSize: 0,
+      maxSize: 0,
+      meta: {
+        label: "Search",
+        placeholder: "Search by code or name...",
+        variant: "text",
+        icon: Text,
+      },
+      filterFn: (row, id, value) => {
+        const code = row.original.code?.toLowerCase() ?? "";
+        const name = row.original.name?.toLowerCase() ?? "";
+        const searchText = `${code} ${name}`;
+        
+        if (!value || (Array.isArray(value) && value.length === 0)) {
+          return true;
+        }
+        const searchValue = Array.isArray(value) ? value.join(" ") : String(value);
+        return searchText.includes(searchValue.toLowerCase() ?? "");
+      },
+    },
+    {
       id: "code",
       accessorKey: "code",
       header: ({ column }) => (
@@ -41,15 +70,11 @@ export function getCurrencyTableColumns({
       cell: ({ row }) => (
         <span className="font-mono font-semibold">{row.original.code}</span>
       ),
-      meta: {
-        label: "Code",
-        placeholder: "Search currency code...",
-        variant: "text",
-        icon: Text,
-      },
       enableColumnFilter: false,
       enableHiding: false,
       enableSorting: false,
+      size: 100,
+      minSize: 80,
     },
     {
       id: "name",
@@ -58,15 +83,11 @@ export function getCurrencyTableColumns({
         <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row }) => row.original.name,
-      meta: {
-        label: "Name",
-        placeholder: "Search currency name...",
-        variant: "text",
-        icon: Text,
-      },
-      enableColumnFilter: true,
+      enableColumnFilter: false,
       enableHiding: false,
       enableSorting: false,
+      size: 250,
+      minSize: 200,
     },
     {
       id: "symbol",
@@ -78,6 +99,8 @@ export function getCurrencyTableColumns({
         <span className="font-semibold">{row.original.symbol}</span>
       ),
       enableSorting: false,
+      size: 120,
+      minSize: 100,
     },
     {
       id: "is_active",
@@ -97,10 +120,14 @@ export function getCurrencyTableColumns({
         </span>
       ),
       enableSorting: false,
+      size: 120,
+      minSize: 100,
     },
     {
       id: "actions",
       cell: ({ row }) => {
+        const isIDR = row.original.code === "IDR";
+        
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -117,6 +144,7 @@ export function getCurrencyTableColumns({
                     variant: "update",
                   })
                 }
+                disabled={isIDR}
               >
                 Edit
               </DropdownMenuItem>
@@ -128,9 +156,10 @@ export function getCurrencyTableColumns({
                     variant: "delete",
                   })
                 }
-                className="text-destructive"
+                variant="destructive"
+                disabled={isIDR}
               >
-                Delete
+                Deactivate
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -138,6 +167,9 @@ export function getCurrencyTableColumns({
       },
       enableHiding: false,
       enableSorting: false,
+      size: 70,
+      minSize: 70,
+      maxSize: 70,
     },
   ];
 }

@@ -249,6 +249,9 @@ export function RoomCardInput({
   const [isPending, startTransition] = useTransition();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [preferenceInputError, setPreferenceInputError] = useState<string>("");
+  const [bedTypeInputError, setBedTypeInputError] = useState<string>("");
+  const [deleteAdditionalIndex, setDeleteAdditionalIndex] = useState<number | null>(null);
 
   // Track original additions with their IDs for comparison
   const [originalAdditions, setOriginalAdditions] = useState<
@@ -304,7 +307,9 @@ export function RoomCardInput({
           },
       room_size: defaultValues?.room_size || 0,
       max_occupancy: defaultValues?.max_occupancy || 1,
-      bed_types: defaultValues?.bed_types || [""],
+      bed_types: defaultValues?.bed_types && defaultValues.bed_types.length > 0 
+        ? defaultValues.bed_types.filter(bt => bt.trim() !== "")
+        : [],
       is_smoking_room: defaultValues?.is_smoking_room || false,
       additional:
         initialAdditions.map((addition) => ({
@@ -386,7 +391,9 @@ export function RoomCardInput({
           },
       room_size: defaultValues?.room_size || 0,
       max_occupancy: defaultValues?.max_occupancy || 1,
-      bed_types: defaultValues?.bed_types || [""],
+      bed_types: defaultValues?.bed_types && defaultValues.bed_types.length > 0 
+        ? defaultValues.bed_types.filter(bt => bt.trim() !== "")
+        : [],
       is_smoking_room: defaultValues?.is_smoking_room || false,
       additional: additions,
       other_preferences:
@@ -411,6 +418,52 @@ export function RoomCardInput({
 
   // Watch all additional fields at once to avoid hooks in map
   const watchedAdditional = form.watch("additional");
+
+  // Watch for price changes in additional services to track modifications
+  useEffect(() => {
+    if (!watchedAdditional || watchedAdditional.length === 0) return;
+
+    watchedAdditional.forEach((addition) => {
+      if (addition?.id !== undefined) {
+        const originalAddition = originalAdditions.find(
+          (a) => a.id === addition.id
+        );
+
+        if (originalAddition) {
+          // Compare prices object
+          const originalPrices = originalAddition.prices || (originalAddition.price ? { IDR: originalAddition.price } : {});
+          const currentPrices = addition.prices || (addition.price ? { IDR: addition.price } : {});
+          
+          // Check if prices have changed by comparing JSON strings
+          const pricesChanged = JSON.stringify(originalPrices) !== JSON.stringify(currentPrices);
+          
+          // Check if other fields have changed
+          const otherFieldsChanged = 
+            originalAddition.name !== addition.name ||
+            originalAddition.price !== addition.price;
+
+          const unchangedIds = form.getValues("unchanged_additions_ids") || [];
+          const isModified = pricesChanged || otherFieldsChanged;
+
+          if (isModified && unchangedIds.includes(addition.id)) {
+            // Remove from unchanged list if it was modified
+            form.setValue(
+              "unchanged_additions_ids",
+              unchangedIds.filter((id) => id !== addition.id),
+              { shouldDirty: false }
+            );
+          } else if (!isModified && !unchangedIds.includes(addition.id)) {
+            // Add back to unchanged list if it matches original
+            form.setValue("unchanged_additions_ids", [
+              ...unchangedIds,
+              addition.id,
+            ], { shouldDirty: false });
+          }
+        }
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedAdditional]);
 
   const {
     fields: otherPreferenceFields,
@@ -441,9 +494,23 @@ export function RoomCardInput({
     [bedTypes, form]
   );
 
-  const addBedType = useCallback(() => {
-    const newBedTypes = [...bedTypes, ""];
-    form.setValue("bed_types", newBedTypes);
+  const addBedType = useCallback((bedTypeName?: string) => {
+    if (bedTypeName !== undefined) {
+      const trimmedName = bedTypeName.trim();
+      if (trimmedName) {
+        const newBedTypes = [...bedTypes, trimmedName];
+        form.setValue("bed_types", newBedTypes);
+        setBedTypeInputError("");
+        return true;
+      } else {
+        setBedTypeInputError("Bed type cannot be empty");
+        return false;
+      }
+    } else {
+      const newBedTypes = [...bedTypes, ""];
+      form.setValue("bed_types", newBedTypes);
+      return true;
+    }
   }, [bedTypes, form]);
 
   // Handle image uploads from ImageUpload component
@@ -669,7 +736,9 @@ export function RoomCardInput({
           },
       room_size: originalDefaultValues?.room_size || 0,
       max_occupancy: originalDefaultValues?.max_occupancy || 1,
-      bed_types: originalDefaultValues?.bed_types || [""],
+      bed_types: originalDefaultValues?.bed_types && originalDefaultValues.bed_types.length > 0 
+        ? originalDefaultValues.bed_types.filter(bt => bt.trim() !== "")
+        : [],
       is_smoking_room: originalDefaultValues?.is_smoking_room || false,
       additional: additions,
       other_preferences:
@@ -785,35 +854,20 @@ export function RoomCardInput({
           </div>
           <div className="col-span-full mt-6 flex flex-col lg:col-span-6 lg:mt-0">
             <div className="flex h-full flex-col space-y-2">
-              <div>
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Room Options</h3>
 
                 {/* Without Breakfast Option */}
-                <div className="space-y-3">
-                  <div
-                    className={`flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center`}
-                  >
-                    <div
-                      className={`flex w-full flex-1 items-start justify-between py-4 sm:items-center`}
-                    >
-                      <div>
-                        <h4 className="font-medium">Without Breakfast</h4>
-                      </div>
-                      <div className="w-full">
-                        <MultiCurrencyPriceInput
-                          form={form}
-                          fieldName="without_breakfast.prices"
-                          label=""
-                          required={false}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Without Breakfast</h4>
                       <Button
                         variant={"ghost"}
                         type="button"
                         size={"icon"}
                         onClick={toggleWithoutBreakfastVisibility}
+                        className="h-8 w-8"
                       >
                         {isWithoutBreakfast.is_show ? (
                           <Eye className="size-4" />
@@ -822,65 +876,28 @@ export function RoomCardInput({
                         )}
                       </Button>
                     </div>
+                    <div className="pl-0">
+                      <MultiCurrencyPriceInput
+                        form={form}
+                        fieldName="without_breakfast.prices"
+                        label=""
+                        required={false}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <Separator />
-
                 {/* With Breakfast Option */}
-                <div className="space-y-3">
-                  <div
-                    className={`flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center`}
-                  >
-                    <div
-                      className={`flex w-full flex-1 items-start justify-between py-4 sm:items-center`}
-                    >
-                      <div>
-                        <h4 className="font-medium">With Breakfast</h4>
-                      </div>
-                      <div className="w-full space-y-2">
-                        <MultiCurrencyPriceInput
-                          form={form}
-                          fieldName="with_breakfast.prices"
-                          label=""
-                          required={false}
-                        />
-                        <div>
-                          <FormField
-                            control={form.control}
-                            name={`with_breakfast.pax`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Pax</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    className="bg-gray-200 w-20"
-                                    placeholder="Pax"
-                                    {...field}
-                                    value={field.value || ""}
-                                    onChange={(e) =>
-                                      field.onChange(
-                                        e.target.value
-                                          ? Number(e.target.value)
-                                          : 1
-                                      )
-                                    }
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">With Breakfast</h4>
                       <Button
                         variant={"ghost"}
                         type="button"
                         size={"icon"}
                         onClick={toggleWithBreakfastVisibility}
+                        className="h-8 w-8"
                       >
                         {isWithBreakfast.is_show ? (
                           <Eye className="size-4" />
@@ -888,6 +905,42 @@ export function RoomCardInput({
                           <EyeOff className="size-4" />
                         )}
                       </Button>
+                    </div>
+                    <div className="space-y-4 pl-0">
+                      <MultiCurrencyPriceInput
+                        form={form}
+                        fieldName="with_breakfast.prices"
+                        label=""
+                        required={false}
+                      />
+                      <div className="w-40">
+                        <FormField
+                          control={form.control}
+                          name={`with_breakfast.pax`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium">Pax</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  className="bg-gray-200"
+                                  placeholder="Pax"
+                                  {...field}
+                                  value={field.value || ""}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      e.target.value
+                                        ? Number(e.target.value)
+                                        : 1
+                                    )
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -905,82 +958,109 @@ export function RoomCardInput({
               </div>
 
               {/* Additional Services */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Additional Services</h3>
-                {additionalFields.map((field, index) => {
-                  const watchedCategory = form.watch(
-                    `additional.${index}.category`
-                  ) as AdditionalServiceCategory | undefined;
-                  const category = watchedCategory || "price";
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Additional Services</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="inline-flex items-center gap-2 h-8"
+                    onClick={handleAddAdditional}
+                  >
+                    <PlusCircle className="size-3.5" /> Add Service
+                  </Button>
+                </div>
+                <div className="max-h-[600px] overflow-y-auto pr-2 space-y-2.5">
+                  {additionalFields.map((field, index) => {
+                    const watchedCategory = form.watch(
+                      `additional.${index}.category`
+                    ) as AdditionalServiceCategory | undefined;
+                    const category = watchedCategory || "price";
 
-                  return (
-                    <div
-                      key={field.id}
-                      className="flex flex-col gap-3 rounded-lg border p-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <FormField
-                          control={form.control}
-                          name={`additional.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem className="flex-[2]">
-                              <FormControl>
-                                <Input
-                                  className="bg-gray-200"
-                                  placeholder="Service name"
-                                  {...field}
-                                  onChange={(e) => {
-                                    field.onChange(e);
-                                    handleAdditionChange(
-                                      index,
-                                      "name",
-                                      e.target.value
-                                    );
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="flex items-center gap-3 flex-1">
-                          <FormField
-                            control={form.control}
-                            name={`additional.${index}.category`}
-                            render={({ field }) => {
-                              // Ensure category is always set to a valid value
-                              const categoryValue = field.value || "price";
-                              
-                              return (
-                                <FormItem className="w-40">
-                                  <Select
-                                    value={categoryValue}
-                                    onValueChange={(value) => {
-                                      field.onChange(value);
-                                      handleAdditionChange(
-                                        index,
-                                        "category",
-                                        value
-                                      );
-                                    }}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="bg-gray-200 w-40">
-                                        <SelectValue placeholder="Category" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="price">Price</SelectItem>
-                                      <SelectItem value="pax">Pax</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
+                    return (
+                      <div
+                        key={field.id}
+                        className="rounded-lg border bg-card p-4 space-y-4"
+                      >
+                        <div className="grid grid-cols-[1fr_auto] gap-2 items-start">
+                          <div className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-2">
+                            <FormField
+                              control={form.control}
+                              name={`additional.${index}.name`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs font-medium">Service Name</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      className="bg-gray-200 h-8 text-sm"
+                                      placeholder="Service name"
+                                      {...field}
+                                      onChange={(e) => {
+                                        field.onChange(e);
+                                        handleAdditionChange(
+                                          index,
+                                          "name",
+                                          e.target.value
+                                        );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage className="text-xs" />
                                 </FormItem>
-                              );
-                            }}
-                          />
-                          {category === "price" && (
-                            <div className="flex-1">
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`additional.${index}.category`}
+                              render={({ field }) => {
+                                // Ensure category is always set to a valid value
+                                const categoryValue = field.value || "price";
+                                
+                                return (
+                                  <FormItem>
+                                    <FormLabel className="text-xs font-medium">Category</FormLabel>
+                                    <Select
+                                      value={categoryValue}
+                                      onValueChange={(value) => {
+                                        field.onChange(value);
+                                        handleAdditionChange(
+                                          index,
+                                          "category",
+                                          value
+                                        );
+                                      }}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger className="bg-gray-200 h-8 text-sm">
+                                          <SelectValue placeholder="Category" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="price">Price</SelectItem>
+                                        <SelectItem value="pax">Pax</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage className="text-xs" />
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => setDeleteAdditionalIndex(index)}
+                            className="shrink-0 h-7 w-7 mt-6"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 items-end">
+                          {category === "price" ? (
+                            <div className="md:col-span-1">
                               <MultiCurrencyPriceInput
                                 form={form}
                                 fieldName={`additional.${index}.prices` as any}
@@ -988,18 +1068,18 @@ export function RoomCardInput({
                                 required={false}
                               />
                             </div>
-                          )}
-                          {category === "pax" && (
-                            <div className="flex-1">
+                          ) : (
+                            <div className="w-full md:w-32">
                               <FormField
                                 control={form.control}
                                 name={`additional.${index}.pax`}
                                 render={({ field }) => (
                                   <FormItem>
+                                    <FormLabel className="text-xs font-medium">Pax</FormLabel>
                                     <FormControl>
                                       <Input
                                         type="number"
-                                        className="bg-gray-200"
+                                        className="bg-gray-200 h-8 text-sm"
                                         placeholder="Pax"
                                         {...field}
                                         value={field.value || ""}
@@ -1016,101 +1096,326 @@ export function RoomCardInput({
                                         }}
                                       />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="text-xs" />
                                   </FormItem>
                                 )}
                               />
                             </div>
                           )}
-                          <FormField
-                            control={form.control}
-                            name={`additional.${index}.is_required`}
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value || false}
-                                    onCheckedChange={(checked) => {
-                                      field.onChange(checked);
-                                      handleAdditionChange(
-                                        index,
-                                        "is_required",
-                                        checked as boolean
-                                      );
-                                    }}
-                                  />
-                                </FormControl>
-                                <Label className="text-sm font-normal whitespace-nowrap">
-                                  Required
-                                </Label>
-                              </FormItem>
-                            )}
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => handleRemoveAdditional(index)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <div className="flex items-center justify-end md:justify-start">
+                            <FormField
+                              control={form.control}
+                              name={`additional.${index}.is_required`}
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value || false}
+                                      onCheckedChange={(checked) => {
+                                        field.onChange(checked);
+                                        handleAdditionChange(
+                                          index,
+                                          "is_required",
+                                          checked as boolean
+                                        );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <Label className="text-xs font-normal cursor-pointer">
+                                    Required
+                                  </Label>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
                       </div>
+                    );
+                  })}
+                  {additionalFields.length === 0 && (
+                    <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-lg">
+                      No additional services added yet. Click "Add Service" to get started.
                     </div>
-                  );
-                })}
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    className="inline-flex items-center gap-2"
-                    onClick={handleAddAdditional}
-                  >
-                    <PlusCircle className="size-4" /> Add Service
-                  </Button>
+                  )}
                 </div>
+                
+                {/* Delete Additional Service Confirmation Dialog */}
+                <Dialog
+                  open={deleteAdditionalIndex !== null}
+                  onOpenChange={(open) => {
+                    if (!open) setDeleteAdditionalIndex(null);
+                  }}
+                >
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Additional Service</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to delete this additional service? This action cannot be undone.
+                        {deleteAdditionalIndex !== null && watchedAdditional && watchedAdditional[deleteAdditionalIndex]?.name && (
+                          <span className="block mt-1 font-medium text-foreground">
+                            Service: "{watchedAdditional[deleteAdditionalIndex].name}"
+                          </span>
+                        )}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex flex-row justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setDeleteAdditionalIndex(null)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        disabled={isPending}
+                        onClick={() => {
+                          if (deleteAdditionalIndex !== null) {
+                            handleRemoveAdditional(deleteAdditionalIndex);
+                            setDeleteAdditionalIndex(null);
+                          }
+                        }}
+                      >
+                        Yes, delete
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               {/* Other Preferences */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Other Preferences</h3>
-                {otherPreferenceFields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-3">
-                    <FormField
-                      control={form.control}
-                      name={`other_preferences.${index}.name`}
-                      render={({ field }) => (
-                        <FormItem className="flex-1 min-w-[200px]">
-                          <FormControl>
-                            <Input
-                              className="bg-gray-200"
-                              placeholder="Preference name (e.g., High Floor, Sea View)"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => removePreference(index)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="space-y-3">
+                    {/* Add new preference input */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <FormField
+                          control={form.control}
+                          name="other_preferences"
+                          render={() => (
+                            <FormItem className="flex-1">
+                              <FormControl>
+                                <Input
+                                  className={`bg-gray-200 h-9 ${
+                                    preferenceInputError
+                                      ? "border-destructive focus-visible:ring-destructive"
+                                      : ""
+                                  }`}
+                                  placeholder="Enter preference name and press Enter (e.g., High Floor, Sea View)"
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      const input = e.currentTarget;
+                                      const value = input.value.trim();
+                                      if (value) {
+                                        appendPreference({ name: value });
+                                        input.value = "";
+                                        setPreferenceInputError("");
+                                      } else {
+                                        setPreferenceInputError(
+                                          "Preference name cannot be empty"
+                                        );
+                                      }
+                                    }
+                                  }}
+                                  onChange={() => {
+                                    if (preferenceInputError) {
+                                      setPreferenceInputError("");
+                                    }
+                                  }}
+                                />
+                              </FormControl>
+                              {preferenceInputError && (
+                                <p className="text-sm text-destructive mt-1">
+                                  {preferenceInputError}
+                                </p>
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="button"
+                          className="inline-flex items-center gap-2 shrink-0 h-9"
+                          variant="outline"
+                          onClick={() => {
+                            const input = document.querySelector<HTMLInputElement>(
+                              'input[placeholder*="Enter preference name"]'
+                            );
+                            if (!input) return;
+                            
+                            const value = input.value.trim();
+                            if (value) {
+                              appendPreference({ name: value });
+                              input.value = "";
+                              setPreferenceInputError("");
+                            } else {
+                              setPreferenceInputError(
+                                "Preference name cannot be empty"
+                              );
+                            }
+                          }}
+                        >
+                          <PlusCircle className="size-4" /> Add
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Display existing preferences as tags */}
+                    {otherPreferenceFields.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-2 border-t">
+                        {otherPreferenceFields.map((field, index) => (
+                          <FormField
+                            key={field.id}
+                            control={form.control}
+                            name={`other_preferences.${index}.name`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center gap-1.5 bg-secondary/50 hover:bg-secondary px-3 py-1.5 rounded-md border">
+                                  <span className="text-sm">{field.value || "Untitled"}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removePreference(index)}
+                                    className="h-5 w-5 shrink-0 hover:bg-destructive hover:text-destructive-foreground"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                <FormControl>
+                                  <input type="hidden" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    className="inline-flex items-center gap-2"
-                    variant="outline"
-                    onClick={() => appendPreference({ name: "" })}
-                  >
-                    <PlusCircle className="size-4" /> Add Preference
-                  </Button>
                 </div>
+              </div>
+
+              {/* Bed Types */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Bed Type</h3>
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="space-y-3">
+                    {/* Add new bed type input */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <FormField
+                          control={form.control}
+                          name="bed_types"
+                          render={() => (
+                            <FormItem className="flex-1">
+                              <FormControl>
+                                <Input
+                                  className={`bg-gray-200 h-9 ${
+                                    bedTypeInputError
+                                      ? "border-destructive focus-visible:ring-destructive"
+                                      : ""
+                                  }`}
+                                  placeholder="Enter bed type and press Enter (e.g., King Size, Queen Size)"
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      const input = e.currentTarget;
+                                      const value = input.value.trim();
+                                      if (value) {
+                                        addBedType(value);
+                                        input.value = "";
+                                        setBedTypeInputError("");
+                                      } else {
+                                        setBedTypeInputError(
+                                          "Bed type cannot be empty"
+                                        );
+                                      }
+                                    }
+                                  }}
+                                  onChange={() => {
+                                    if (bedTypeInputError) {
+                                      setBedTypeInputError("");
+                                    }
+                                  }}
+                                />
+                              </FormControl>
+                              {bedTypeInputError && (
+                                <p className="text-sm text-destructive mt-1">
+                                  {bedTypeInputError}
+                                </p>
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="button"
+                          className="inline-flex items-center gap-2 shrink-0 h-9"
+                          variant="outline"
+                          onClick={() => {
+                            const input = document.querySelector<HTMLInputElement>(
+                              'input[placeholder*="Enter bed type"]'
+                            );
+                            if (!input) return;
+                            
+                            const value = input.value.trim();
+                            if (value) {
+                              addBedType(value);
+                              input.value = "";
+                              setBedTypeInputError("");
+                            } else {
+                              setBedTypeInputError(
+                                "Bed type cannot be empty"
+                              );
+                            }
+                          }}
+                        >
+                          <PlusCircle className="size-4" /> Add
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Display existing bed types as chips */}
+                    {bedTypes.length > 0 && bedTypes.some(bt => bt.trim() !== "") && (
+                      <div className="flex flex-wrap gap-2 pt-2 border-t">
+                        {bedTypes.map((bedType, index) => {
+                          if (bedType.trim() === "") return null;
+                          return (
+                            <div
+                              key={index}
+                              className="flex items-center gap-1.5 bg-secondary/50 hover:bg-secondary px-3 py-1.5 rounded-md border"
+                            >
+                              <span className="text-sm">{bedType}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeBedType(index)}
+                                className="h-5 w-5 shrink-0 hover:bg-destructive hover:text-destructive-foreground"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="bed_types"
+                  render={() => (
+                    <FormItem>
+                      <FormMessage className="whitespace-pre-line" />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="mt-auto pt-10 lg:pt-4">
@@ -1252,77 +1557,11 @@ export function RoomCardInput({
                       )}
                     />
                   </div>
-
-                  {/* Bed Types */}
-                  <div>
-                    <FormField
-                      control={form.control}
-                      name="bed_types"
-                      render={() => (
-                        <FormItem>
-                          <FormControl>
-                            <div className="space-y-2">
-                              {bedTypes.map((bedType, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-2"
-                                >
-                                  {index === 0 && (
-                                    <IconBed className="h-5 w-5" />
-                                  )}
-                                  {index !== 0 && <div className="w-5" />}
-                                  <Input
-                                    placeholder="Bed type"
-                                    className="bg-gray-200 w-48"
-                                    value={bedType}
-                                    onChange={(e) =>
-                                      updateBedType(index, e.target.value)
-                                    }
-                                  />
-                                  {bedTypes.length > 1 && (
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="icon"
-                                      onClick={() => removeBedType(index)}
-                                    >
-                                      <Trash2 className="size-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
-                              <div className="flex items-center gap-2">
-                                <div className="w-5" />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="inline-flex items-center gap-2"
-                                  onClick={addBedType}
-                                >
-                                  <PlusCircle className="size-4" /> Add Bed Type
-                                </Button>
-                              </div>
-                            </div>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="bed_types"
-                      render={() => (
-                        <FormItem>
-                          <FormMessage className="whitespace-pre-line" />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                 </div>
               </div>
 
               {/* Description */}
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Description</h3>
                 <FormField
                   control={form.control}

@@ -35,14 +35,32 @@ const DeleteCurrencyDialog = ({
   const [isPending, startTransition] = React.useTransition();
   const queryClient = useQueryClient();
 
+  // Prevent opening dialog for IDR currency
+  React.useEffect(() => {
+    if (open && currencies.length > 0) {
+      const hasIDR = currencies.some((currency) => currency.code === "IDR");
+      if (hasIDR) {
+        toast.error("IDR currency cannot be deactivated");
+        onOpenChange(false);
+      }
+    }
+  }, [open, currencies, onOpenChange]);
+
   const handleDelete = () => {
     if (currencies.length === 0) return;
+
+    // Prevent deactivating IDR currency
+    const hasIDR = currencies.some((currency) => currency.code === "IDR");
+    if (hasIDR) {
+      toast.error("IDR currency cannot be deactivated");
+      return;
+    }
 
     startTransition(async () => {
       // Instead of deleting, we'll deactivate the currency
       const deactivatePromises = currencies.map((currency) =>
         editCurrency({
-          id: currency.id,
+          id: String(currency.id),
           name: currency.name,
           symbol: currency.symbol,
           is_active: false,

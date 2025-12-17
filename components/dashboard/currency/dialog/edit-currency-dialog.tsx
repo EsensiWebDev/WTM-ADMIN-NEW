@@ -66,29 +66,58 @@ const EditCurrencyDialog = ({
   const form = useForm<EditCurrencySchema>({
     resolver: zodResolver(editCurrencySchema),
     defaultValues: {
-      name: currency?.name || "",
-      symbol: currency?.symbol || "",
-      is_active: currency?.is_active ?? true,
+      name: "",
+      symbol: "",
+      is_active: true,
     },
   });
 
   React.useEffect(() => {
-    if (currency) {
-      form.reset({
-        name: currency.name,
-        symbol: currency.symbol,
-        is_active: currency.is_active,
-      });
+    if (open && currency) {
+      // Prevent editing IDR currency - close dialog immediately
+      if (currency.code === "IDR") {
+        toast.error("IDR currency cannot be edited");
+        onOpenChange(false);
+        return;
+      }
+
+      // Reset form with currency data when dialog opens and currency is available
+      if (currency.name !== undefined || currency.symbol !== undefined) {
+        form.reset({
+          name: currency.name ?? "",
+          symbol: currency.symbol ?? "",
+          is_active: currency.is_active ?? true,
+        }, {
+          keepErrors: false,
+          keepDirty: false,
+          keepIsSubmitted: false,
+          keepTouched: false,
+          keepIsValid: false,
+          keepSubmitCount: false,
+        });
+      }
     }
-  }, [currency, form]);
+  }, [open, currency, form, onOpenChange]);
 
   const onSubmit = (data: EditCurrencySchema) => {
     if (!currency) return;
 
+    // Prevent editing IDR currency
+    if (currency.code === "IDR") {
+      toast.error("IDR currency cannot be edited");
+      return;
+    }
+
+    // Validate currency ID
+    if (!currency.id) {
+      toast.error("Invalid currency ID");
+      return;
+    }
+
     startTransition(async () => {
       const result = await editCurrency({
         ...data,
-        id: currency.id,
+        id: String(currency.id),
       });
 
       if (result.success) {
@@ -135,7 +164,7 @@ const EditCurrencyDialog = ({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} key={currency?.id}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Currency</DialogTitle>
@@ -175,7 +204,7 @@ const EditCurrencyDialog = ({
               <div className="space-y-2">
                 <FormLabel>Currency Code</FormLabel>
                 <Input
-                  value={currency.code}
+                  value={currency?.code || ""}
                   disabled
                   className="bg-gray-100 font-mono font-semibold"
                 />

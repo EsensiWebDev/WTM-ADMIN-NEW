@@ -11,6 +11,7 @@ import {
 } from "@/app/(dashboard)/hotel-listing/types";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { RoomCardInput, RoomFormValues } from "../create/room-card-input";
 
@@ -21,6 +22,7 @@ const RoomForm = ({
   hotelId: string;
   rooms?: RoomDetail[];
 }) => {
+  const router = useRouter();
   // State to manage the list of rooms
   const [roomList, setRoomList] = useState<RoomDetail[]>(rooms || []);
   const [newRoomCounter, setNewRoomCounter] = useState(0);
@@ -67,7 +69,14 @@ const RoomForm = ({
     // Process additions - only send new ones (without ID)
     const newAdditions = (data.additional || [])
       .filter((addition) => addition.id === undefined)
-      .map((addition) => ({ name: addition.name, price: addition.price }));
+      .map((addition) => ({
+        name: addition.name,
+        category: addition.category,
+        price: addition.price, // DEPRECATED: Keep for backward compatibility
+        prices: addition.prices,
+        pax: addition.pax,
+        is_required: addition.is_required,
+      }));
 
     formData.append("additional", JSON.stringify(newAdditions));
 
@@ -155,7 +164,14 @@ const RoomForm = ({
         })
         .map((addition) => {
           // Remove ID from all new/modified additions - backend treats them equally
-          return { name: addition.name, price: addition.price };
+          return {
+            name: addition.name,
+            category: addition.category,
+            price: addition.price, // DEPRECATED: Keep for backward compatibility
+            prices: addition.prices,
+            pax: addition.pax,
+            is_required: addition.is_required,
+          };
         });
 
       formData.append("additional", JSON.stringify(additionsToSend));
@@ -192,6 +208,8 @@ const RoomForm = ({
 
       if (result.success) {
         toast.success(result.message);
+        // Refresh the page to get updated data with all currencies
+        router.refresh();
       } else {
         toast.error(result.message);
       }

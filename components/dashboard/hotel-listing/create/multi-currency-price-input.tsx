@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useFormattedCurrencyInput } from "@/lib/currency";
-import { getActiveCurrencies } from "@/app/(dashboard)/currency/fetch";
+import { useActiveCurrencies } from "@/hooks/use-active-currencies";
 import { Plus, Trash2 } from "lucide-react";
 import React from "react";
 import type { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
@@ -55,38 +55,35 @@ function CurrencyPriceInput({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="relative flex-1">
+      <div className="relative w-[170px]">
         <FormControl>
           <Input
             type="text"
-            className="bg-gray-200 pl-10 pr-16"
+            className={`bg-gray-200 pl-8 pr-12 h-9 ${isRequired ? "ring-1 ring-primary/20" : ""}`}
             placeholder="0"
             value={displayValue}
             onChange={handleChange}
             onBlur={handleBlur}
           />
         </FormControl>
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold">
+        <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-sm font-semibold">
           {symbol}
         </span>
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
           {currencyCode}
+          {isRequired && <span className="text-primary ml-0.5">*</span>}
         </span>
       </div>
       {!isRequired && onRemove && (
         <Button
           type="button"
-          variant="ghost"
+          variant="destructive"
           size="icon"
           onClick={onRemove}
+          className="h-8 w-8 shrink-0"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3.5 w-3.5" />
         </Button>
-      )}
-      {isRequired && (
-        <span className="text-xs text-muted-foreground w-16 text-center">
-          Required
-        </span>
       )}
     </div>
   );
@@ -99,27 +96,18 @@ export function MultiCurrencyPriceInput<T extends FieldValues>({
   currencies: providedCurrencies,
   required = true,
 }: MultiCurrencyPriceInputProps<T>) {
-  const [currencyOptions, setCurrencyOptions] = React.useState<Option[]>([]);
+  const { currencies: fetchedCurrencies } = useActiveCurrencies();
   const [selectedCurrencies, setSelectedCurrencies] = React.useState<string[]>(
     ["IDR"]
   );
   const [selectValue, setSelectValue] = React.useState<string>("");
 
-  React.useEffect(() => {
-    if (providedCurrencies && providedCurrencies.length > 0) {
-      setCurrencyOptions(providedCurrencies);
-    } else {
-      getActiveCurrencies().then((response) => {
-        if (response.status === 200 && Array.isArray(response.data)) {
-          const options = response.data.map((currency) => ({
-            label: `${currency.code} - ${currency.name} (${currency.symbol})`,
-            value: currency.code,
-          }));
-          setCurrencyOptions(options);
-        }
-      });
-    }
-  }, [providedCurrencies]);
+  // Use provided currencies if available, otherwise use fetched currencies from the hook
+  const currencyOptions = React.useMemo(() => {
+    return providedCurrencies && providedCurrencies.length > 0
+      ? providedCurrencies
+      : fetchedCurrencies;
+  }, [providedCurrencies, fetchedCurrencies]);
 
   // Get current prices from form
   const prices = form.watch(fieldName) as Record<string, number> | undefined;
@@ -191,10 +179,12 @@ export function MultiCurrencyPriceInput<T extends FieldValues>({
 
         return (
           <FormItem>
-            <FormLabel>
-              {label} {required && "*"}
-            </FormLabel>
-            <div className="space-y-3">
+            {label && (
+              <FormLabel>
+                {label} {required && "*"}
+              </FormLabel>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {selectedCurrencies.map((currencyCode) => {
                 const priceValue = currentPrices[currencyCode] || 0;
                 const isIDR = currencyCode === "IDR";
@@ -218,13 +208,13 @@ export function MultiCurrencyPriceInput<T extends FieldValues>({
                 );
               })}
               {selectedCurrencies.length < currencyOptions.length && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center">
                   <Select
                     value={selectValue}
                     onValueChange={handleCurrencySelect}
                   >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select currency to add" />
+                    <SelectTrigger className="w-full bg-gray-200 h-9 max-w-[170px]">
+                      <SelectValue placeholder="Add New Currency" />
                     </SelectTrigger>
                     <SelectContent>
                       {currencyOptions

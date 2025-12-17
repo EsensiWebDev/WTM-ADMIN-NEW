@@ -39,6 +39,12 @@ const CurrencyTable = ({ promises }: CurrencyTableProps) => {
     shallow: false,
     clearOnDefault: true,
     startTransition,
+    manualFiltering: false,
+    initialState: {
+      columnVisibility: {
+        search: false,
+      },
+    },
   });
 
   const {
@@ -74,11 +80,20 @@ const CurrencyTable = ({ promises }: CurrencyTableProps) => {
           </DataTableToolbar>
         </DataTable>
       </div>
-      {!isLoading && !isError && rowAction?.variant === "update" && (
+      {rowAction?.variant === "update" && (
         <EditCurrencyDialog
           open={rowAction?.variant === "update"}
           onOpenChange={() => setRowAction(null)}
-          currency={currencyDetail?.data || null}
+          currency={
+            rowAction?.row.original && currencyDetail?.data
+              ? { 
+                  ...rowAction.row.original,
+                  ...currencyDetail.data,
+                  id: rowAction.row.original.id,
+                  code: rowAction.row.original.code 
+                }
+              : currencyDetail?.data || rowAction?.row.original || null
+          }
           isLoading={isLoading}
           isError={isError}
         />

@@ -140,8 +140,29 @@ const CreatePromoDialog = () => {
     });
   }
 
+  // Reset form when dialog closes
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      // Reset form when dialog closes
+      form.reset({
+        description: "",
+        detail: "",
+        prices: undefined,
+        promo_name: "",
+        promo_code: "",
+        promo_type: "1",
+        room_type_id: "",
+        total_night: 1,
+        start_date: "",
+        end_date: "",
+        hotel_name: "",
+      });
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus />
