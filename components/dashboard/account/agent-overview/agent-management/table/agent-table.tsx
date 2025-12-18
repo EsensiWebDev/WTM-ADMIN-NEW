@@ -39,6 +39,14 @@ const AgentTable = ({ promises }: AgentTableProps) => {
 
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<Agent> | null>(null);
+  const [agentData, setAgentData] = React.useState<Agent[]>(data || []);
+
+  // Update agentData when data changes
+  React.useEffect(() => {
+    if (data) {
+      setAgentData(data);
+    }
+  }, [data]);
 
   // Use the reusable export hook
   const { isExporting, handleDownload } = useExport(exportAgent);
@@ -49,7 +57,7 @@ const AgentTable = ({ promises }: AgentTableProps) => {
   );
 
   const { table } = useDataTable({
-    data: data || [],
+    data: agentData,
     columns,
     pageCount: pagination?.total_pages || 1,
     getRowId: (originalRow) => String(originalRow.id),
@@ -57,6 +65,28 @@ const AgentTable = ({ promises }: AgentTableProps) => {
     clearOnDefault: true,
     startTransition,
   });
+
+  // Handle agent update callback
+  const handleAgentUpdate = React.useCallback((updatedAgent: Agent) => {
+    // Update the agentData state
+    setAgentData((prev) =>
+      prev.map((agent) => (agent.id === updatedAgent.id ? updatedAgent : agent))
+    );
+    
+    // Update the rowAction if it's the same agent
+    if (rowAction?.row.original.id === updatedAgent.id) {
+      setRowAction((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          row: {
+            ...prev.row,
+            original: updatedAgent,
+          },
+        };
+      });
+    }
+  }, [rowAction]);
 
   if (error) {
     return <div>{error}</div>;
@@ -93,6 +123,7 @@ const AgentTable = ({ promises }: AgentTableProps) => {
           open={rowAction?.variant === "update"}
           onOpenChange={() => setRowAction(null)}
           agent={rowAction?.row.original ?? null}
+          onAgentUpdate={handleAgentUpdate}
         />
       )}
       <DeleteAgentDialog

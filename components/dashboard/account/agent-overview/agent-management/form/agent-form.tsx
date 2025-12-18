@@ -112,7 +112,7 @@ export function AgentForm<T extends FieldValues>({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Promo Group*</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select promo group" />
@@ -143,7 +143,7 @@ export function AgentForm<T extends FieldValues>({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Currency*</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value || "IDR"}>
+              <Select onValueChange={field.onChange} value={field.value || "IDR"}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select currency" />
