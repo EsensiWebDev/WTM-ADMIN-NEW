@@ -101,7 +101,6 @@ export async function exportHistoryBookingLog(
   format: ExportFormat = "csv"
 ): Promise<ExportResult> {
   try {
-    console.log("Export request:", { searchParams, format });
 
     const { data, status, message } = await getData({
       searchParams: { ...searchParams, limit: "0" },

@@ -13,7 +13,6 @@ export async function updatePromoGroup(
   agentId: number,
   promo_group_id: number
 ) {
-  console.log("Update Agent Promo Group");
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return {
     success: true,
@@ -22,7 +21,6 @@ export async function updatePromoGroup(
 }
 
 export async function deleteAgent(agentId: string) {
-  console.log(`Delete Agent: ${agentId}`);
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return { success: true, message: `Agent deleted` };
 }
@@ -67,7 +65,6 @@ export async function createAgent(formData: FormData) {
 }
 
 export async function editAgent(formData: FormData) {
-  console.log("Edit Agent:");
 
   try {
     const response = await apiCall("users", {
@@ -169,7 +166,6 @@ export async function exportAgent(
       limit: "0",
     };
 
-    console.log("Export request:", { searchParams, format });
 
     const { data, status, message } = await getAgentData({
       searchParams: exportSearchParams,

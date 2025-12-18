@@ -3,19 +3,24 @@
 
 import {
   ColumnDef,
+  ExpandedState,
   PaginationState,
   SortingState,
   getCoreRowModel,
+  getExpandedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
+  saveAdminNote,
   updateBookingStatus,
   updatePaymentStatus,
 } from "@/app/(dashboard)/booking-management/booking-summary/actions";
 import {
+  AdditionalService,
   BookingStatus,
   BookingSummary,
   BookingSummaryDetail,
@@ -46,6 +51,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { DataTableRowAction, Option } from "@/types/data-table";
 import {
   IconApi,
@@ -58,6 +64,9 @@ import { Ban, MoreHorizontal } from "lucide-react";
 import { UploadReceiptDialog } from "./upload-receipt-dialog";
 import ViewInvoiceDialog from "./view-invoice-dialog";
 import ViewReceiptDialog from "./view-receipt-dialog";
+import { formatCurrency } from "@/lib/format";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 interface GetDetailBookingTableColumnsProps {
   setRowAction: React.Dispatch<
@@ -65,6 +74,7 @@ interface GetDetailBookingTableColumnsProps {
   >;
   bookingStatusOptions: Option[];
   onUploadReceipt: (subBookingId: string) => void;
+  onSuccess?: () => void;
 }
 
 interface DetailBookingSummaryDialogProps
@@ -79,27 +89,112 @@ interface NotesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   notes: string;
+  adminNotes?: string;
   guestName: string;
+  subBookingId: string;
+  onSuccess?: () => void;
 }
 
 function NotesDialog({
   open,
   onOpenChange,
   notes,
+  adminNotes,
   guestName,
+  subBookingId,
+  onSuccess,
 }: NotesDialogProps) {
+  const router = useRouter();
+  const [adminNoteValue, setAdminNoteValue] = React.useState(adminNotes || "");
+  const [isSaving, startSaveTransition] = React.useTransition();
+
+  // Reset admin note value when dialog opens/closes or adminNotes prop changes
+  React.useEffect(() => {
+    if (open) {
+      setAdminNoteValue(adminNotes || "");
+    }
+  }, [open, adminNotes]);
+
+  const handleSave = () => {
+    startSaveTransition(() => {
+      (async () => {
+        try {
+          const savedNote = adminNoteValue.trim();
+          const result = await saveAdminNote({
+            sub_booking_id: subBookingId,
+            admin_notes: savedNote,
+          });
+
+          if (result?.success) {
+            toast.success(result.message || "Admin note saved successfully");
+            // Update local state optimistically to show the saved note immediately
+            setAdminNoteValue(savedNote);
+            // Refresh the page data to get the updated admin notes from server
+            router.refresh();
+            onSuccess?.();
+            // Keep dialog open so admin can continue editing if needed
+          } else {
+            toast.error(result?.message || "Failed to save admin note");
+          }
+        } catch (error) {
+          void error;
+          toast.error("An error occurred. Please try again.");
+        }
+      })();
+    });
+  };
+
+  const handleCancel = () => {
+    setAdminNoteValue(adminNotes || "");
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Booking Notes - {guestName}</DialogTitle>
         </DialogHeader>
-        <div className="py-4">
-          <div className="bg-muted/50 rounded-lg p-4">
-            <p className="text-sm leading-relaxed">
-              {notes || "No notes available for this booking."}
+        <div className="space-y-4 py-4">
+          {/* Agent Notes (Read-only) */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Notes from Agent</Label>
+            <div className="bg-muted/50 rounded-lg p-4 min-h-[80px]">
+              <p className="text-sm leading-relaxed whitespace-pre-line">
+                {notes || "No notes available from agent."}
+              </p>
+            </div>
+          </div>
+
+          {/* Admin Notes (Editable) */}
+          <div className="space-y-2">
+            <Label htmlFor="admin-notes" className="text-sm font-medium">
+              Admin Notes (Visible to Agent)
+            </Label>
+            <Textarea
+              id="admin-notes"
+              className="min-h-[120px] resize-none"
+              value={adminNoteValue}
+              onChange={(e) => setAdminNoteValue(e.target.value)}
+              placeholder="Write notes that will be visible to the agent..."
+              disabled={isSaving}
+            />
+            <p className="text-xs text-muted-foreground">
+              These notes will be visible to the agent for this booking.
             </p>
           </div>
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isSaving}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save Note"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -110,6 +205,7 @@ const getDetailBookingColumns = ({
   setRowAction,
   bookingStatusOptions,
   onUploadReceipt,
+  onSuccess,
 }: GetDetailBookingTableColumnsProps): ColumnDef<BookingSummaryDetail>[] => [
   {
     id: "no",
@@ -453,7 +549,7 @@ const getDetailBookingColumns = ({
   },
   {
     id: "notes",
-    accessorKey: "notes",
+    accessorKey: "additional_notes",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Notes" />
     ),
@@ -466,12 +562,14 @@ const getDetailBookingColumns = ({
             Notes
           </Button>
           <NotesDialog
+            key={row.original.sub_booking_id}
             open={notesOpen}
             onOpenChange={setNotesOpen}
-            // TODO: Fetch notes from API and set as default value, for now empty array
-            notes={""}
-            // notes={row.original.notes || ""}
+            notes={row.original.additional_notes || ""}
+            adminNotes={row.original.admin_notes}
             guestName={row.original.guest_name.toLocaleString()}
+            subBookingId={row.original.sub_booking_id}
+            onSuccess={onSuccess}
           />
         </>
       );
@@ -502,6 +600,8 @@ const getDetailBookingColumns = ({
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
+      const isExpanded = row.getIsExpanded();
+
       const handleCancel = async () => {
         try {
           // Simulating an async operation
@@ -512,6 +612,10 @@ const getDetailBookingColumns = ({
         } catch (error) {
           toast.error("Failed to cancel booking");
         }
+      };
+
+      const handleToggleDetails = () => {
+        row.toggleExpanded();
       };
 
       const handleUploadReceipt = () => {
@@ -540,6 +644,10 @@ const getDetailBookingColumns = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem onClick={handleToggleDetails}>
+              {isExpanded ? "Hide details" : "Show details"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {/* {row.original.payment_status.toLowerCase() === "paid" && ( */}
             <DropdownMenuItem onClick={handleViewReceipt}>
               <IconFileText className="mr-2 h-4 w-4" />
@@ -580,6 +688,7 @@ export function DetailBookingSummaryDialog({
   bookingStatusOptions,
   ...props
 }: DetailBookingSummaryDialogProps) {
+  const router = useRouter();
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<any> | null>(null);
   const [uploadReceiptOpen, setUploadReceiptOpen] = React.useState(false);
@@ -593,8 +702,18 @@ export function DetailBookingSummaryDialog({
   });
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
-  const mockData = bookingSummary?.detail || [];
+  const mockData = React.useMemo(
+    () => bookingSummary?.detail || [],
+    [bookingSummary?.detail]
+  );
+
+  // Create a combined onSuccess handler that refreshes data
+  const handleSuccess = React.useCallback(() => {
+    router.refresh();
+    onSuccess?.();
+  }, [router, onSuccess]);
 
   const columns = React.useMemo(
     () =>
@@ -605,8 +724,9 @@ export function DetailBookingSummaryDialog({
           setSelectedSubBookingId(subBookingId);
           setUploadReceiptOpen(true);
         },
+        onSuccess: handleSuccess,
       }),
-    []
+    [handleSuccess, bookingStatusOptions]
   );
 
   const table = useReactTable({
@@ -616,15 +736,34 @@ export function DetailBookingSummaryDialog({
     state: {
       pagination,
       sorting,
+      expanded,
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getRowCanExpand: () => true,
     manualPagination: true,
     manualSorting: true,
   });
 
   if (!bookingSummary) return null;
+
+  const selectedDetail = rowAction?.row
+    ?.original as BookingSummaryDetail | undefined;
+
+  const bookingForInvoice =
+    bookingSummary && selectedDetail?.invoice
+      ? {
+          // Provide full detail list so the invoice dialog can show rich room info,
+          // additional services, preferences, etc. (matched by sub_booking_id)
+          detail: bookingSummary.detail,
+          // Provide all invoices in the same order as details so navigation & indexing work
+          invoices: bookingSummary.detail.map((d) => d.invoice),
+          receipts: bookingSummary.receipts ?? [],
+        }
+      : null;
 
   return (
     <>
@@ -635,15 +774,275 @@ export function DetailBookingSummaryDialog({
           </DialogHeader>
           <div className="flex-1 overflow-hidden flex flex-col">
             <div className="flex-1 overflow-auto relative">
-              <DataTable table={table} showPagination={false} />
+              <DataTable
+                table={table}
+                showPagination={false}
+                renderSubRow={(detail) => (
+                  <TableRow className="bg-muted/40">
+                    <TableCell />
+                    <TableCell
+                      colSpan={table.getAllColumns().length - 1}
+                      className="px-6 py-4 text-sm"
+                    >
+                      {/* High-level room details and promo, similar to Agent view-detail */}
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-3 mb-4">
+                        <div className="space-y-2">
+                          {/* Room Type */}
+                          {detail.room_type_name && (
+                            <div>
+                              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                Room Type
+                              </p>
+                              <p className="text-sm font-medium capitalize">
+                                {detail.room_type_name}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Room Option (Breakfast) with Price */}
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                  Room Option
+                                </p>
+                                <p className="text-sm font-medium">
+                                  {detail.is_breakfast
+                                    ? "Breakfast Included"
+                                    : "Without Breakfast"}
+                                </p>
+                              </div>
+                              {detail.room_price !== undefined &&
+                                detail.room_price > 0 && (
+                                  <div className="text-right">
+                                    <p className="text-xs text-muted-foreground">
+                                      Per Night
+                                    </p>
+                                    <p className="text-sm font-semibold">
+                                      {formatCurrency(
+                                        detail.room_price,
+                                        detail.currency ||
+                                          detail.invoice?.currency ||
+                                          "IDR"
+                                      )}
+                                    </p>
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+
+                          {/* Bed Type */}
+                          {(detail.bed_type || detail.invoice?.bed_type) && (
+                            <div>
+                              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                Bed Type
+                              </p>
+                              <p className="text-sm font-medium capitalize">
+                                {detail.bed_type || detail.invoice?.bed_type}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Check-in / Check-out dates */}
+                        <div className="space-y-2">
+                          {(detail.check_in_date || detail.check_out_date) && (
+                            <>
+                              {detail.check_in_date && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                    Check-in Date
+                                  </p>
+                                  <p className="text-sm font-medium">
+                                    {format(
+                                      new Date(detail.check_in_date),
+                                      "EEE, MMMM d yyyy"
+                                    )}
+                                  </p>
+                                </div>
+                              )}
+                              {detail.check_out_date && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                    Check-out Date
+                                  </p>
+                                  <p className="text-sm font-medium">
+                                    {format(
+                                      new Date(detail.check_out_date),
+                                      "EEE, MMMM d yyyy"
+                                    )}
+                                  </p>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        {/* Promotion Applied */}
+                        <div className="space-y-2">
+                          {!!detail.invoice?.promo?.promo_code && (
+                            <div className="rounded-md bg-blue-50 p-2">
+                              <p className="text-xs font-semibold text-blue-900 uppercase">
+                                Promotion Applied
+                              </p>
+                              <div className="mt-1 space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-semibold text-blue-900">
+                                    {detail.invoice.promo.promo_code}
+                                  </span>
+                                  {detail.invoice.promo.type && (
+                                    <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                                      {detail.invoice.promo.type}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {detail.invoice.promo.name && (
+                                  <p className="text-xs text-blue-700">
+                                    {detail.invoice.promo.name}
+                                  </p>
+                                )}
+                                {(() => {
+                                  const promo = detail.invoice!.promo;
+                                  const invoiceCurrency =
+                                    detail.invoice?.currency || "IDR";
+
+                                  if (promo.fixed_price && promo.fixed_price > 0) {
+                                    return (
+                                      <p className="text-xs font-medium text-green-700">
+                                        Fixed price:{" "}
+                                        {formatCurrency(
+                                          promo.fixed_price,
+                                          invoiceCurrency
+                                        )}
+                                      </p>
+                                    );
+                                  }
+
+                                  if (
+                                    promo.discount_percent &&
+                                    promo.discount_percent > 0
+                                  ) {
+                                    return (
+                                      <p className="text-xs font-medium text-green-700">
+                                        {promo.discount_percent}% discount
+                                      </p>
+                                    );
+                                  }
+
+                                  if (
+                                    promo.upgraded_to_id &&
+                                    promo.upgraded_to_id > 0
+                                  ) {
+                                    return (
+                                      <p className="text-xs font-medium text-green-700">
+                                        Room will be automatically upgraded
+                                      </p>
+                                    );
+                                  }
+
+                                  if (promo.benefit_note) {
+                                    return (
+                                      <p className="text-xs font-medium text-green-700">
+                                        {promo.benefit_note}
+                                      </p>
+                                    );
+                                  }
+
+                                  return null;
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Existing extra details sections */}
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                            Additional Services
+                          </p>
+                          {Array.isArray(detail.additional_services) &&
+                          detail.additional_services.length > 0 ? (
+                            <ul className="list-disc pl-4 space-y-2">
+                              {detail.additional_services.map((service, index) => (
+                                <li key={index} className="text-sm">
+                                  <div className="font-medium">{service.name}</div>
+                                  {service.category === "pax" && service.pax !== null && (
+                                    <div className="text-muted-foreground text-xs">
+                                      {service.pax} {service.pax === 1 ? "person" : "people"}
+                                    </div>
+                                  )}
+                              {service.category === "price" && service.price !== null && (
+                                <div className="text-muted-foreground text-xs">
+                                  {formatCurrency(
+                                    service.price,
+                                    detail.currency || "IDR"
+                                  )}
+                                </div>
+                              )}
+                                  {service.is_required && (
+                                    <span className="text-xs text-orange-600 font-semibold">
+                                      (Required)
+                                    </span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : Array.isArray(detail.additional) &&
+                            detail.additional.length > 0 ? (
+                            <ul className="list-disc pl-4 space-y-1">
+                              {detail.additional.map((service, index) => (
+                                <li key={index} className="text-sm">{service}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-muted-foreground">
+                              No additional services provided.
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                            Other Preferences
+                          </p>
+                          {Array.isArray(detail.other_preferences) &&
+                          detail.other_preferences.length > 0 ? (
+                            <ul className="list-disc pl-4 space-y-1">
+                              {detail.other_preferences.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-muted-foreground">
+                              No other preferences provided.
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                            Additional Notes From Agent
+                          </p>
+                          <p className="whitespace-pre-line text-muted-foreground">
+                            {detail.additional_notes ||
+                              "No additional notes for this booking."}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              />
             </div>
           </div>
         </DialogContent>
       </Dialog>
       <ViewInvoiceDialog
-        bookingSummary={rowAction?.row.original ?? null}
+        booking={bookingForInvoice}
         open={rowAction?.variant === "invoice"}
         onOpenChange={() => setRowAction(null)}
+        // Ensure the correct invoice is selected initially, matching the clicked row
+        invoiceIndex={rowAction?.row.index}
       />
       <ViewReceiptDialog
         open={rowAction?.variant === "receipt"}

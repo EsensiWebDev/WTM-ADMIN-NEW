@@ -58,12 +58,10 @@ const CreateSuperAdminDialog = ({
       const { success, message } = await createSuperAdmin(input);
 
       if (!success) {
-        console.log("failed super admin");
         toast.error(message ?? "Failed to create super admin");
         return;
       }
 
-      console.log("created super admin");
 
       form.reset();
       setOpen(false);

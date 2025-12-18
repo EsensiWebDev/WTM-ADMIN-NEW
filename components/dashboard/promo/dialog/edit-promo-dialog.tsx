@@ -29,17 +29,14 @@ export const editPromoSchema = z
       .string()
       .min(1, "Description is required")
       .max(500, "Description must be less than 500 characters"),
-    detail: z.union([z.string(), z.number()]).refine(
-      (val) => {
-        if (typeof val === "string") {
-          return val.trim().length > 0;
-        }
-        return val !== null && val !== undefined;
-      },
-      {
-        message: "Detail is required",
-      }
-    ),
+    detail: z.union([z.string(), z.number()]).optional(), // DEPRECATED: Use prices instead
+    prices: z
+      .record(z.string(), z.number().nonnegative("Price cannot be negative"))
+      .refine(
+        (prices) => !prices || "IDR" in prices,
+        "IDR price is required (mandatory currency)"
+      )
+      .optional(),
     promo_name: z
       .string()
       .min(1, "Promo name is required")
@@ -88,6 +85,19 @@ export const editPromoSchema = z
       message: "End date must be after start date",
       path: ["end_date"],
     }
+  )
+  .refine(
+    (data) => {
+      // For fixed price promos (type 2), prices with IDR is required
+      if (data.promo_type === "2") {
+        return data.prices && "IDR" in data.prices && data.prices.IDR > 0;
+      }
+      return true;
+    },
+    {
+      message: "IDR price is required for fixed price promos",
+      path: ["prices"],
+    }
   );
 
 export type EditPromoSchema = z.infer<typeof editPromoSchema>;
@@ -110,7 +120,8 @@ const promoDetailConversion = (
     case "1":
       return promoDetail.discount_percentage;
     case "2":
-      return promoDetail.fixed_price;
+      // For fixed price, prioritize prices.IDR, fallback to fixed_price for backward compatibility
+      return promoDetail.prices?.IDR?.toString() || promoDetail.fixed_price?.toString() || "";
     case "3":
       return promoDetail.upgraded_to_id.toString();
     case "4":
@@ -139,6 +150,7 @@ const EditPromoDialog = ({
           String(promo?.promo_type_id),
           promo?.detail as PromoDetailId["detail"]
         ) || "",
+      prices: promo?.detail?.prices || (promo?.detail?.fixed_price ? { IDR: promo.detail.fixed_price } : undefined),
       promo_name: promo?.name || "",
       promo_code: promo?.code || "",
       promo_type: String(promo?.promo_type_id) || "1",

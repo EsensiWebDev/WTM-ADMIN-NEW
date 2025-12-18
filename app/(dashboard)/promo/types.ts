@@ -22,7 +22,8 @@ export interface Promo {
 interface PromoDetail {
   benefit_note: string;
   discount_percentage: number;
-  fixed_price: number;
+  fixed_price: number; // DEPRECATED
+  prices?: Record<string, number>; // NEW: Multi-currency prices
   upgraded_to_id: number;
 }
 

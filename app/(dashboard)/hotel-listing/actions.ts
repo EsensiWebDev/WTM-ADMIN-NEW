@@ -85,7 +85,6 @@ export async function createHotelNew(
 }
 
 export async function updateHotel(hotelId: string, formData: FormData) {
-  console.log(formData);
 
   try {
     const response = await apiCall(`hotels/${hotelId}`, {
@@ -174,7 +173,6 @@ export async function createHotelRoomType(formData: FormData) {
       body: formData,
     });
 
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
@@ -218,7 +216,6 @@ export async function updateHotelRoomType(
   formData: FormData,
   hotelId?: string
 ) {
-  console.log({ formData });
 
   try {
     const response = await apiCall(`hotels/room-types/${roomId}`, {
@@ -226,7 +223,6 @@ export async function updateHotelRoomType(
       body: formData,
     });
 
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
@@ -334,7 +330,6 @@ export async function importHotelsFromCsv(file: File) {
       body: formData,
     });
 
-    console.log({ response });
 
     if (response.status !== 200) {
       return {

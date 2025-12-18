@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { formatUrl } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Image as ImageIcon, Loader2, Upload, X } from "lucide-react";
@@ -34,6 +35,7 @@ export function ImageUpload({
   const [error, setError] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false); // Track if component has been initialized
+  const [clearAllDialogOpen, setClearAllDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize images with existing images when component mounts
@@ -185,6 +187,18 @@ export function ImageUpload({
     fileInputRef.current?.click();
   }, []);
 
+  const handleClearAll = useCallback(() => {
+    // Clean up object URLs for newly uploaded files
+    images.forEach((img) => {
+      if (img.file) {
+        URL.revokeObjectURL(img.preview);
+      }
+    });
+    setImages([]);
+    onImagesChange([]);
+    setClearAllDialogOpen(false);
+  }, [images, onImagesChange]);
+
   // Cleanup object URLs when component unmounts
   const cleanup = useCallback(() => {
     images.forEach((img) => {
@@ -294,10 +308,7 @@ export function ImageUpload({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setImages([]);
-                    onImagesChange([]);
-                  }}
+                  onClick={() => setClearAllDialogOpen(true)}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Clear All
@@ -391,6 +402,17 @@ export function ImageUpload({
           </div>
         </div>
       )}
+
+      {/* Clear All Confirmation Dialog */}
+      <ConfirmationDialog
+        open={clearAllDialogOpen}
+        onOpenChange={setClearAllDialogOpen}
+        onConfirm={handleClearAll}
+        onCancel={() => setClearAllDialogOpen(false)}
+        isLoading={false}
+        title="Clear All Images?"
+        description="Are you sure you want to clear all images? This action cannot be undone and all uploaded images will be removed."
+      />
     </div>
   );
 }

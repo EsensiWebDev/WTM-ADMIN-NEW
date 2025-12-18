@@ -29,10 +29,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormattedCurrencyInput } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { getHotelOptions } from "@/server/general";
+import { MultiCurrencyPriceInput } from "@/components/dashboard/hotel-listing/create/multi-currency-price-input";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import type * as React from "react";
+import * as React from "react";
 import type { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 
 interface PromoFormProps<T extends FieldValues>
@@ -81,6 +82,29 @@ export function PromoForm<T extends FieldValues>({
 
   // Get selected room type ID
   const selectedRoomTypeId = form.watch("room_type_id" as FieldPath<T>);
+  
+  // Watch promo type to handle prices field
+  const promoType = form.watch("promo_type" as FieldPath<T>);
+
+  // Handle promo type changes - clear prices when switching away from fixed price (type 2)
+  React.useEffect(() => {
+    if (promoType !== "2") {
+      // Clear prices when not using fixed price promo
+      const currentPrices = form.getValues("prices" as FieldPath<T>);
+      if (currentPrices && Object.keys(currentPrices as Record<string, number>).length > 0) {
+        form.setValue("prices" as FieldPath<T>, undefined as any);
+      }
+    } else {
+      // Initialize prices for fixed price promo if not set
+      const currentPrices = form.getValues("prices" as FieldPath<T>) as Record<string, number> | undefined;
+      if (!currentPrices || Object.keys(currentPrices).length === 0) {
+        form.setValue("prices" as FieldPath<T>, { IDR: 0 } as any);
+      } else if (!currentPrices.IDR && currentPrices.IDR !== 0) {
+        // Ensure IDR exists
+        form.setValue("prices" as FieldPath<T>, { ...currentPrices, IDR: 0 } as any);
+      }
+    }
+  }, [promoType, form]);
 
   return (
     <Form {...form}>
@@ -217,7 +241,7 @@ export function PromoForm<T extends FieldValues>({
         </div>
 
         {/* First Row: Promo Name, Promo Type, Extra Input Based on Promo Type */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 ${form.watch("promo_type" as FieldPath<T>) === "2" ? "md:grid-cols-1" : "md:grid-cols-3"} gap-4`}>
           <FormField
             control={form.control}
             name={"promo_name" as FieldPath<T>}
@@ -287,34 +311,20 @@ export function PromoForm<T extends FieldValues>({
             />
           )}
           {form.watch("promo_type" as FieldPath<T>) === "2" && (
-            <FormField
-              control={form.control}
-              name={"detail" as FieldPath<T>}
-              render={({ field }) => {
-                const { displayValue, handleChange, handleBlur } =
-                  useFormattedCurrencyInput(
-                    field.value,
-                    field.onChange,
-                    "id-ID"
-                  );
-
-                return (
-                  <FormItem>
-                    <FormLabel>Price Discount (IDR)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Enter amount (e.g., 50.000)"
-                        value={displayValue}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+            <div className="col-span-1 md:col-span-3">
+              <MultiCurrencyPriceInput
+                form={form}
+                fieldName={"prices" as FieldPath<T>}
+                label="Fixed Price (Multi-Currency)"
+                required={true}
+              />
+              {/* Keep detail field for backward compatibility, but hide it */}
+              <FormField
+                control={form.control}
+                name={"detail" as FieldPath<T>}
+                render={() => <></>}
+              />
+            </div>
           )}
           {form.watch("promo_type" as FieldPath<T>) === "3" && (
             <FormField

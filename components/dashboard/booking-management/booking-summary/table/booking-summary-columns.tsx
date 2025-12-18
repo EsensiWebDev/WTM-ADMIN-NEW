@@ -96,12 +96,18 @@ export function getBookingSummaryTableColumns({
       enableHiding: false,
     },
     {
-      id: "group_promo",
-      accessorKey: "group_promo",
+      id: "promo_name",
+      accessorKey: "promo_name",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Group Promo" />
+        <DataTableColumnHeader column={column} title="Promo Name" />
       ),
-      cell: ({ row }) => row.original.group_promo,
+      cell: ({ row }) => {
+        return (
+          row.original.detail_promo?.name ??
+          row.original.promo_name ??
+          "-"
+        );
+      },
       enableSorting: false,
       enableHiding: false,
     },
@@ -424,16 +430,6 @@ export function getBookingSummaryTableColumns({
         options: paymentStatusOptions,
       },
       enableColumnFilter: true,
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      id: "promo_id",
-      accessorKey: "promo_id",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Promo ID" />
-      ),
-      cell: ({ row }) => row.original.group_promo,
       enableSorting: false,
       enableHiding: false,
     },

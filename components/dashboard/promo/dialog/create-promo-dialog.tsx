@@ -27,17 +27,14 @@ export const createPromoSchema = z
       .string()
       .min(1, "Description is required")
       .max(500, "Description must be less than 500 characters"),
-    detail: z.union([z.string(), z.number()]).refine(
-      (val) => {
-        if (typeof val === "string") {
-          return val.trim().length > 0;
-        }
-        return val !== null && val !== undefined;
-      },
-      {
-        message: "Detail is required",
-      }
-    ),
+    detail: z.union([z.string(), z.number()]).optional(), // DEPRECATED: Use prices instead
+    prices: z
+      .record(z.string(), z.number().nonnegative("Price cannot be negative"))
+      .refine(
+        (prices) => !prices || "IDR" in prices,
+        "IDR price is required (mandatory currency)"
+      )
+      .optional(),
     promo_name: z
       .string()
       .min(1, "Promo name is required")
@@ -90,6 +87,19 @@ export const createPromoSchema = z
       message: "End date must be after start date",
       path: ["end_date"],
     }
+  )
+  .refine(
+    (data) => {
+      // For fixed price promos (type 2), prices with IDR is required
+      if (data.promo_type === "2") {
+        return data.prices && "IDR" in data.prices && data.prices.IDR > 0;
+      }
+      return true;
+    },
+    {
+      message: "IDR price is required for fixed price promos",
+      path: ["prices"],
+    }
   );
 
 export type CreatePromoSchema = z.infer<typeof createPromoSchema>;
@@ -103,6 +113,7 @@ const CreatePromoDialog = () => {
     defaultValues: {
       description: "",
       detail: "",
+      prices: undefined,
       promo_name: "",
       promo_code: "",
       promo_type: "1",
@@ -129,8 +140,29 @@ const CreatePromoDialog = () => {
     });
   }
 
+  // Reset form when dialog closes
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      // Reset form when dialog closes
+      form.reset({
+        description: "",
+        detail: "",
+        prices: undefined,
+        promo_name: "",
+        promo_code: "",
+        promo_type: "1",
+        room_type_id: "",
+        total_night: 1,
+        start_date: "",
+        end_date: "",
+        hotel_name: "",
+      });
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus />
