@@ -1121,7 +1121,7 @@ export function RoomCardInput({
                               render={({ field }) => (
                                 <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                                   <FormControl>
-                                    <Checkbox
+                                    <Switch
                                       checked={field.value || false}
                                       onCheckedChange={(checked) => {
                                         field.onChange(checked);
