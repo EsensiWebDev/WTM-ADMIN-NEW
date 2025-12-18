@@ -49,9 +49,6 @@ import * as z from "zod";
 import { ImageUpload } from "./image-upload";
 import { MultiCurrencyPriceInput } from "./multi-currency-price-input";
 
-// Type definition for additional service category
-export type AdditionalServiceCategory = "pax" | "price";
-
 // Define the Zod schema for room data validation
 const withoutBreakfastSchema = z.object({
   is_show: z.boolean(),
@@ -278,9 +275,7 @@ export function RoomCardInput({
   const [deleteAdditionalIndex, setDeleteAdditionalIndex] = useState<number | null>(null);
 
   // Track original additions with their IDs for comparison
-  const [originalAdditions, setOriginalAdditions] = useState<
-    Array<{ id: number; name: string; price?: number; prices?: Record<string, number> }>
-  >(
+  const [originalAdditions, setOriginalAdditions] = useState(
     initialAdditions.map((addition) => ({
       id: addition.id,
       name: addition.name,
@@ -379,13 +374,7 @@ export function RoomCardInput({
       is_required: addition.is_required ?? false,
     }));
 
-    setOriginalAdditions(
-      initialAdditions.map((addition) => ({
-        id: addition.id,
-        name: addition.name,
-        price: addition.price,
-      }))
-    );
+    setOriginalAdditions(additions);
 
     form.reset({
       name: defaultValues?.name || "",
@@ -746,8 +735,11 @@ export function RoomCardInput({
       originalInitialAdditions.map((addition) => ({
         id: addition.id,
         name: addition.name,
+        category: (addition.category || "price") as AdditionalServiceCategory,
         price: addition.price,
         prices: addition.prices,
+        pax: addition.pax,
+        is_required: addition.is_required ?? false,
       }))
     );
 
@@ -1657,7 +1649,6 @@ export function RoomCardInput({
                                   field.onChange(value === "smoking")
                                 }
                               >
-                                <SelectTrigger className="bg-gray-200 w-40">
                                 <SelectTrigger className="bg-gray-200 w-40">
                                   <SelectValue placeholder="Select smoking" />
                                 </SelectTrigger>
