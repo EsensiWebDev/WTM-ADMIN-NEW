@@ -415,7 +415,7 @@ const getDetailBookingColumns = ({
                 rows={3}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="(Optional) Add a note for changing the booking status."
+                placeholder="(Optional) Add a note for agents to receive in their email for this status change"
               />
             </div>
           </ConfirmationDialog>

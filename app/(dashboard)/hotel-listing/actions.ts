@@ -125,6 +125,35 @@ export async function updateHotel(hotelId: string, formData: FormData) {
   }
 }
 
+export async function checkHotelRoomTypes(hotelId: string) {
+  try {
+    const response = await apiCall<{ id: number; name: string }[]>(
+      `/hotels/room-types?hotel_id=${hotelId}`
+    );
+
+    if (response.status === 200 && Array.isArray(response.data)) {
+      return {
+        success: true,
+        hasRoomTypes: response.data.length > 0,
+        roomTypesCount: response.data.length,
+      };
+    }
+
+    return {
+      success: false,
+      hasRoomTypes: false,
+      roomTypesCount: 0,
+    };
+  } catch (error) {
+    console.error("Error checking hotel room types:", error);
+    return {
+      success: false,
+      hasRoomTypes: false,
+      roomTypesCount: 0,
+    };
+  }
+}
+
 export async function updateHotelStatus(formData: FormData) {
   try {
     const response = await apiCall(`hotels/status`, {

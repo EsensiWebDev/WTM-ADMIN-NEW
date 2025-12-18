@@ -130,9 +130,10 @@ export const roomFormSchema = z
     with_breakfast: withBreakfastSchema,
     room_size: z
       .number({
-        invalid_type_error: "Required",
+        required_error: "Room size is required",
+        invalid_type_error: "Room size must be a number",
       })
-      .positive("Required"),
+      .positive("Room size is required and must be greater than 0"),
     max_occupancy: z
       .number({
         invalid_type_error: "Max occupancy must be a number",
@@ -141,9 +142,9 @@ export const roomFormSchema = z
       .positive("Max occupancy must be at least 1"),
     bed_types: z
       .array(z.string().min(1, "Bed type cannot be empty"))
-      .min(1, "Required")
+      .min(1, "At least one bed type is required")
       .refine((bedTypes) => bedTypes.every((type) => type.trim().length > 0), {
-        message: "Required",
+        message: "At least one bed type is required",
       })
       .refine(
         (bedTypes) => {
@@ -160,7 +161,12 @@ export const roomFormSchema = z
     additional: z.array(additionalSchema).optional(),
     unchanged_additions_ids: z.array(z.number().int()).optional(),
     other_preferences: z.array(otherPreferenceSchema).optional(),
-    description: z.string().min(1, "Description is required"),
+    description: z
+      .string({
+        required_error: "Description is required",
+      })
+      .min(1, "Description is required")
+      .refine((val) => val.trim().length > 0, "Description cannot be empty"),
     booking_limit_per_booking: z
       .number({
         invalid_type_error: "Booking limit must be a number",
@@ -327,7 +333,9 @@ export function RoomCardInput({
             price: 0,
             prices: { IDR: 0 },
           },
-      room_size: defaultValues?.room_size || 0,
+      room_size: defaultValues?.room_size && defaultValues.room_size > 0 
+        ? defaultValues.room_size 
+        : undefined,
       max_occupancy: defaultValues?.max_occupancy || 1,
       bed_types: defaultValues?.bed_types && defaultValues.bed_types.length > 0 
         ? defaultValues.bed_types.filter(bt => bt.trim() !== "")
@@ -406,7 +414,9 @@ export function RoomCardInput({
             price: 0,
             prices: { IDR: 0 },
           },
-      room_size: defaultValues?.room_size || 0,
+      room_size: defaultValues?.room_size && defaultValues.room_size > 0 
+        ? defaultValues.room_size 
+        : undefined,
       max_occupancy: defaultValues?.max_occupancy || 1,
       bed_types: defaultValues?.bed_types && defaultValues.bed_types.length > 0 
         ? defaultValues.bed_types.filter(bt => bt.trim() !== "")
@@ -1556,17 +1566,19 @@ export function RoomCardInput({
                               <FormControl>
                                 <Input
                                   type="number"
-                                  placeholder="0"
+                                  placeholder="Room size"
                                   className="bg-gray-200 w-24 pr-11"
                                   {...field}
                                   value={field.value || ""}
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      e.target.value
-                                        ? Number(e.target.value)
-                                        : 0
-                                    )
-                                  }
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "" || value === null || value === undefined) {
+                                      field.onChange(undefined);
+                                    } else {
+                                      const numValue = Number(value);
+                                      field.onChange(isNaN(numValue) ? undefined : numValue);
+                                    }
+                                  }}
                                 />
                               </FormControl>
                             </FormItem>
