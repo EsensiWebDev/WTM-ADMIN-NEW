@@ -29,6 +29,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { useFormattedCurrencyInput } from "@/lib/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -36,7 +37,7 @@ import {
   IconBed,
   IconFriends,
 } from "@tabler/icons-react";
-import { Cigarette, Eye, EyeOff, PlusCircle, Trash2 } from "lucide-react";
+import { Cigarette, Eye, EyeOff, PlusCircle, Trash2, Shield } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -148,6 +149,14 @@ export const roomFormSchema = z
     unchanged_additions_ids: z.array(z.number().int()).optional(),
     other_preferences: z.array(otherPreferenceSchema).optional(),
     description: z.string().min(1, "Description is required"),
+    booking_limit_per_booking: z
+      .number({
+        invalid_type_error: "Booking limit must be a number",
+      })
+      .int("Booking limit must be a whole number")
+      .positive("Booking limit must be at least 1")
+      .nullable()
+      .optional(), // Maximum number of rooms that can be booked per booking (null/undefined = no limit)
   })
   .refine(
     (data) => {
@@ -311,6 +320,7 @@ export function RoomCardInput({
         ? defaultValues.bed_types.filter(bt => bt.trim() !== "")
         : [],
       is_smoking_room: defaultValues?.is_smoking_room || false,
+      booking_limit_per_booking: defaultValues?.booking_limit_per_booking ?? null,
       additional:
         initialAdditions.map((addition) => ({
           id: addition.id,
@@ -395,6 +405,7 @@ export function RoomCardInput({
         ? defaultValues.bed_types.filter(bt => bt.trim() !== "")
         : [],
       is_smoking_room: defaultValues?.is_smoking_room || false,
+      booking_limit_per_booking: defaultValues?.booking_limit_per_booking ?? null,
       additional: additions,
       other_preferences:
         (defaultValues?.other_preferences as
@@ -740,6 +751,7 @@ export function RoomCardInput({
         ? originalDefaultValues.bed_types.filter(bt => bt.trim() !== "")
         : [],
       is_smoking_room: originalDefaultValues?.is_smoking_room || false,
+      booking_limit_per_booking: originalDefaultValues?.booking_limit_per_booking ?? null,
       additional: additions,
       other_preferences:
         (originalDefaultValues?.other_preferences as
@@ -1416,6 +1428,89 @@ export function RoomCardInput({
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Booking Limit Per Booking */}
+              <div className="space-y-4">
+                <div className="rounded-lg border bg-card p-4">
+                  <FormField
+                    control={form.control}
+                    name="booking_limit_per_booking"
+                    render={({ field }) => {
+                      const isLimitEnabled = field.value !== null && field.value !== undefined;
+                      
+                      return (
+                        <FormItem>
+                          <div className="flex flex-row items-center justify-between space-y-0">
+                            <div className="space-y-0.5 flex-1">
+                              <div className="flex items-center gap-2">
+                                <Shield className="h-5 w-5 text-muted-foreground" />
+                                <FormLabel className="text-base font-semibold">
+                                  Booking Limit Per Booking
+                                </FormLabel>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Set maximum number of rooms agents can book per booking
+                              </p>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={isLimitEnabled}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    // Enable limit with default value of 10
+                                    field.onChange(10);
+                                  } else {
+                                    // Disable limit
+                                    field.onChange(null);
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                          </div>
+                          
+                          {isLimitEnabled && (
+                            <div className="mt-4 pt-4 border-t">
+                              <FormLabel className="text-sm font-medium mb-2 block">
+                                Maximum Rooms
+                              </FormLabel>
+                              <div className="relative">
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    placeholder="Enter limit"
+                                    className="bg-gray-200 w-32 pr-20"
+                                    value={field.value ?? ""}
+                                    min={1}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      if (value === "") {
+                                        field.onChange(null);
+                                      } else {
+                                        const numValue = Number(value);
+                                        if (numValue > 0) {
+                                          field.onChange(numValue);
+                                        }
+                                      }
+                                    }}
+                                  />
+                                </FormControl>
+                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold whitespace-nowrap">
+                                  Room(s)
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Agents will not be able to book more than this number of rooms per booking
+                              </p>
+                            </div>
+                          )}
+                          
+                          <FormMessage className="mt-2" />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                </div>
               </div>
 
               <div className="mt-auto pt-10 lg:pt-4">

@@ -33,6 +33,7 @@ export interface RoomDetail {
   other_preferences?: Array<OtherPreference>;
   description: string;
   photos: string[];
+  booking_limit_per_booking?: number | null; // Maximum number of rooms that can be booked per booking (null = no limit)
 }
 
 export interface Hotel {

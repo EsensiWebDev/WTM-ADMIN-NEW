@@ -41,6 +41,7 @@ const RoomForm = ({
       is_smoking_room: false,
       additional: [],
       description: "",
+      booking_limit_per_booking: null,
     };
 
     setRoomList([...roomList, newRoom]);
@@ -65,6 +66,9 @@ const RoomForm = ({
       formData.append("bed_types", bedType);
     });
     formData.append("is_smoking_room", String(data.is_smoking_room));
+    if (data.booking_limit_per_booking !== null && data.booking_limit_per_booking !== undefined) {
+      formData.append("booking_limit_per_booking", String(data.booking_limit_per_booking));
+    }
 
     // Process additions - only send new ones (without ID)
     const newAdditions = (data.additional || [])
@@ -149,6 +153,9 @@ const RoomForm = ({
         formData.append("bed_types", bedType);
       });
       formData.append("is_smoking_room", String(data.is_smoking_room));
+      if (data.booking_limit_per_booking !== null && data.booking_limit_per_booking !== undefined) {
+        formData.append("booking_limit_per_booking", String(data.booking_limit_per_booking));
+      }
 
       // Process additions
       const unchangedIds = data.unchanged_additions_ids || [];
@@ -254,6 +261,7 @@ const RoomForm = ({
                 max_occupancy: room.max_occupancy,
                 bed_types: room.bed_types,
                 is_smoking_room: room.is_smoking_room,
+                booking_limit_per_booking: room.booking_limit_per_booking ?? null,
                 description: room.description,
                 other_preferences: (
                   (room as { other_preferences?: OtherPreference[] })
