@@ -33,6 +33,10 @@ import { Switch } from "@/components/ui/switch";
 import { useFormattedCurrencyInput } from "@/lib/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  ADDITIONAL_SERVICE_CATEGORY_OPTIONS,
+  AdditionalServiceCategory,
+} from "@/app/(dashboard)/hotel-listing/types";
+import {
   IconArrowAutofitWidth,
   IconBed,
   IconFriends,
@@ -143,7 +147,18 @@ export const roomFormSchema = z
       .min(1, "Required")
       .refine((bedTypes) => bedTypes.every((type) => type.trim().length > 0), {
         message: "Required",
-      }),
+      })
+      .refine(
+        (bedTypes) => {
+          // Check for duplicate bed types (case-insensitive)
+          const trimmed = bedTypes.map((bt) => bt.trim().toLowerCase());
+          const unique = new Set(trimmed);
+          return unique.size === trimmed.length;
+        },
+        {
+          message: "Duplicate bed types are not allowed",
+        }
+      ),
     is_smoking_room: z.boolean(),
     additional: z.array(additionalSchema).optional(),
     unchanged_additions_ids: z.array(z.number().int()).optional(),
@@ -269,8 +284,11 @@ export function RoomCardInput({
     initialAdditions.map((addition) => ({
       id: addition.id,
       name: addition.name,
+      category: (addition.category || "price") as AdditionalServiceCategory, // Default to "price" for backward compatibility
       price: addition.price,
       prices: addition.prices,
+      pax: addition.pax,
+      is_required: addition.is_required ?? false,
     }))
   );
 
@@ -322,7 +340,7 @@ export function RoomCardInput({
       is_smoking_room: defaultValues?.is_smoking_room || false,
       booking_limit_per_booking: defaultValues?.booking_limit_per_booking ?? null,
       additional:
-        initialAdditions.map((addition) => ({
+        (initialAdditions || []).map((addition) => ({
           id: addition.id,
           name: addition.name,
           category: (addition.category || "price") as AdditionalServiceCategory,
@@ -500,7 +518,8 @@ export function RoomCardInput({
   const removeBedType = useCallback(
     (index: number) => {
       const newBedTypes = bedTypes.filter((_, i) => i !== index);
-      form.setValue("bed_types", newBedTypes);
+      // Ensure at least one bed type input remains
+      form.setValue("bed_types", newBedTypes.length > 0 ? newBedTypes : [""]);
     },
     [bedTypes, form]
   );
@@ -600,6 +619,20 @@ export function RoomCardInput({
       const currentAdditions = form.getValues("additional") || [];
       const addition = currentAdditions[index];
 
+      // Handle category change - clear the opposite field
+      if (field === "category") {
+        const category = value as AdditionalServiceCategory;
+        const updatedAddition = {
+          ...addition,
+          category,
+          // Clear the opposite field when category changes
+          price: category === "price" ? addition.price : undefined,
+          pax: category === "pax" ? addition.pax : undefined,
+        };
+        form.setValue(`additional.${index}`, updatedAddition);
+        return;
+      }
+
       // Check if this is an existing addition (has ID)
       if (addition?.id !== undefined) {
         const originalAddition = originalAdditions.find(
@@ -615,7 +648,10 @@ export function RoomCardInput({
         const isModified =
           originalAddition &&
           (originalAddition.name !== updatedAddition.name ||
-            originalAddition.price !== updatedAddition.price);
+            originalAddition.category !== updatedAddition.category ||
+            originalAddition.price !== updatedAddition.price ||
+            originalAddition.pax !== updatedAddition.pax ||
+            originalAddition.is_required !== updatedAddition.is_required);
 
         const unchangedIds = form.getValues("unchanged_additions_ids") || [];
 
@@ -1621,6 +1657,7 @@ export function RoomCardInput({
                                   field.onChange(value === "smoking")
                                 }
                               >
+                                <SelectTrigger className="bg-gray-200 w-40">
                                 <SelectTrigger className="bg-gray-200 w-40">
                                   <SelectValue placeholder="Select smoking" />
                                 </SelectTrigger>

@@ -39,7 +39,7 @@ const RoomForm = ({
       max_occupancy: 2,
       bed_types: [""],
       is_smoking_room: false,
-      additional: [],
+      additional: [], // Will be populated when user adds services
       description: "",
       booking_limit_per_booking: null,
     };
@@ -62,7 +62,11 @@ const RoomForm = ({
     formData.append("with_breakfast", JSON.stringify(data.with_breakfast));
     formData.append("room_size", String(data.room_size));
     formData.append("max_occupancy", String(data.max_occupancy));
-    data.bed_types.forEach((bedType) => {
+    // Filter out empty bed types and trim before submission
+    const validBedTypes = data.bed_types
+      .map((bedType) => bedType.trim())
+      .filter((bedType) => bedType.length > 0);
+    validBedTypes.forEach((bedType) => {
       formData.append("bed_types", bedType);
     });
     formData.append("is_smoking_room", String(data.is_smoking_room));
@@ -71,6 +75,7 @@ const RoomForm = ({
     }
 
     // Process additions - only send new ones (without ID)
+    // Filter out empty services and prepare data according to category
     const newAdditions = (data.additional || [])
       .filter((addition) => addition.id === undefined)
       .map((addition) => ({
@@ -149,7 +154,11 @@ const RoomForm = ({
       formData.append("with_breakfast", JSON.stringify(data.with_breakfast));
       formData.append("room_size", String(data.room_size));
       formData.append("max_occupancy", String(data.max_occupancy));
-      data.bed_types.forEach((bedType) => {
+      // Filter out empty bed types and trim before submission
+      const validBedTypes = data.bed_types
+        .map((bedType) => bedType.trim())
+        .filter((bedType) => bedType.length > 0);
+      validBedTypes.forEach((bedType) => {
         formData.append("bed_types", bedType);
       });
       formData.append("is_smoking_room", String(data.is_smoking_room));
@@ -162,11 +171,14 @@ const RoomForm = ({
       const allAdditions = data.additional || [];
 
       // Filter out unchanged additions and prepare only new/modified ones
+      // Also filter out empty services
       const additionsToSend = allAdditions
         .filter((addition) => {
           // Include if it's a new addition (no ID) or modified (not in unchanged list)
+          // And it has a non-empty name
           return (
-            addition.id === undefined || !unchangedIds.includes(addition.id)
+            (addition.id === undefined || !unchangedIds.includes(addition.id)) &&
+            addition.name?.trim() !== ""
           );
         })
         .map((addition) => {
