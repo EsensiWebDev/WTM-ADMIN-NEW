@@ -111,11 +111,11 @@ export function AgentForm<T extends FieldValues>({
           name={"promo_group_id" as FieldPath<T>}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Promo Group*</FormLabel>
+              <FormLabel>Promo Group</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select promo group" />
+                    <SelectValue placeholder="Select promo group (optional)" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent align="end">
