@@ -42,6 +42,15 @@ export interface BookingSummaryDetail {
   cancelled_date: string;
   guest_name: string;
   hotel_name: string;
+  // Optional detailed room information (mirrors agent portal types)
+  room_type_name?: string; // Room type selected
+  is_breakfast?: boolean; // Whether breakfast is included
+  bed_type?: string; // Selected bed type
+  room_price?: number; // Room price per night (after promo if any)
+  total_price?: number; // Total price including room and services
+  currency?: string; // Currency code for prices
+  check_in_date?: string; // Check-in date (snapshot at booking time)
+  check_out_date?: string; // Check-out date (snapshot at booking time)
   is_api: boolean;
   payment_status: PaymentStatus;
   additional_notes?: string; // Notes from agent
@@ -78,6 +87,15 @@ export interface Invoice {
   sub_booking_id: string;
   total_price: number;
   total_before_promo: number;
+  /**
+   * Optional currency code for this invoice (e.g. "IDR", "USD").
+   * When not provided, the UI will default to "IDR".
+   */
+  currency?: string;
+  /**
+   * Optional selected bed type snapshot for this invoice.
+   */
+  bed_type?: string;
 }
 
 export interface DescriptionInvoice {

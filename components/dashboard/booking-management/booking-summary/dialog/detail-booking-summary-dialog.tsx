@@ -64,6 +64,9 @@ import { Ban, MoreHorizontal } from "lucide-react";
 import { UploadReceiptDialog } from "./upload-receipt-dialog";
 import ViewInvoiceDialog from "./view-invoice-dialog";
 import ViewReceiptDialog from "./view-receipt-dialog";
+import { formatCurrency } from "@/lib/format";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 interface GetDetailBookingTableColumnsProps {
   setRowAction: React.Dispatch<
@@ -751,9 +754,13 @@ export function DetailBookingSummaryDialog({
     ?.original as BookingSummaryDetail | undefined;
 
   const bookingForInvoice =
-    selectedDetail?.invoice
+    bookingSummary && selectedDetail?.invoice
       ? {
-          invoices: [selectedDetail.invoice],
+          // Provide full detail list so the invoice dialog can show rich room info,
+          // additional services, preferences, etc. (matched by sub_booking_id)
+          detail: bookingSummary.detail,
+          // Provide all invoices in the same order as details so navigation & indexing work
+          invoices: bookingSummary.detail.map((d) => d.invoice),
           receipts: bookingSummary.receipts ?? [],
         }
       : null;
@@ -777,6 +784,179 @@ export function DetailBookingSummaryDialog({
                       colSpan={table.getAllColumns().length - 1}
                       className="px-6 py-4 text-sm"
                     >
+                      {/* High-level room details and promo, similar to Agent view-detail */}
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-3 mb-4">
+                        <div className="space-y-2">
+                          {/* Room Type */}
+                          {detail.room_type_name && (
+                            <div>
+                              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                Room Type
+                              </p>
+                              <p className="text-sm font-medium capitalize">
+                                {detail.room_type_name}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Room Option (Breakfast) with Price */}
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                  Room Option
+                                </p>
+                                <p className="text-sm font-medium">
+                                  {detail.is_breakfast
+                                    ? "Breakfast Included"
+                                    : "Without Breakfast"}
+                                </p>
+                              </div>
+                              {detail.room_price !== undefined &&
+                                detail.room_price > 0 && (
+                                  <div className="text-right">
+                                    <p className="text-xs text-muted-foreground">
+                                      Per Night
+                                    </p>
+                                    <p className="text-sm font-semibold">
+                                      {formatCurrency(
+                                        detail.room_price,
+                                        detail.currency ||
+                                          detail.invoice?.currency ||
+                                          "IDR"
+                                      )}
+                                    </p>
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+
+                          {/* Bed Type */}
+                          {(detail.bed_type || detail.invoice?.bed_type) && (
+                            <div>
+                              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                Bed Type
+                              </p>
+                              <p className="text-sm font-medium capitalize">
+                                {detail.bed_type || detail.invoice?.bed_type}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Check-in / Check-out dates */}
+                        <div className="space-y-2">
+                          {(detail.check_in_date || detail.check_out_date) && (
+                            <>
+                              {detail.check_in_date && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                    Check-in Date
+                                  </p>
+                                  <p className="text-sm font-medium">
+                                    {format(
+                                      new Date(detail.check_in_date),
+                                      "EEE, MMMM d yyyy"
+                                    )}
+                                  </p>
+                                </div>
+                              )}
+                              {detail.check_out_date && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                    Check-out Date
+                                  </p>
+                                  <p className="text-sm font-medium">
+                                    {format(
+                                      new Date(detail.check_out_date),
+                                      "EEE, MMMM d yyyy"
+                                    )}
+                                  </p>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        {/* Promotion Applied */}
+                        <div className="space-y-2">
+                          {!!detail.invoice?.promo?.promo_code && (
+                            <div className="rounded-md bg-blue-50 p-2">
+                              <p className="text-xs font-semibold text-blue-900 uppercase">
+                                Promotion Applied
+                              </p>
+                              <div className="mt-1 space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-semibold text-blue-900">
+                                    {detail.invoice.promo.promo_code}
+                                  </span>
+                                  {detail.invoice.promo.type && (
+                                    <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                                      {detail.invoice.promo.type}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {detail.invoice.promo.name && (
+                                  <p className="text-xs text-blue-700">
+                                    {detail.invoice.promo.name}
+                                  </p>
+                                )}
+                                {(() => {
+                                  const promo = detail.invoice!.promo;
+                                  const invoiceCurrency =
+                                    detail.invoice?.currency || "IDR";
+
+                                  if (promo.fixed_price && promo.fixed_price > 0) {
+                                    return (
+                                      <p className="text-xs font-medium text-green-700">
+                                        Fixed price:{" "}
+                                        {formatCurrency(
+                                          promo.fixed_price,
+                                          invoiceCurrency
+                                        )}
+                                      </p>
+                                    );
+                                  }
+
+                                  if (
+                                    promo.discount_percent &&
+                                    promo.discount_percent > 0
+                                  ) {
+                                    return (
+                                      <p className="text-xs font-medium text-green-700">
+                                        {promo.discount_percent}% discount
+                                      </p>
+                                    );
+                                  }
+
+                                  if (
+                                    promo.upgraded_to_id &&
+                                    promo.upgraded_to_id > 0
+                                  ) {
+                                    return (
+                                      <p className="text-xs font-medium text-green-700">
+                                        Room will be automatically upgraded
+                                      </p>
+                                    );
+                                  }
+
+                                  if (promo.benefit_note) {
+                                    return (
+                                      <p className="text-xs font-medium text-green-700">
+                                        {promo.benefit_note}
+                                      </p>
+                                    );
+                                  }
+
+                                  return null;
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Existing extra details sections */}
                       <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                         <div className="space-y-1">
                           <p className="text-xs font-semibold uppercase text-muted-foreground">
@@ -793,15 +973,14 @@ export function DetailBookingSummaryDialog({
                                       {service.pax} {service.pax === 1 ? "person" : "people"}
                                     </div>
                                   )}
-                                  {service.category === "price" && service.price !== null && (
-                                    <div className="text-muted-foreground text-xs">
-                                      {new Intl.NumberFormat("id-ID", {
-                                        style: "currency",
-                                        currency: "IDR",
-                                        minimumFractionDigits: 0,
-                                      }).format(service.price)}
-                                    </div>
+                              {service.category === "price" && service.price !== null && (
+                                <div className="text-muted-foreground text-xs">
+                                  {formatCurrency(
+                                    service.price,
+                                    detail.currency || "IDR"
                                   )}
+                                </div>
+                              )}
                                   {service.is_required && (
                                     <span className="text-xs text-orange-600 font-semibold">
                                       (Required)
@@ -862,6 +1041,8 @@ export function DetailBookingSummaryDialog({
         booking={bookingForInvoice}
         open={rowAction?.variant === "invoice"}
         onOpenChange={() => setRowAction(null)}
+        // Ensure the correct invoice is selected initially, matching the clicked row
+        invoiceIndex={rowAction?.row.index}
       />
       <ViewReceiptDialog
         open={rowAction?.variant === "receipt"}
