@@ -26,7 +26,7 @@ import { getCurrencyOptions } from "@/app/(dashboard)/currency/fetch";
 export const createAgentSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
   agent_company: z.string().optional(),
-  promo_group_id: z.string().min(1, "Promo group is required"),
+  promo_group_id: z.string().optional(),
   email: z.string().email("Invalid email format").min(1, "Email is required"),
   phone: z
     .string()
@@ -97,7 +97,7 @@ const CreateAgentDialog = ({
     const fd = new FormData();
     fd.append("full_name", input.full_name);
     if (input.agent_company) fd.append("agent_company", input.agent_company);
-    fd.append("promo_group_id", input.promo_group_id);
+    if (input.promo_group_id) fd.append("promo_group_id", input.promo_group_id);
     fd.append("email", input.email);
     fd.append("phone", input.phone);
     fd.append("currency", input.currency);

@@ -31,6 +31,7 @@ export const createHotelFormSchema = z.object({
   name: z.string().min(1, "Hotel name is required"),
   photos: z
     .array(z.instanceof(File))
+    .min(1, "At least one photo is required")
     .max(10, "Maximum 10 images allowed")
     .refine(
       (files) => files.every((file) => file.size <= 2 * 1024 * 1024),
@@ -40,7 +41,7 @@ export const createHotelFormSchema = z.object({
   district: z.string().min(1, "District is required"),
   province: z.string().min(1, "Province is required"),
   email: z.string().email("Please enter a valid email address"),
-  description: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
   rating: z.number().int().optional(),
   nearby_places: z
     .array(
@@ -49,8 +50,15 @@ export const createHotelFormSchema = z.object({
         name: z.string().min(1, "Place name is required"),
       })
     )
-    .optional(),
-  facilities: z.array(z.string()).optional(),
+    .min(1, "At least one nearby place is required"),
+  facilities: z
+    .array(
+      z
+        .string()
+        .min(1, "Facility name cannot be empty")
+        .refine((val) => val.trim().length > 0, "Facility name cannot be empty")
+    )
+    .min(1, "At least one facility is required"),
   social_medias: z.array(
     z.object({
       link: z.string().min(1, "Link is required"),
@@ -230,10 +238,21 @@ const NewHotelForm = () => {
               marked with a blue badge.
             </p>
           </div>
-          <ImageUpload
-            onImagesChange={handleImageChange}
-            maxImages={10}
-            maxSizeMB={2}
+          <FormField
+            control={form.control}
+            name="photos"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <ImageUpload
+                    onImagesChange={handleImageChange}
+                    maxImages={10}
+                    maxSizeMB={2}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </section>
 
@@ -523,51 +542,74 @@ const NewHotelForm = () => {
             {/* Nearby Places */}
             <div className="flex flex-col gap-3">
               <h2 className="text-lg font-bold">Near Us</h2>
-              <div className="space-y-3">
-                {form.watch("nearby_places")?.map((place, index) => (
-                  <NearbyPlaceItem
-                    key={index}
-                    place={{
-                      name: place.name || "",
-                      distance: place.distance?.toString() || "",
-                    }}
-                    index={index}
-                    onUpdate={handleNearbyUpdate}
-                    onRemove={handleNearbyRemove}
-                    form={form}
-                  />
-                ))}
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    className="inline-flex items-center gap-2"
-                    onClick={handleNearbyAdd}
-                  >
-                    <PlusCircle className="size-4" /> Add List
-                  </Button>
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name="nearby_places"
+                render={() => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="space-y-3">
+                        {form.watch("nearby_places")?.map((place, index) => (
+                          <NearbyPlaceItem
+                            key={index}
+                            place={{
+                              name: place.name || "",
+                              distance: place.distance?.toString() || "",
+                            }}
+                            index={index}
+                            onUpdate={handleNearbyUpdate}
+                            onRemove={handleNearbyRemove}
+                            form={form}
+                          />
+                        ))}
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            className="inline-flex items-center gap-2"
+                            onClick={handleNearbyAdd}
+                          >
+                            <PlusCircle className="size-4" /> Add List
+                          </Button>
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Facilities */}
             <div className="flex flex-col gap-3">
               <h2 className="text-lg font-bold">Main Facilities</h2>
-              <div className="space-y-3">
-                {form.watch("facilities")?.map((facility, index) => (
-                  <FacilityItem
-                    key={index}
-                    facility={facility || ""}
-                    index={index}
-                    onUpdate={handleFacilityUpdate}
-                    onRemove={handleFacilityRemove}
-                  />
-                ))}
-                <div className="flex justify-end">
-                  <Button type="button" onClick={handleFacilityAdd}>
-                    <PlusCircle className="size-4" /> Add List
-                  </Button>
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name="facilities"
+                render={() => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="space-y-3">
+                        {form.watch("facilities")?.map((facility, index) => (
+                          <FacilityItem
+                            key={index}
+                            facility={facility || ""}
+                            index={index}
+                            onUpdate={handleFacilityUpdate}
+                            onRemove={handleFacilityRemove}
+                            form={form}
+                          />
+                        ))}
+                        <div className="flex justify-end">
+                          <Button type="button" onClick={handleFacilityAdd}>
+                            <PlusCircle className="size-4" /> Add List
+                          </Button>
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
         </section>
@@ -650,29 +692,40 @@ const FacilityItem = ({
   index,
   onUpdate,
   onRemove,
+  form,
 }: {
   facility: string;
   index: number;
   onUpdate: (index: number, value: string) => void;
   onRemove: (index: number) => void;
-}) => (
-  <div className="flex items-center gap-2">
-    <Input
-      className="bg-gray-200"
-      placeholder="Insert Hotel Facilities"
-      value={facility}
-      onChange={(e) => onUpdate(index, e.target.value)}
-    />
-    <Button
-      type="button"
-      variant="destructive"
-      size="icon"
-      aria-label={`Remove facility ${index + 1}`}
-      onClick={() => onRemove(index)}
-    >
-      <Trash2 className="size-4" />
-    </Button>
-  </div>
-);
+  form: UseFormReturn<CreateHotelFormValues>;
+}) => {
+  const facilityError = form.formState.errors?.facilities?.[index];
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <Input
+          className="bg-gray-200"
+          placeholder="Insert Hotel Facilities"
+          value={facility}
+          onChange={(e) => onUpdate(index, e.target.value)}
+        />
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon"
+          aria-label={`Remove facility ${index + 1}`}
+          onClick={() => onRemove(index)}
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+      {facilityError && (
+        <p className="text-destructive text-sm">{facilityError.message}</p>
+      )}
+    </div>
+  );
+};
 
 export default NewHotelForm;

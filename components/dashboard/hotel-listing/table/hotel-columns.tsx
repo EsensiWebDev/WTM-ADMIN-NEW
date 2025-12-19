@@ -1,6 +1,10 @@
-import { updateHotelStatus } from "@/app/(dashboard)/hotel-listing/actions";
+import {
+  checkHotelRoomTypes,
+  updateHotelStatus,
+} from "@/app/(dashboard)/hotel-listing/actions";
 import { Hotel } from "@/app/(dashboard)/hotel-listing/types";
 import { AuthorizationGuard } from "@/components/authorization-guard";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -117,7 +121,19 @@ export function getHotelTableColumns({
       ),
       cell: ({ row }) => {
         const [isUpdatePending, startUpdateTransition] = React.useTransition();
+        const [selectValue, setSelectValue] = React.useState(
+          row.original.status.toLowerCase()
+        );
+        const [dialogOpen, setDialogOpen] = React.useState(false);
+        const [pendingValue, setPendingValue] = React.useState<string | null>(
+          null
+        );
         const status = row.original.status.toLowerCase();
+
+        // Sync select value with row status when it changes
+        React.useEffect(() => {
+          setSelectValue(status);
+        }, [status]);
 
         const getStatusColor = (value: string) => {
           if (value === "approved") return "text-green-600 bg-green-100";
@@ -126,44 +142,136 @@ export function getHotelTableColumns({
           return "";
         };
 
+        const getStatusLabel = (value: string) => {
+          if (value === "approved") return "Approved";
+          if (value === "rejected") return "Rejected";
+          if (value === "in review") return "In Review";
+          return value;
+        };
+
+        const handleConfirm = async () => {
+          if (!pendingValue) return;
+
+          startUpdateTransition(async () => {
+            const sendValue = pendingValue === "approved";
+
+            // If trying to approve, check if hotel has room types
+            if (sendValue) {
+              const roomTypesCheck = await checkHotelRoomTypes(
+                row.original.id
+              );
+
+              if (!roomTypesCheck.success) {
+                toast.error(
+                  "Failed to verify room types. Please try again."
+                );
+                setDialogOpen(false);
+                setPendingValue(null);
+                return;
+              }
+
+              if (!roomTypesCheck.hasRoomTypes) {
+                toast.error(
+                  "Cannot approve hotel: No room types available. Please add at least one room type before approving."
+                );
+                setDialogOpen(false);
+                setPendingValue(null);
+                return;
+              }
+            }
+
+            const fd = new FormData();
+            fd.append("status", String(sendValue));
+            fd.append("hotel_id", row.original.id);
+
+            const { success, message } = await updateHotelStatus(fd);
+
+            if (!success) {
+              toast.error(message);
+              setDialogOpen(false);
+              setPendingValue(null);
+              return;
+            }
+
+            // Update select value on success
+            setSelectValue(pendingValue);
+            setDialogOpen(false);
+            setPendingValue(null);
+            toast.success(message);
+          });
+        };
+
+        const handleCancel = () => {
+          setDialogOpen(false);
+          setPendingValue(null);
+        };
+
         return (
           <AuthorizationGuard requiredRole="Super Admin">
-            <Select
-              defaultValue={status}
-              disabled={isUpdatePending}
-              onValueChange={(value) => {
-                startUpdateTransition(async () => {
-                  const sendValue = value === "approved";
-
-                  const fd = new FormData();
-                  fd.append("status", String(sendValue));
-                  fd.append("hotel_id", row.original.id);
-
-                  const { success, message } = await updateHotelStatus(fd);
-
-                  if (!success) {
-                    toast.error(message);
-                    return;
+            <>
+              <Select
+                value={selectValue}
+                disabled={isUpdatePending}
+                onValueChange={(value) => {
+                  // Only show dialog if status is actually changing
+                  if (value !== status) {
+                    setPendingValue(value);
+                    setDialogOpen(true);
                   }
-                  toast.success(message);
-                });
-              }}
-            >
-              <SelectTrigger
-                className={`w-38 rounded-full px-3 border-0 shadow-none **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate ${getStatusColor(
-                  status
-                )}`}
+                }}
               >
-                <SelectValue placeholder="Change status" />
-              </SelectTrigger>
-              <SelectContent align="end">
-                <SelectItem value={"approved"}>Approved</SelectItem>
-                <SelectItem value={"in review"} disabled>
-                  In Review
-                </SelectItem>
-                <SelectItem value={"rejected"}>Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  className={`w-38 rounded-full px-3 border-0 shadow-none **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate ${getStatusColor(
+                    selectValue
+                  )}`}
+                >
+                  <SelectValue placeholder="Change status" />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  <SelectItem value={"approved"}>Approved</SelectItem>
+                  <SelectItem value={"in review"} disabled>
+                    In Review
+                  </SelectItem>
+                  <SelectItem value={"rejected"}>Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+              <ConfirmationDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                onConfirm={handleConfirm}
+                onCancel={handleCancel}
+                isLoading={isUpdatePending}
+                title="Change Approval Status"
+                description={`You're about to change the approval status for "${row.original.name}".`}
+              >
+                {pendingValue && (
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    <span className="font-semibold">Current Status:</span>
+                    <span
+                      className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${getStatusColor(
+                        status
+                      )}`}
+                    >
+                      {getStatusLabel(status)}
+                    </span>
+                    <span className="mx-2">→</span>
+                    <span className="font-semibold">New Status:</span>
+                    <span
+                      className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${getStatusColor(
+                        pendingValue
+                      )}`}
+                    >
+                      {getStatusLabel(pendingValue)}
+                    </span>
+                  </div>
+                )}
+                {pendingValue === "approved" && (
+                  <p className="mt-2 text-sm text-muted-foreground text-center">
+                    Note: The hotel must have at least one room type to be approved.
+                  </p>
+                )}
+              </ConfirmationDialog>
+            </>
           </AuthorizationGuard>
         );
       },
