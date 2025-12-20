@@ -90,6 +90,7 @@ interface ViewInvoiceDialogProps {
     invoices: any[];
     receipts?: string[] | null;
     detail?: BookingSummaryDetail[];
+    guest_name?: string[]; // Guest names array from booking
   } | null;
   viewBtnReceipt?: boolean;
   invoiceIndex?: number;
@@ -132,23 +133,38 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   // Get currency from invoice, with fallback to IDR
   const invoiceCurrency = invoice?.currency || "IDR";
 
+  // Get guest names from booking.guest_name array instead of invoice.guest
+  const guestNamesList = booking?.guest_name && booking.guest_name.length > 0
+    ? booking.guest_name
+    : invoice?.guest
+      ? invoice.guest.split(", ")
+      : ["Guest Name Not Found"];
+
+  // Parse check-in and check-out dates from comma-separated string
+  const checkInDatesList = checkInDateRaw
+    ? checkInDateRaw.split(", ").map((date: string) => date.trim()).filter((date: string) => date !== "")
+    : [];
+  const checkOutDatesList = checkOutDateRaw
+    ? checkOutDateRaw.split(", ").map((date: string) => date.trim()).filter((date: string) => date !== "")
+    : [];
+
+  // Format dates for display
+  const formattedCheckInDates = checkInDatesList.length > 0
+    ? checkInDatesList.map((date: string) => validateAndFormatDate(date, "Check-in Date Not Found", "dd-MM-yyyy"))
+    : ["Check-in Date Not Found"];
+  const formattedCheckOutDates = checkOutDatesList.length > 0
+    ? checkOutDatesList.map((date: string) => validateAndFormatDate(date, "Check-out Date Not Found", "dd-MM-yyyy"))
+    : ["Check-out Date Not Found"];
+
   const newInvoiceData = {
     invoiceNumber: invoice?.invoice_number || "Invoice Number Not Found",
     companyName: invoice?.company_agent || "",
     agentName: invoice?.agent || "Agent Name Not Found",
     agentEmail: invoice?.email || "Email Not Found",
     hotelName: invoice?.hotel || "Hotel Name Not Found",
-    guestName: invoice?.guest || "Guest Name Not Found",
-    checkInDate: validateAndFormatDate(
-      checkInDateRaw,
-      "Check-in Date Not Found",
-      "dd-MM-yyyy",
-    ),
-    checkOutDate: validateAndFormatDate(
-      checkOutDateRaw,
-      "Check-out Date Not Found",
-      "dd-MM-yyyy",
-    ),
+    guestName: guestNamesList.join(", "),
+    checkInDate: formattedCheckInDates.join(", "),
+    checkOutDate: formattedCheckOutDates.join(", "),
     checkInDateRaw: checkInDateRaw || "",
     checkOutDateRaw: checkOutDateRaw || "",
     invoiceDate: validateAndFormatDate(
@@ -166,23 +182,82 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
     },
   };
 
-  // Parse invoice items into structured format
+  // Parse invoice items into structured format, handling consolidated invoices with sub-booking sections
   const parsedItems = useMemo(() => {
     const rooms: typeof newInvoiceData.items = [];
     const additionalServices: typeof newInvoiceData.items = [];
     const otherPreferences: typeof newInvoiceData.items = [];
+    const subBookingSections: Array<{
+      subBookingId: string;
+      hotelName: string;
+      rooms: typeof newInvoiceData.items;
+      additionalServices: typeof newInvoiceData.items;
+      otherPreferences: typeof newInvoiceData.items;
+    }> = [];
+
+    let currentSection: {
+      subBookingId: string;
+      hotelName: string;
+      rooms: typeof newInvoiceData.items;
+      additionalServices: typeof newInvoiceData.items;
+      otherPreferences: typeof newInvoiceData.items;
+    } | null = null;
 
     newInvoiceData.items.forEach((item: (typeof newInvoiceData.items)[number]) => {
-      if (item.unit === "night") {
+      // Check if this is a separator item indicating a new sub-booking section
+      if (item.unit === "separator") {
+        // Save current section if it exists
+        if (currentSection) {
+          subBookingSections.push(currentSection);
+        }
+        // Extract hotel name and sub-booking ID from description (format: "--- Hotel Name (Sub-Booking ID: XXX) ---")
+        const match = item.description.match(/--- (.+?) \(Sub-Booking ID: ([^)]+)\) ---/);
+        if (match) {
+          const hotelName = match[1];
+          const subBookingId = match[2];
+          currentSection = {
+            subBookingId,
+            hotelName, // Store hotel name for display
+            rooms: [],
+            additionalServices: [],
+            otherPreferences: [],
+          };
+        } else {
+          // Fallback for old format
+          const oldMatch = item.description.match(/Sub-Booking ID: ([^-\s]+)/);
+          const subBookingId = oldMatch ? oldMatch[1] : "Unknown";
+          currentSection = {
+            subBookingId,
+            hotelName: "Hotel", // Default hotel name
+            rooms: [],
+            additionalServices: [],
+            otherPreferences: [],
+          };
+        }
+      } else if (item.unit === "night") {
+        if (currentSection) {
+          currentSection.rooms.push(item);
+        }
         rooms.push(item);
       } else if (item.unit === "preference") {
+        if (currentSection) {
+          currentSection.otherPreferences.push(item);
+        }
         otherPreferences.push(item);
       } else {
+        if (currentSection) {
+          currentSection.additionalServices.push(item);
+        }
         additionalServices.push(item);
       }
     });
 
-    return { rooms, additionalServices, otherPreferences };
+    // Don't forget to add the last section
+    if (currentSection) {
+      subBookingSections.push(currentSection);
+    }
+
+    return { rooms, additionalServices, otherPreferences, subBookingSections };
   }, [newInvoiceData.items]);
 
   // Calculate nights
@@ -359,18 +434,31 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
             <div>
               <div className="space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between gap-2">
-                  <span className="text-gray-600">Villa</span>
-                  <span className="text-right">{newInvoiceData.hotelName}</span>
+                  <span className="text-gray-600">Hotel Name</span>
+                  <span className="text-right break-words text-left">
+                    {newInvoiceData.hotelName.split(", ").map((hotel: string, idx: number) => (
+                      <span key={idx}>
+                        {hotel}
+                        {idx < newInvoiceData.hotelName.split(", ").length - 1 && ", "}
+                      </span>
+                    ))}
+                  </span>
                 </div>
                 <div className="flex justify-between gap-2">
                   <span className="text-gray-600">Guest Name</span>
-                  <span className="text-right">{newInvoiceData.guestName}</span>
+                  <span className="text-right break-words text-left">
+                    {guestNamesList.map((guest: string, idx: number) => (
+                      <div key={idx}>{guest}</div>
+                    ))}
+                  </span>
                 </div>
 
                 <div className="flex justify-between gap-2">
                   <span className="text-gray-600">Check-In</span>
-                  <span className="text-right">
-                    {newInvoiceData.checkInDate}
+                  <span className="text-right break-words text-left">
+                    {formattedCheckInDates.map((date: string, idx: number) => (
+                      <div key={idx}>{date}</div>
+                    ))}
                   </span>
                 </div>
               </div>
@@ -387,14 +475,18 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                 </div>
                 <div className="flex justify-between gap-2">
                   <span className="text-gray-600">Sub Booking ID</span>
-                  <span className="text-right">
-                    {newInvoiceData.subBookingId}
+                  <span className="text-right break-words text-left">
+                    {newInvoiceData.subBookingId.split(", ").map((id: string, idx: number) => (
+                      <div key={idx}>{id}</div>
+                    ))}
                   </span>
                 </div>
                 <div className="flex justify-between gap-2">
                   <span className="text-gray-600">Check-Out</span>
-                  <span className="text-right">
-                    {newInvoiceData.checkOutDate}
+                  <span className="text-right break-words text-left">
+                    {formattedCheckOutDates.map((date: string, idx: number) => (
+                      <div key={idx}>{date}</div>
+                    ))}
                   </span>
                 </div>
               </div>
@@ -408,351 +500,463 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                 <h3 className="font-semibold">Reservation Summary</h3>
               </div>
 
-              {/* Hotel Name */}
-              <div className="px-6 pb-4">
-                <h4 className="text-base font-semibold text-gray-900 sm:text-lg">
-                  {matchingSubBooking?.hotel_name || newInvoiceData.hotelName}
-                </h4>
-                {matchingSubBooking?.room_type_name && (
-                  <p className="mt-1 text-xs text-gray-700 sm:text-sm">
-                    {matchingSubBooking.room_type_name}
-                    {matchingSubBooking.bed_type && (
-                      <span className="ml-1 text-xs text-gray-500">
-                        ({matchingSubBooking.bed_type})
-                      </span>
-                    )}
-                    {matchingSubBooking.is_breakfast && (
-                      <span className="ml-2 text-xs text-green-700">
-                        Breakfast Included
-                      </span>
-                    )}
-                  </p>
-                )}
-              </div>
-
-              {/* Check-in / Check-out Dates */}
-              {checkInDateRaw && checkOutDateRaw && (
-                <div className="mt-2 flex flex-col items-center justify-between gap-4 px-6 md:flex-row md:gap-2">
-                  <div className="w-full rounded-lg bg-gray-200 p-4 text-center md:flex-1">
-                    <div className="text-muted-foreground text-xs">Check-in</div>
-                    <div className="text-sm font-medium">
-                      {isValid(new Date(checkInDateRaw)) &&
-                        format(new Date(checkInDateRaw), "eee, MMMM d yyyy")}
-                    </div>
-                    <div className="text-xs">
-                      {isValid(new Date(checkInDateRaw)) &&
-                        format(new Date(checkInDateRaw), "HH:mm")}{" "}
-                      WIB
-                    </div>
-                  </div>
-
-                  <div className="flex items-center md:flex-col">
-                    <div className="hidden items-center md:flex">
-                      <div className="h-[1px] w-4 bg-gray-600"></div>
-                      <div className="flex items-center justify-center rounded-full border border-gray-300 px-2 py-1 text-xs dark:border-gray-600">
-                        <IconMoon className="mr-1 h-3 w-3" />
-                        {nights} {nights === 1 ? "Night" : "Nights"}
+              {/* Hotel Name - Only show if single booking */}
+              {parsedItems.subBookingSections.length <= 1 && (
+                <div className="px-6 pb-4">
+                  <h4 className="text-base font-semibold text-gray-900 sm:text-lg">
+                    {matchingSubBooking?.hotel_name || newInvoiceData.hotelName}
+                  </h4>
+                  {/* Show check-in/check-out dates and nights for single booking */}
+                  {matchingSubBooking?.check_in_date && matchingSubBooking?.check_out_date && (
+                    <div className="mt-2 space-y-1 text-xs text-gray-600">
+                      <div>
+                        Check-in: {validateAndFormatDate(
+                          matchingSubBooking.check_in_date,
+                          "",
+                          "dd-MM-yyyy"
+                        )}
                       </div>
-                      <div className="h-[1px] w-4 bg-gray-600"></div>
-                    </div>
-                    <div className="flex items-center md:hidden">
-                      <div className="flex items-center justify-center rounded-full border border-gray-300 px-2 py-1 text-xs dark:border-gray-600">
-                        <Clock className="mr-1 h-3 w-3" />
-                        {nights} {nights === 1 ? "Night" : "Nights"}
+                      <div>
+                        Check-out: {validateAndFormatDate(
+                          matchingSubBooking.check_out_date,
+                          "",
+                          "dd-MM-yyyy"
+                        )}
                       </div>
+                      {nights > 0 && (
+                        <div className="font-medium">
+                          {nights} {nights === 1 ? "Night" : "Nights"}
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="w-full rounded-lg bg-gray-200 p-4 text-center md:flex-1">
-                    <div className="text-muted-foreground text-xs">Check-out</div>
-                    <div className="text-sm font-medium">
-                      {isValid(new Date(checkOutDateRaw)) &&
-                        format(new Date(checkOutDateRaw), "eee, MMMM d yyyy")}
-                    </div>
-                    <div className="text-xs">
-                      {isValid(new Date(checkOutDateRaw)) &&
-                        format(new Date(checkOutDateRaw), "HH:mm")}{" "}
-                      WIB
-                    </div>
-                  </div>
+                  )}
+                  {matchingSubBooking?.room_type_name && (
+                    <p className="mt-1 text-xs text-gray-700 sm:text-sm">
+                      {matchingSubBooking.room_type_name}
+                      {matchingSubBooking.bed_type && (
+                        <span className="ml-1 text-xs text-gray-500">
+                          ({matchingSubBooking.bed_type})
+                        </span>
+                      )}
+                      {matchingSubBooking.is_breakfast && (
+                        <span className="ml-2 text-xs text-green-700">
+                          Breakfast Included
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
 
-              {/* Room Selected */}
-              <div className="my-6 space-y-3 px-6">
-                <span className="text-muted-foreground text-xs">
-                  Room Selected
-                </span>
+          {/* Reservation Summary - Grouped by Sub-Booking */}
+              <div className="my-6 space-y-6 px-6">
+                {parsedItems.subBookingSections.length > 1 ? (
+                  // Show grouped sub-bookings with all info and subtotals
+                  parsedItems.subBookingSections.map((section, sectionIdx) => {
+                    // Find matching sub-booking detail for this section
+                    const sectionSubBooking = booking?.detail?.find(
+                      (detail) => detail.sub_booking_id === section.subBookingId
+                    );
+                    
+                    // Calculate nights for this booking
+                    let sectionNights = 0;
+                    if (sectionSubBooking?.check_in_date && sectionSubBooking?.check_out_date) {
+                      try {
+                        const checkIn = new Date(sectionSubBooking.check_in_date);
+                        const checkOut = new Date(sectionSubBooking.check_out_date);
+                        if (isValid(checkIn) && isValid(checkOut)) {
+                          sectionNights = differenceInDays(checkOut, checkIn);
+                        }
+                      } catch {
+                        // Ignore errors
+                      }
+                    }
 
-                {parsedItems.rooms.map(
-                  (
-                    room: (typeof parsedItems.rooms)[number],
-                    idx: number,
-                  ) => (
-                    <div
-                      key={`room-${idx}`}
-                      className="flex items-center justify-between gap-4"
-                    >
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">
-                          {room.description}
-                        </div>
-                        {matchingSubBooking?.room_price && nights > 0 && (
-                          <div className="mt-0.5 text-xs text-gray-500">
-                            {formatCurrency(
-                              matchingSubBooking.room_price,
-                              newInvoiceData.currency,
-                            )}{" "}
-                            / night × {nights} night
-                            {nights > 1 ? "s" : ""}
+                    // Calculate subtotal for this section
+                    const sectionSubtotal = section.rooms.reduce((sum: number, room: typeof section.rooms[number]) => sum + room.total, 0) +
+                      section.additionalServices.reduce((sum: number, service: typeof section.additionalServices[number]) => sum + (service.total || 0), 0);
+
+                    // Get promo for this sub-booking
+                    const sectionPromo = sectionSubBooking?.invoice?.promo;
+
+                    return (
+                      <div key={`section-${sectionIdx}`} className="space-y-4">
+                        <div className="border-t pt-4 first:border-t-0 first:pt-0">
+                          {/* Hotel Name and Dates */}
+                          <div className="mb-4">
+                            <h4 className="text-base font-semibold text-gray-900 sm:text-lg">
+                              {section.hotelName}
+                            </h4>
+                            <p className="mt-1 text-xs text-gray-500">
+                              Sub-Booking ID: {section.subBookingId}
+                            </p>
+                            {sectionSubBooking?.check_in_date && sectionSubBooking?.check_out_date && (
+                              <div className="mt-2 space-y-1 text-xs text-gray-600">
+                                <div>
+                                  Check-in: {validateAndFormatDate(
+                                    sectionSubBooking.check_in_date,
+                                    "",
+                                    "dd-MM-yyyy"
+                                  )}
+                                </div>
+                                <div>
+                                  Check-out: {validateAndFormatDate(
+                                    sectionSubBooking.check_out_date,
+                                    "",
+                                    "dd-MM-yyyy"
+                                  )}
+                                </div>
+                                {sectionNights > 0 && (
+                                  <div className="font-medium">
+                                    {sectionNights} {sectionNights === 1 ? "Night" : "Nights"}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <span className="whitespace-nowrap text-sm font-medium">
-                        {formatCurrency(room.total, newInvoiceData.currency)}
-                      </span>
-                    </div>
-                  ),
-                )}
 
-                {/* Promotion Applied */}
-                {(() => {
-                  const promo = newInvoiceData.promo;
-                  if (!promo) return false;
+                          {/* Room Type */}
+                          {sectionSubBooking?.room_type_name && (
+                            <div className="mb-3">
+                              <p className="text-sm font-medium text-gray-700">
+                                {sectionSubBooking.room_type_name}
+                                {sectionSubBooking.bed_type && (
+                                  <span className="ml-1 text-xs text-gray-500">
+                                    ({sectionSubBooking.bed_type})
+                                  </span>
+                                )}
+                                {sectionSubBooking.is_breakfast && (
+                                  <span className="ml-2 text-xs text-green-700">
+                                    Breakfast Included
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          )}
 
-                  const hasPromoCode =
-                    (promo.promo_code && promo.promo_code.trim() !== "") ||
-                    (promo.name && promo.name.trim() !== "");
-                  const hasPromoType =
-                    promo.type && promo.type.trim() !== "";
-                  const hasDiscount =
-                    promo.discount_percent &&
-                    promo.discount_percent > 0;
-                  const hasFixedPrice =
-                    promo.fixed_price && promo.fixed_price > 0;
-                  const hasBenefit =
-                    promo.benefit_note &&
-                    promo.benefit_note.trim() !== "";
+                          {/* Promotion Applied */}
+                          {sectionPromo && (() => {
+                            const hasPromoCode =
+                              (sectionPromo.promo_code && sectionPromo.promo_code.trim() !== "") ||
+                              (sectionPromo.name && sectionPromo.name.trim() !== "");
+                            const hasPromoType = sectionPromo.type && sectionPromo.type.trim() !== "";
+                            const hasDiscount = sectionPromo.discount_percent && sectionPromo.discount_percent > 0;
+                            const hasFixedPrice = sectionPromo.fixed_price && sectionPromo.fixed_price > 0;
+                            const hasBenefit = sectionPromo.benefit_note && sectionPromo.benefit_note.trim() !== "";
 
-                  return (
-                    hasPromoCode ||
-                    hasPromoType ||
-                    hasDiscount ||
-                    hasFixedPrice ||
-                    hasBenefit
-                  );
-                })() && (
-                  <div className="mt-4 space-y-2">
-                    <span className="text-muted-foreground text-xs">
-                      Promotion Applied
-                    </span>
-                    <div className="rounded-md bg-blue-50 p-3 text-xs">
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="font-semibold text-blue-900">
-                          Promo:{" "}
-                          {newInvoiceData.promo?.promo_code ||
-                            newInvoiceData.promo?.name ||
-                            "N/A"}
-                        </span>
-                        {newInvoiceData.promo?.type && (
-                          <span className="rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800">
-                            {newInvoiceData.promo.type}
-                          </span>
-                        )}
-                      </div>
-                      {newInvoiceData.promo?.benefit_note &&
-                        newInvoiceData.promo.benefit_note.trim() !== "" && (
-                          <p className="mb-1 text-blue-700">
-                            {newInvoiceData.promo.benefit_note}
-                          </p>
-                        )}
-                      {(() => {
-                        const promo = newInvoiceData.promo;
-                        if (!promo) return null;
+                            if (hasPromoCode || hasPromoType || hasDiscount || hasFixedPrice || hasBenefit) {
+                              return (
+                                <div className="mb-3 rounded-md bg-blue-50 p-3 text-xs">
+                                  <div className="mb-1 flex items-center gap-2">
+                                    <span className="font-semibold text-blue-900">
+                                      Promo: {sectionPromo.promo_code || sectionPromo.name || "N/A"}
+                                    </span>
+                                    {sectionPromo.type && (
+                                      <span className="rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800">
+                                        {sectionPromo.type}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {sectionPromo.benefit_note && sectionPromo.benefit_note.trim() !== "" && (
+                                    <p className="mb-1 text-blue-700">{sectionPromo.benefit_note}</p>
+                                  )}
+                                  {sectionPromo.fixed_price && sectionPromo.fixed_price > 0 && (
+                                    <p className="font-medium text-green-700">
+                                      Fixed price: {formatCurrency(sectionPromo.fixed_price, newInvoiceData.currency)}
+                                    </p>
+                                  )}
+                                  {sectionPromo.discount_percent && sectionPromo.discount_percent > 0 && (
+                                    <p className="font-medium text-green-700">
+                                      {sectionPromo.discount_percent}% discount
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
 
-                        if (
-                          promo.fixed_price &&
-                          promo.fixed_price > 0
-                        ) {
-                          return (
-                            <p className="font-medium text-green-700">
-                              Fixed price:{" "}
-                              {formatCurrency(
-                                promo.fixed_price,
-                                newInvoiceData.currency,
-                              )}
-                            </p>
-                          );
-                        }
+                          {/* Bed Type (if not shown with room type) */}
+                          {sectionSubBooking?.bed_type && !sectionSubBooking?.room_type_name && (
+                            <div className="mb-3">
+                              <span className="text-muted-foreground text-xs">Bed Type: </span>
+                              <span className="text-sm font-medium">{sectionSubBooking.bed_type}</span>
+                            </div>
+                          )}
 
-                        if (
-                          promo.discount_percent &&
-                          promo.discount_percent > 0
-                        ) {
-                          return (
-                            <p className="font-medium text-green-700">
-                              {promo.discount_percent}% discount
-                            </p>
-                          );
-                        }
+                          {/* Room Selected */}
+                          {section.rooms.length > 0 && (
+                            <div className="mb-3 space-y-2">
+                              <span className="text-muted-foreground text-xs">Room Selected</span>
+                              {section.rooms.map((room: typeof section.rooms[number], idx: number) => (
+                                <div
+                                  key={`room-${sectionIdx}-${idx}`}
+                                  className="flex items-center justify-between gap-4"
+                                >
+                                  <div className="flex-1">
+                                    <div className="text-sm font-medium">{room.description}</div>
+                                    {room.price > 0 && (
+                                      <div className="mt-0.5 text-xs text-gray-500">
+                                        {formatCurrency(room.price, newInvoiceData.currency)} / night × {room.quantity} night
+                                        {room.quantity > 1 ? "s" : ""}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="whitespace-nowrap text-sm font-medium">
+                                    {formatCurrency(room.total, newInvoiceData.currency)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
 
-                        return null;
-                      })()}
-                    </div>
-                  </div>
-                )}
+                          {/* Additional Services */}
+                          {section.additionalServices.length > 0 && (
+                            <div className="mb-3 space-y-2">
+                              <span className="text-muted-foreground text-xs">Additional Services</span>
+                              {section.additionalServices.map((additional: typeof section.additionalServices[number], idx: number) => {
+                                const category = additional.category || "price";
+                                const displayValue =
+                                  category === "price" && additional.price !== undefined
+                                    ? formatCurrency(additional.total, newInvoiceData.currency)
+                                    : category === "pax" && additional.quantity
+                                      ? `${additional.quantity} ${additional.quantity === 1 ? "person" : "people"}`
+                                      : formatCurrency(additional.total, newInvoiceData.currency);
 
-                {/* Bed Type */}
-                {(invoice?.bed_type ||
-                  matchingSubBooking?.bed_type ||
-                  (matchingSubBooking?.bed_type === "" &&
-                    matchingSubBooking?.bed_type !== undefined)) && (
-                  <div className="mt-4 space-y-2">
-                    <span className="text-muted-foreground text-xs">
-                      Bed Type
-                    </span>
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm font-medium">
-                        {matchingSubBooking?.bed_type || invoice?.bed_type}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Additional Services */}
-                {(matchingSubBooking?.additional_services &&
-                  matchingSubBooking.additional_services.length > 0) ||
-                parsedItems.additionalServices.length > 0 ? (
-                  <div className="mt-4 space-y-2">
-                    <span className="text-muted-foreground text-xs">
-                      Additional Services
-                    </span>
-                    {matchingSubBooking?.additional_services &&
-                      matchingSubBooking.additional_services.map(
-                        (service, idx) => {
-                          const category = service.category || "price";
-                          const displayValue =
-                            category === "pax" && service.pax !== null
-                              ? `${service.pax} ${
-                                  service.pax === 1 ? "Pax" : "Pax"
-                                }`
-                              : formatCurrency(
-                                  service.price || 0,
-                                  matchingSubBooking.currency ||
-                                    newInvoiceData.currency,
+                                return (
+                                  <div
+                                    key={`additional-${sectionIdx}-${idx}`}
+                                    className="flex items-center justify-between gap-4"
+                                  >
+                                    <span className="text-sm font-medium">{additional.description}</span>
+                                    <span className="whitespace-nowrap text-sm font-medium">{displayValue}</span>
+                                  </div>
                                 );
-
-                          return (
-                            <div
-                              key={`additional-service-${idx}`}
-                              className="flex items-center justify-between gap-4"
-                            >
-                              <span className="text-sm font-medium">
-                                {service.name}
-                              </span>
-                              <span className="whitespace-nowrap text-sm font-medium">
-                                {displayValue}
-                              </span>
+                              })}
                             </div>
-                          );
-                        },
-                      )}
-                    {/* Fallback to parsed invoice items if no structured services */}
-                    {(!matchingSubBooking?.additional_services ||
-                      matchingSubBooking.additional_services.length === 0) &&
-                      parsedItems.additionalServices.map(
-                        (
-                          additional: (typeof parsedItems.additionalServices)[number],
-                          idx: number,
-                        ) => {
-                          const category = additional.category || "price";
-                          const displayValue =
-                            category === "price" &&
-                            additional.price !== undefined
-                              ? formatCurrency(
-                                  additional.total,
-                                  newInvoiceData.currency,
-                                )
-                              : category === "pax" && additional.quantity
-                                ? `${additional.quantity} ${
-                                    additional.quantity === 1
-                                      ? "person"
-                                      : "people"
-                                  }`
-                                : formatCurrency(
-                                    additional.total,
-                                    newInvoiceData.currency,
-                                  );
+                          )}
 
-                          return (
-                            <div
-                              key={`additional-${idx}`}
-                              className="flex items-center justify-between gap-4"
-                            >
-                              <span className="text-sm font-medium">
-                                {additional.description}
-                              </span>
-                              <span className="whitespace-nowrap text-sm font-medium">
-                                {displayValue}
-                              </span>
+                          {/* Other Preferences */}
+                          {section.otherPreferences.length > 0 && (
+                            <div className="mb-3 space-y-2">
+                              <span className="text-muted-foreground text-xs">Other Preferences</span>
+                              {section.otherPreferences.map((pref: typeof section.otherPreferences[number], idx: number) => (
+                                <div
+                                  key={`preference-${sectionIdx}-${idx}`}
+                                  className="flex items-center justify-between gap-4"
+                                >
+                                  <span className="text-sm font-medium">{pref.description}</span>
+                                </div>
+                              ))}
                             </div>
-                          );
-                        },
-                      )}
-                  </div>
-                ) : null}
+                          )}
 
-                {/* Other Preferences */}
-                {(matchingSubBooking?.other_preferences &&
-                  matchingSubBooking.other_preferences.length > 0) ||
-                parsedItems.otherPreferences.length > 0 ? (
-                  <div className="mt-4 space-y-2">
-                    <span className="text-muted-foreground text-xs">
-                      Other Preferences
-                    </span>
-                    {matchingSubBooking?.other_preferences &&
-                      matchingSubBooking.other_preferences.map(
-                        (pref, idx) => (
+                          {/* Additional Notes for this sub-booking */}
+                          {sectionSubBooking?.additional_notes && (
+                            <div className="mb-3 space-y-2">
+                              <span className="text-muted-foreground text-xs">Additional Notes</span>
+                              <div className="whitespace-pre-line rounded-md bg-gray-100 p-3 text-sm text-gray-700">
+                                {sectionSubBooking.additional_notes}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Sub-total for this sub-booking */}
+                          <div className="mt-4 flex justify-end border-t pt-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="text-sm font-semibold text-gray-900">Sub-total:</span>
+                                <span className="text-base font-bold text-gray-900">
+                                  {formatCurrency(sectionSubtotal, newInvoiceData.currency)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  // Show single booking format (backward compatibility)
+                  <div className="space-y-4">
+                    {/* Room Selected */}
+                    {parsedItems.rooms.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-muted-foreground text-xs">Room Selected</span>
+                        {parsedItems.rooms.map((room: typeof parsedItems.rooms[number], idx: number) => (
                           <div
-                            key={`preference-${idx}`}
+                            key={`room-${idx}`}
                             className="flex items-center justify-between gap-4"
                           >
-                            <span className="text-sm font-medium">
-                              {pref}
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">{room.description}</div>
+                              {matchingSubBooking?.room_price && nights > 0 && (
+                                <div className="mt-0.5 text-xs text-gray-500">
+                                  {formatCurrency(matchingSubBooking.room_price, newInvoiceData.currency)} / night × {nights} night
+                                  {nights > 1 ? "s" : ""}
+                                </div>
+                              )}
+                            </div>
+                            <span className="whitespace-nowrap text-sm font-medium">
+                              {formatCurrency(room.total, newInvoiceData.currency)}
                             </span>
                           </div>
-                        ),
-                      )}
-                    {/* Fallback to parsed preferences if no structured preferences */}
-                    {(!matchingSubBooking?.other_preferences ||
-                      matchingSubBooking.other_preferences.length === 0) &&
-                      parsedItems.otherPreferences.map(
-                        (
-                          pref: (typeof parsedItems.otherPreferences)[number],
-                          idx: number,
-                        ) => (
-                          <div
-                            key={`preference-${idx}`}
-                            className="flex items-center justify-between gap-4"
-                          >
-                            <span className="text-sm font-medium">
-                              {pref.description}
-                            </span>
-                          </div>
-                        ),
-                      )}
-                  </div>
-                ) : null}
+                        ))}
+                      </div>
+                    )}
 
-                {/* Additional Notes */}
-                {invoice?.additional_notes && (
-                  <div className="mt-4 space-y-2">
-                    <span className="text-muted-foreground text-xs">
-                      Additional Notes
-                    </span>
-                    <div className="whitespace-pre-line rounded-md bg-gray-100 p-3 text-sm text-gray-700">
-                      {invoice.additional_notes}
-                    </div>
+                    {/* Promotion Applied */}
+                    {(() => {
+                      const promo = newInvoiceData.promo;
+                      if (!promo) return null;
+
+                      const hasPromoCode =
+                        (promo.promo_code && promo.promo_code.trim() !== "") ||
+                        (promo.name && promo.name.trim() !== "");
+                      const hasPromoType = promo.type && promo.type.trim() !== "";
+                      const hasDiscount = promo.discount_percent && promo.discount_percent > 0;
+                      const hasFixedPrice = promo.fixed_price && promo.fixed_price > 0;
+                      const hasBenefit = promo.benefit_note && promo.benefit_note.trim() !== "";
+
+                      if (hasPromoCode || hasPromoType || hasDiscount || hasFixedPrice || hasBenefit) {
+                        return (
+                          <div className="space-y-2">
+                            <span className="text-muted-foreground text-xs">Promotion Applied</span>
+                            <div className="rounded-md bg-blue-50 p-3 text-xs">
+                              <div className="mb-1 flex items-center gap-2">
+                                <span className="font-semibold text-blue-900">
+                                  Promo: {promo.promo_code || promo.name || "N/A"}
+                                </span>
+                                {promo.type && (
+                                  <span className="rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800">
+                                    {promo.type}
+                                  </span>
+                                )}
+                              </div>
+                              {promo.benefit_note && promo.benefit_note.trim() !== "" && (
+                                <p className="mb-1 text-blue-700">{promo.benefit_note}</p>
+                              )}
+                              {promo.fixed_price && promo.fixed_price > 0 && (
+                                <p className="font-medium text-green-700">
+                                  Fixed price: {formatCurrency(promo.fixed_price, newInvoiceData.currency)}
+                                </p>
+                              )}
+                              {promo.discount_percent && promo.discount_percent > 0 && (
+                                <p className="font-medium text-green-700">{promo.discount_percent}% discount</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                    {/* Bed Type */}
+                    {(invoice?.bed_type || matchingSubBooking?.bed_type) && (
+                      <div className="space-y-2">
+                        <span className="text-muted-foreground text-xs">Bed Type</span>
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-sm font-medium">
+                            {matchingSubBooking?.bed_type || invoice?.bed_type}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Additional Services */}
+                    {(matchingSubBooking?.additional_services && matchingSubBooking.additional_services.length > 0) ||
+                    parsedItems.additionalServices.length > 0 ? (
+                      <div className="space-y-2">
+                        <span className="text-muted-foreground text-xs">Additional Services</span>
+                        <>
+                          {matchingSubBooking?.additional_services &&
+                            matchingSubBooking.additional_services.map((service, idx) => {
+                              const category = service.category || "price";
+                              const displayValue =
+                                category === "pax" && service.pax !== null
+                                  ? `${service.pax} ${service.pax === 1 ? "Pax" : "Pax"}`
+                                  : formatCurrency(
+                                      service.price || 0,
+                                      matchingSubBooking.currency || newInvoiceData.currency,
+                                    );
+
+                              return (
+                                <div
+                                  key={`additional-service-${idx}`}
+                                  className="flex items-center justify-between gap-4"
+                                >
+                                  <span className="text-sm font-medium">{service.name}</span>
+                                  <span className="whitespace-nowrap text-sm font-medium">{displayValue}</span>
+                                </div>
+                              );
+                            })}
+                          {(!matchingSubBooking?.additional_services ||
+                            matchingSubBooking.additional_services.length === 0) &&
+                            parsedItems.additionalServices.map(
+                              (
+                                additional: (typeof parsedItems.additionalServices)[number],
+                                idx: number,
+                              ) => {
+                                const category = additional.category || "price";
+                                const displayValue =
+                                  category === "price" && additional.price !== undefined
+                                    ? formatCurrency(additional.total, newInvoiceData.currency)
+                                    : category === "pax" && additional.quantity
+                                      ? `${additional.quantity} ${additional.quantity === 1 ? "person" : "people"}`
+                                      : formatCurrency(additional.total, newInvoiceData.currency);
+
+                                return (
+                                  <div
+                                    key={`additional-${idx}`}
+                                    className="flex items-center justify-between gap-4"
+                                  >
+                                    <span className="text-sm font-medium">{additional.description}</span>
+                                    <span className="whitespace-nowrap text-sm font-medium">{displayValue}</span>
+                                  </div>
+                                );
+                              },
+                            )}
+                        </>
+                      </div>
+                    ) : null}
+
+                    {/* Other Preferences */}
+                    {(matchingSubBooking?.other_preferences && matchingSubBooking.other_preferences.length > 0) ||
+                    parsedItems.otherPreferences.length > 0 ? (
+                      <div className="space-y-2">
+                        <span className="text-muted-foreground text-xs">Other Preferences</span>
+                        <>
+                          {matchingSubBooking?.other_preferences &&
+                            matchingSubBooking.other_preferences.map((pref, idx) => (
+                              <div key={`preference-${idx}`} className="flex items-center justify-between gap-4">
+                                <span className="text-sm font-medium">{pref}</span>
+                              </div>
+                            ))}
+                          {(!matchingSubBooking?.other_preferences ||
+                            matchingSubBooking.other_preferences.length === 0) &&
+                            parsedItems.otherPreferences.map(
+                              (
+                                pref: (typeof parsedItems.otherPreferences)[number],
+                                idx: number,
+                              ) => (
+                                <div key={`preference-${idx}`} className="flex items-center justify-between gap-4">
+                                  <span className="text-sm font-medium">{pref.description}</span>
+                                </div>
+                              ),
+                            )}
+                        </>
+                      </div>
+                    ) : null}
+
+                    {/* Additional Notes */}
+                    {invoice?.additional_notes && (
+                      <div className="space-y-2">
+                        <span className="text-muted-foreground text-xs">Additional Notes</span>
+                        <div className="whitespace-pre-line rounded-md bg-gray-100 p-3 text-sm text-gray-700">
+                          {invoice.additional_notes}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
