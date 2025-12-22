@@ -40,7 +40,8 @@ export type DataTableRowActionVariant =
   | "detail"
   | "invoice"
   | "receipt"
-  | "notes";
+  | "notes"
+  | "preview";
 
 export interface DataTableRowAction<TData> {
   row: Row<TData>;

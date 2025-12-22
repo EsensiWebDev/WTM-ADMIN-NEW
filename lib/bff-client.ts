@@ -1,8 +1,4 @@
-import {
-  authOptions,
-  refreshAccessToken,
-  type ExtendedToken,
-} from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 import type { Session } from "next-auth";
 import { getServerSession } from "next-auth";
 
@@ -14,48 +10,8 @@ type SessionWithTokens = Session & {
   user?: unknown;
 };
 
-type RefreshAttemptResult =
-  | { kind: "success" }
-  | { kind: "unauthorized" }
-  | { kind: "skipped" }
-  | { kind: "failed" };
-
 const API_BASE_URL =
   process.env.AUTH_API_BASE_URL ?? "http://54.255.206.242:4816/api";
-
-async function attemptTokenRefresh(
-  session: SessionWithTokens
-): Promise<RefreshAttemptResult> {
-  if (!session?.refreshToken) {
-    return { kind: "skipped" };
-  }
-  const refreshTokenInput: ExtendedToken = {
-    accessToken: session.accessToken,
-    refreshToken: session.refreshToken,
-    accessTokenExpires: session.accessTokenExpires,
-    user: session.user,
-  };
-
-  const refreshedToken = await refreshAccessToken(refreshTokenInput);
-
-  if (refreshedToken.error === "RefreshTokenUnauthorized") {
-    return { kind: "unauthorized" };
-  }
-
-  if (refreshedToken.error) {
-    return { kind: "failed" };
-  }
-
-  session.accessToken = refreshedToken.accessToken;
-  session.refreshToken = refreshedToken.refreshToken;
-  session.accessTokenExpires = refreshedToken.accessTokenExpires ?? null;
-  if (refreshedToken.user) {
-    session.user = refreshedToken.user as typeof session.user;
-  }
-  session.error = undefined;
-
-  return { kind: "success" };
-}
 
 type BffFetchOptions = RequestInit & {
   /**
@@ -113,35 +69,117 @@ export async function bffFetch(
     normalizedHeaders.set("Content-Type", "application/json");
   }
 
-  let response = await fetch(url, {
-    ...init,
-    headers: normalizedHeaders,
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...init,
+      headers: normalizedHeaders,
+      cache: "no-store",
+    });
+  } catch (error) {
+    // Handle network errors (connection refused, timeout, etc.)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorCause = error instanceof Error && "cause" in error ? error.cause : null;
+    const causeCode = errorCause && typeof errorCause === "object" && "code" in errorCause 
+      ? String(errorCause.code) 
+      : "";
+    
+    const isNetworkError =
+      error instanceof TypeError &&
+      (errorMessage.includes("fetch failed") ||
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("ENOTFOUND") ||
+        errorMessage.includes("ETIMEDOUT") ||
+        causeCode === "ECONNREFUSED" ||
+        causeCode === "ENOTFOUND" ||
+        causeCode === "ETIMEDOUT");
 
-  if (response.status === 500 || response.status === 401) {
-    const refreshResult = await attemptTokenRefresh(session);
+    if (isNetworkError) {
+      return new Response(
+        JSON.stringify({
+          status: 503,
+          message: "Service unavailable - Unable to connect to API server",
+        }),
+        {
+          status: 503,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
-    if (refreshResult.kind === "success" && session.accessToken) {
-      normalizedHeaders.set("Authorization", `Bearer ${session.accessToken}`);
+    // Re-throw other errors
+    throw error;
+  }
 
-      if (session.refreshToken) {
+  // If we get a 401, the token might be expired or invalid
+  // Get a fresh session which will trigger NextAuth's JWT callback to refresh if needed
+  if (response.status === 401) {
+    const freshSession = (await getServerSession(
+      authOptions
+    )) as SessionWithTokens | null;
+
+    // If we have a fresh session with a valid token, retry the request
+    if (freshSession?.accessToken && !freshSession.error) {
+      normalizedHeaders.set("Authorization", `Bearer ${freshSession.accessToken}`);
+      
+      if (freshSession.refreshToken) {
         normalizedHeaders.set(
           "Cookie",
-          `refresh_token=${session.refreshToken}`
+          `refresh_token=${freshSession.refreshToken}`
         );
+      } else {
+        normalizedHeaders.delete("Cookie");
       }
 
-      response = await fetch(url, {
-        ...init,
-        headers: normalizedHeaders,
-        cache: "no-store",
-      });
-    } else if (refreshResult.kind === "unauthorized") {
+      try {
+        response = await fetch(url, {
+          ...init,
+          headers: normalizedHeaders,
+          cache: "no-store",
+        });
+      } catch (error) {
+        // Handle network errors on retry
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorCause = error instanceof Error && "cause" in error ? error.cause : null;
+        const causeCode = errorCause && typeof errorCause === "object" && "code" in errorCause 
+          ? String(errorCause.code) 
+          : "";
+        
+        const isNetworkError =
+          error instanceof TypeError &&
+          (errorMessage.includes("fetch failed") ||
+            errorMessage.includes("ECONNREFUSED") ||
+            errorMessage.includes("ENOTFOUND") ||
+            errorMessage.includes("ETIMEDOUT") ||
+            causeCode === "ECONNREFUSED" ||
+            causeCode === "ENOTFOUND" ||
+            causeCode === "ETIMEDOUT");
+
+        if (isNetworkError) {
+          return new Response(
+            JSON.stringify({
+              status: 503,
+              message: "Service unavailable - Unable to connect to API server",
+            }),
+            {
+              status: 503,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
+
+        throw error;
+      }
+    } else if (freshSession?.error) {
+      // Session has an error (e.g., refresh failed), return 401
       return new Response(
         JSON.stringify({
           status: 401,
-          message: "Unauthorized",
+          message: "Unauthorized - Session expired",
         }),
         {
           status: 401,

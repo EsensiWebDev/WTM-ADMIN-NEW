@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { ApiResponse } from "@/types";
-import { EmailTemplate } from "@/app/(dashboard)/settings/email-setting/types";
+import { EmailTemplate } from "@/app/(dashboard)/email/email-setting/types";
 import EmailPreview from "./email-preview";
 
 interface EmailPreviewAsyncProps {
