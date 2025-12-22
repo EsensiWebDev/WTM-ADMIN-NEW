@@ -112,6 +112,39 @@ export async function refreshAccessToken(
   } catch (error) {
     console.error("RefreshAccessTokenError", error);
 
+    // Check if it's a network error (connection refused, timeout, etc.)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorCause = error instanceof Error && "cause" in error ? error.cause : null;
+    const causeCode = errorCause && typeof errorCause === "object" && "code" in errorCause 
+      ? String(errorCause.code) 
+      : "";
+    
+    const isNetworkError =
+      error instanceof TypeError &&
+      (errorMessage.includes("fetch failed") ||
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("ENOTFOUND") ||
+        errorMessage.includes("ETIMEDOUT") ||
+        causeCode === "ECONNREFUSED" ||
+        causeCode === "ENOTFOUND" ||
+        causeCode === "ETIMEDOUT");
+
+    // If it's a network error and the token is still valid, return the existing token
+    // This allows the app to continue working even if the refresh endpoint is temporarily unavailable
+    if (isNetworkError) {
+      const now = Date.now();
+      if (
+        token.accessTokenExpires &&
+        typeof token.accessTokenExpires === "number" &&
+        now < token.accessTokenExpires
+      ) {
+        // Token is still valid, return it without error
+        console.warn("Token refresh failed due to network error, but token is still valid. Using existing token.");
+        return token;
+      }
+    }
+
+    // For other errors or if token is expired, return error
     return {
       ...token,
       error: "RefreshAccessTokenError",
@@ -218,21 +251,46 @@ export const authOptions: NextAuthOptions = {
         };
       }
 
+      // Refresh token if it's expired or will expire within the next 5 minutes (300000ms)
+      // This buffer prevents race conditions where the token expires between check and use
+      const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
+      const now = Date.now();
+      
       if (
         token.accessTokenExpires &&
         typeof token.accessTokenExpires === "number" &&
-        Date.now() < token.accessTokenExpires
+        now < token.accessTokenExpires - FIVE_MINUTES_IN_MS
       ) {
         return token;
       }
 
-      return refreshAccessToken(token);
+      // Token is expired or about to expire, try to refresh it
+      const refreshedToken = await refreshAccessToken(token);
+      
+      // If refresh failed but token is still valid (network error), use existing token
+      if (refreshedToken.error && token.accessTokenExpires) {
+        const now = Date.now();
+        if (
+          typeof token.accessTokenExpires === "number" &&
+          now < token.accessTokenExpires
+        ) {
+          // Token is still valid, return it without error
+          return token;
+        }
+      }
+      
+      return refreshedToken;
     },
     async session({ session, token }) {
+      // If there's an error in the token (e.g., refresh failed), propagate it to the session
+      if (token.error) {
+        session.error = token.error as string;
+        // Still return the session so the client can handle the error appropriately
+      }
+      
       session.user = token.user as AuthUser;
       session.accessToken = token.accessToken as string | undefined;
       session.refreshToken = token.refreshToken as string | undefined;
-      session.error = token.error as string | undefined;
       return session;
     },
   },

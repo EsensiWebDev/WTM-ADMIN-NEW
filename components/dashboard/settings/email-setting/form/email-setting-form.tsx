@@ -1,7 +1,7 @@
 "use client";
 
-import { saveEmailSetting } from "@/app/(dashboard)/settings/email-setting/actions";
-import { EmailTemplate } from "@/app/(dashboard)/settings/email-setting/types";
+import { saveEmailSetting } from "@/app/(dashboard)/email/email-setting/actions";
+import { EmailTemplate } from "@/app/(dashboard)/email/email-setting/types";
 import { Button } from "@/components/ui/button";
 import Editor from "@/components/ui/editor";
 import {
@@ -19,6 +19,7 @@ import { Loader, FileText, Image } from "lucide-react";
 import { FileInputPreview } from "@/components/dashboard/account/agent-overview/agent-management/form/file-input-preview";
 
 import { useState, useTransition } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -84,9 +85,18 @@ export type EmailSettingSchema = z.infer<typeof emailSettingSchema>;
 interface EmailSettingFormProps {
   defaultValues: EmailTemplate;
   type: string;
+  hideBodyField?: boolean;
+  onBodyChange?: (body: string) => void;
+  externalBodyValue?: string;
 }
 
-const EmailSettingForm = ({ defaultValues, type }: EmailSettingFormProps) => {
+const EmailSettingForm = ({ 
+  defaultValues, 
+  type,
+  hideBodyField = false,
+  onBodyChange,
+  externalBodyValue,
+}: EmailSettingFormProps) => {
   const [isPending, startTransition] = useTransition();
   const [signatureType, setSignatureType] = useState<"text" | "image">("text");
 
@@ -100,10 +110,27 @@ const EmailSettingForm = ({ defaultValues, type }: EmailSettingFormProps) => {
     },
   });
 
+  // Sync body changes: if body field is visible, sync form value to parent
+  const bodyValue = form.watch("body");
+  React.useEffect(() => {
+    if (!hideBodyField && onBodyChange) {
+      // Form has body field, sync to parent
+      onBodyChange(bodyValue);
+    }
+  }, [bodyValue, hideBodyField, onBodyChange]);
+
+  // If body field is hidden, sync external body value to form when it changes
+  React.useEffect(() => {
+    if (hideBodyField && externalBodyValue !== undefined) {
+      form.setValue("body", externalBodyValue, { shouldValidate: false });
+    }
+  }, [hideBodyField, externalBodyValue, form]);
+
   function onSubmit(values: EmailSettingSchema) {
     const formData = new FormData();
     formData.append("subject", defaultValues.subject);
-    formData.append("body", values.body);
+    // Use external body value if body field is hidden, otherwise use form value
+    formData.append("body", hideBodyField && externalBodyValue ? externalBodyValue : values.body);
     formData.append("type", type);
 
     // Only send the relevant signature field based on type
@@ -126,118 +153,119 @@ const EmailSettingForm = ({ defaultValues, type }: EmailSettingFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex-1">
-          <div className="grid grid-cols-1 gap-6 items-end">
-            <FormField
-              control={form.control}
-              name="body"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="mb-2 block text-base">
-                    E-mail Body Template
-                  </FormLabel>
-                  <FormControl>
-                    <Editor
-                      content={field.value}
-                      onChange={field.onChange}
-                      placeholder="Enter your email body template here..."
-                      className="bg-white"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="signature_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="mb-2 block text-base">
-                    E-mail Signature Type
-                  </FormLabel>
-                  <FormControl>
-                    <ToggleGroup
-                      type="single"
-                      value={field.value}
-                      onValueChange={(value) => {
-                        if (value) {
-                          field.onChange(value);
-                          setSignatureType(value as "text" | "image");
-                        }
-                      }}
-                      variant="outline"
-                    >
-                      <ToggleGroupItem
-                        value="text"
-                        aria-label="Text signature"
-                        className="data-[state=on]:bg-primary data-[state=on]:text-white bg-[var(--tabs-background)] text-[var(--tabs-foreground)] hover:bg-[var(--tabs-background)] hover:text-[var(--tabs-foreground)]"
-                      >
-                        <FileText className="h-4 w-4" />
-                        Text
-                      </ToggleGroupItem>
-                      <ToggleGroupItem
-                        value="image"
-                        aria-label="Image signature"
-                        className="data-[state=on]:bg-primary data-[state=on]:text-white bg-[var(--tabs-background)] text-[var(--tabs-foreground)] hover:bg-[var(--tabs-background)] hover:text-[var(--tabs-foreground)]"
-                      >
-                        <Image className="h-4 w-4" />
-                        Image
-                      </ToggleGroupItem>
-                    </ToggleGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {signatureType === "text" ? (
-              <FormField
-                control={form.control}
-                name="signature_text"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="mb-2 block text-base">
-                      E-mail Signature
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="h-24 bg-white"
-                        placeholder="Enter your email signature here"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={form.control}
-                name="signature_image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="mb-2 block text-base">
-                      E-mail Signature Image
-                    </FormLabel>
-                    <FormControl>
-                      <FileInputPreview
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        value={field.value}
-                        name={field.name}
-                        ref={field.ref}
-                        placeholder="Choose signature image (Max 2MB)"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {!hideBodyField && (
+          <FormField
+            control={form.control}
+            name="body"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">
+                  E-mail Body Template
+                </FormLabel>
+                <FormControl>
+                  <Editor
+                    content={field.value}
+                    onChange={field.onChange}
+                    placeholder="Enter your email body template here..."
+                    className="bg-white"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
-          <Button className="mt-6" type="submit" disabled={isPending}>
+          />
+        )}
+        <FormField
+          control={form.control}
+          name="signature_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-semibold">
+                E-mail Signature Type
+              </FormLabel>
+              <FormControl>
+                <ToggleGroup
+                  type="single"
+                  value={field.value}
+                  onValueChange={(value) => {
+                    if (value) {
+                      field.onChange(value);
+                      setSignatureType(value as "text" | "image");
+                    }
+                  }}
+                  variant="outline"
+                >
+                  <ToggleGroupItem
+                    value="text"
+                    aria-label="Text signature"
+                    className="data-[state=on]:bg-primary data-[state=on]:text-white bg-[var(--tabs-background)] text-[var(--tabs-foreground)] hover:bg-[var(--tabs-background)] hover:text-[var(--tabs-foreground)]"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Text
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="image"
+                    aria-label="Image signature"
+                    className="data-[state=on]:bg-primary data-[state=on]:text-white bg-[var(--tabs-background)] text-[var(--tabs-foreground)] hover:bg-[var(--tabs-background)] hover:text-[var(--tabs-foreground)]"
+                  >
+                    <Image className="h-4 w-4" />
+                    Image
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {signatureType === "text" ? (
+          <FormField
+            control={form.control}
+            name="signature_text"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">
+                  E-mail Signature
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    className="h-24 bg-white"
+                    placeholder="Enter your email signature here"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : (
+          <FormField
+            control={form.control}
+            name="signature_image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">
+                  E-mail Signature Image
+                </FormLabel>
+                <FormControl>
+                  <FileInputPreview
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    value={field.value}
+                    name={field.name}
+                    ref={field.ref}
+                    placeholder="Choose signature image (Max 2MB)"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
+        <div className="pt-4 border-t">
+          <Button type="submit" disabled={isPending} size="lg">
             {isPending && (
               <Loader
                 className="mr-2 h-4 w-4 animate-spin"

@@ -17,7 +17,7 @@ export async function saveEmailSetting(formData: FormData) {
       };
     }
 
-    revalidatePath("/setting/email-setting", "layout");
+    revalidatePath("/email/email-setting", "layout");
 
     return {
       success: true,

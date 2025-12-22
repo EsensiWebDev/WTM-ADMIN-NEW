@@ -53,6 +53,18 @@ const menuItems: MenuItem[] = [
   },
   { name: "Currency", href: "/currency" },
   {
+    name: "Email",
+    href: "#link",
+    childs: [
+      {
+        name: "E-mail Setting",
+        href: "/email/email-setting?type=confirm",
+        requiredRole: "Super Admin" as const,
+      },
+      { name: "E-mail Log", href: "/email/email-log" },
+    ],
+  },
+  {
     name: "Hotel Listing",
     href: "#link",
     childs: [
