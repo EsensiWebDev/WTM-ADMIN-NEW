@@ -299,11 +299,23 @@ const RoomForm = ({
 
       <div className="space-y-6">
         {roomList.length === 0 && <p>No rooms found.</p>}
-        {roomList.map((room) => {
-          // Create a unique key that changes when room data changes
-          const roomKey = `${room.id}-${room.name}-${
-            room.photos?.length || 0
-          }-${room.additional?.length || 0}-${room.room_size}`;
+        {([...roomList].sort((a, b) => {
+          const nameA = (a.name || "").trim().toLowerCase();
+          const nameB = (b.name || "").trim().toLowerCase();
+
+          // Keep unnamed (new) rooms at the bottom
+          if (!nameA && !nameB) {
+            return Number(a.id) - Number(b.id);
+          }
+          if (!nameA) return 1;
+          if (!nameB) return -1;
+
+          if (nameA < nameB) return -1;
+          if (nameA > nameB) return 1;
+          return 0;
+        })).map((room) => {
+          // Use a stable key so the form does not remount while typing
+          const roomKey = String(room.id);
 
           const commonProps = {
             roomId: String(room.id),

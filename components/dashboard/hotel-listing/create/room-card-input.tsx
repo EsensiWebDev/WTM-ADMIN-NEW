@@ -393,6 +393,9 @@ export function RoomCardInput({
 
   // Reset form when props change (after successful update)
   useEffect(() => {
+    // Do not reset while creating a brand-new room; it wipes user typing
+    if (isNewRoom) return;
+
     const additions = initialAdditions.map((addition) => ({
       id: addition.id,
       name: addition.name,
@@ -454,7 +457,7 @@ export function RoomCardInput({
       description: defaultValues?.description || "",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultValues, initialPhotos, initialAdditions]);
+  }, [defaultValues, initialPhotos, initialAdditions, isNewRoom]);
 
   const {
     fields: additionalFields,
@@ -536,6 +539,15 @@ export function RoomCardInput({
     lastReportedDirtyRef.current = isDirty;
     onDirtyChange(isDirty);
   }, [isDirty, onDirtyChange]);
+
+  // Safety guard: newly added room cards should always be editable
+  useEffect(() => {
+    if (isNewRoom) {
+      // New room cards must always be editable and expanded
+      if (!isEditing) setIsEditing(true);
+      if (isCollapsed) setIsCollapsed(false);
+    }
+  }, [isNewRoom, isEditing, isCollapsed]);
 
   const updateBedType = useCallback(
     (index: number, value: string) => {
@@ -961,7 +973,8 @@ export function RoomCardInput({
               <div
                 className={cn(
                   "col-span-full grid grid-cols-1 gap-6 lg:col-span-4",
-                  !isEditing && "pointer-events-none opacity-60"
+                  // Disable interactions only when editing is off for existing rooms
+                  !isEditing && !isNewRoom && "pointer-events-none opacity-60"
                 )}
               >
                 <FormField
@@ -983,7 +996,8 @@ export function RoomCardInput({
               <div
                 className={cn(
                   "col-span-full mt-6 flex flex-col lg:col-span-6 lg:mt-0",
-                  !isEditing && "pointer-events-none opacity-60"
+                  // Disable interactions only when editing is off for existing rooms
+                  !isEditing && !isNewRoom && "pointer-events-none opacity-60"
                 )}
               >
                 <div className="flex h-full flex-col space-y-2">
