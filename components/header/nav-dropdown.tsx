@@ -41,8 +41,10 @@ export const NavDropdown = ({
                   key={index}
                   requiredRole={item.requiredRole}
                 >
-                  <DropdownMenuItem>
-                    <Link href={item.href}>{item.name}</Link>
+                  <DropdownMenuItem asChild>
+                    <Link href={item.href} className="w-full">
+                      {item.name}
+                    </Link>
                   </DropdownMenuItem>
                 </AuthorizationGuard>
               );
@@ -50,8 +52,10 @@ export const NavDropdown = ({
 
             // No role restriction, render normally
             return (
-              <DropdownMenuItem key={index}>
-                <Link href={item.href}>{item.name}</Link>
+              <DropdownMenuItem key={index} asChild>
+                <Link href={item.href} className="w-full">
+                  {item.name}
+                </Link>
               </DropdownMenuItem>
             );
           })}

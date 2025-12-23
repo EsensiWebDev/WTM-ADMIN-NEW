@@ -20,7 +20,7 @@ import {
   IconWorld,
 } from "@tabler/icons-react";
 import { Loader, MapPin, PlusCircle, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -109,6 +109,17 @@ const EditHotelForm = ({ hotel, hotelId }: EditHotelFormProps) => {
       ],
     },
   });
+
+  // Track unsaved changes for the hotel section
+  const { isDirty } = form.formState;
+  const lastReportedDirtyRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (lastReportedDirtyRef.current === isDirty) return;
+    lastReportedDirtyRef.current = isDirty;
+    (window as any).__hotelHotelDirty = isDirty;
+  }, [isDirty]);
 
   // Reset form when hotel data changes (after successful update)
   useEffect(() => {

@@ -16,10 +16,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useDataTable } from "@/hooks/use-data-table";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import React, { useTransition } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { getRoleBasedAccessTableColumns } from "./role-based-access-columns";
 
 interface RoleBasedAccessTableProps {
@@ -110,15 +113,37 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
   });
 
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <Alert variant="destructive" className="border-red-200 bg-red-50 dark:bg-red-950/20">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error loading data</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
   }
 
   if (status === 403) {
-    return <div>You don’t have permission to access this page.</div>;
+    return (
+      <Alert variant="destructive" className="border-red-200 bg-red-50 dark:bg-red-950/20">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Access Denied</AlertTitle>
+        <AlertDescription>
+          You don't have permission to access this page. Please contact your administrator.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   if (status !== 200) {
-    return <div>Failed to load data</div>;
+    return (
+      <Alert variant="destructive" className="border-red-200 bg-red-50 dark:bg-red-950/20">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Failed to load data</AlertTitle>
+        <AlertDescription>
+          An error occurred while loading role-based access data. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   const handleChangePermission = ({
@@ -157,8 +182,21 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
     });
   };
 
+  // Empty state check
+  if (transformedData.length === 0) {
+    return (
+      <Alert className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <AlertTitle>No modules found</AlertTitle>
+        <AlertDescription>
+          There are no modules available to configure. Please contact your administrator.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
-    <div className="relative">
+    <div className="relative space-y-4">
       <DataTable
         table={table}
         isPending={isPending}
@@ -166,16 +204,23 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
           <>
             {page.actions.map((action, index) => {
               return (
-                <TableRow key={`action-${index}`}>
-                  <TableCell />
-                  <TableCell>{action.action}</TableCell>
+                <TableRow 
+                  key={`action-${index}`}
+                  className="bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm sm:text-base">{action.action}</span>
+                    </div>
+                  </TableCell>
                   {Object.entries(action.permissions).map(([role, allowed]) => {
                     const selectKey = `${role}-${page.id}-${action.actionKey}`;
                     const currentValue =
                       selectValueMap[selectKey] ?? String(allowed);
+                    const isAllowed = currentValue === "true";
 
                     return (
-                      <TableCell key={role}>
+                      <TableCell key={role} className="min-w-[130px] sm:min-w-[140px]">
                         <Select
                           disabled={isUpdatePending}
                           value={currentValue}
@@ -189,23 +234,47 @@ const RoleBasedAccessTable = ({ promise }: RoleBasedAccessTableProps) => {
                           }
                         >
                           <SelectTrigger
-                            className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
+                            className={cn(
+                              "w-full min-w-[120px] sm:min-w-[140px]",
+                              "**:data-[slot=select-value]:block **:data-[slot=select-value]:truncate",
+                              isAllowed && "border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20",
+                              !isAllowed && "border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/20"
+                            )}
                             size="sm"
                             id={`${role}-permission`}
                           >
-                            <SelectValue placeholder="Assign permission" />
+                            <SelectValue placeholder="Assign permission">
+                              <div className="flex items-center gap-2">
+                                {isUpdatePending ? (
+                                  <>
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                                    <span className="font-medium">Updating...</span>
+                                  </>
+                                ) : isAllowed ? (
+                                  <>
+                                    <CheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0" />
+                                    <span className="font-medium">Allow</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="h-3.5 w-3.5 text-red-600 dark:text-red-400 shrink-0" />
+                                    <span className="font-medium">Deny</span>
+                                  </>
+                                )}
+                              </div>
+                            </SelectValue>
                           </SelectTrigger>
-                          <SelectContent align="end">
-                            <SelectItem value="true">
+                          <SelectContent align="end" className="min-w-[140px]">
+                            <SelectItem value="true" className="cursor-pointer">
                               <span className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-green-500" />
-                                Allow
+                                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                <span className="font-medium">Allow</span>
                               </span>
                             </SelectItem>
-                            <SelectItem value="false">
+                            <SelectItem value="false" className="cursor-pointer">
                               <span className="flex items-center gap-2">
-                                <XCircle className="w-4 h-4 text-red-500" />
-                                Deny
+                                <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                <span className="font-medium">Deny</span>
                               </span>
                             </SelectItem>
                           </SelectContent>

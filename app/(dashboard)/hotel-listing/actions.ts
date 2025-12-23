@@ -46,12 +46,30 @@ export async function createHotelNew(
   formData: FormData
 ): Promise<{ success: boolean; message: string; data?: { hotel_id: number } }> {
   try {
+    // Validate that photos are present
+    const photos = formData.getAll("photos");
+    if (!photos || photos.length === 0) {
+      return {
+        success: false,
+        message: "At least one photo is required",
+      };
+    }
+
     const response = await apiCall<{ hotel_id: number }>("hotels", {
       method: "POST",
       body: formData,
     });
 
     if (response.status !== 200) {
+      // Handle specific error codes
+      if (response.status === 413 || response.message?.toLowerCase().includes("payload too large") || 
+          response.message?.toLowerCase().includes("request entity too large")) {
+        return {
+          success: false,
+          message: "Payload too large. Please ensure each image is less than 2MB and try again.",
+        };
+      }
+      
       return {
         success: false,
         message: response.message || "Failed to create hotels",
@@ -67,6 +85,19 @@ export async function createHotelNew(
     };
   } catch (error) {
     console.error("Error creating hotel:", error);
+
+    // Handle network errors or payload size errors
+    if (error instanceof Error) {
+      const errorMessage = error.message.toLowerCase();
+      if (errorMessage.includes("payload too large") || 
+          errorMessage.includes("request entity too large") ||
+          errorMessage.includes("413")) {
+        return {
+          success: false,
+          message: "Payload too large. Please ensure each image is less than 2MB and try again.",
+        };
+      }
+    }
 
     // Handle API error responses with specific messages
     if (error && typeof error === "object" && "message" in error) {
