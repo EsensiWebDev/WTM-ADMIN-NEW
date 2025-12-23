@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -41,8 +43,17 @@ import {
   IconBed,
   IconFriends,
 } from "@tabler/icons-react";
-import { Cigarette, Eye, EyeOff, PlusCircle, Trash2, Shield } from "lucide-react";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import {
+  Cigarette,
+  Eye,
+  EyeOff,
+  PlusCircle,
+  Trash2,
+  Shield,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -261,6 +272,7 @@ interface RoomCardInputProps {
   onRemove?: (id: string) => void;
   onCreate?: (data: RoomFormValues) => void;
   onCancelNewRoom?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export function RoomCardInput({
@@ -272,13 +284,22 @@ export function RoomCardInput({
   onRemove,
   onCreate,
   onCancelNewRoom,
+  onDirtyChange,
 }: RoomCardInputProps) {
   const [isPending, startTransition] = useTransition();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [preferenceInputError, setPreferenceInputError] = useState<string>("");
   const [bedTypeInputError, setBedTypeInputError] = useState<string>("");
-  const [deleteAdditionalIndex, setDeleteAdditionalIndex] = useState<number | null>(null);
+  const [deleteAdditionalIndex, setDeleteAdditionalIndex] =
+    useState<number | null>(null);
+  const [pendingFormValues, setPendingFormValues] =
+    useState<RoomFormValues | null>(null);
+
+  const isNewRoom = !!onCreate && !onUpdate;
+  const [isEditing, setIsEditing] = useState(isNewRoom);
+  const [isCollapsed, setIsCollapsed] = useState(!isNewRoom);
 
   // Track original additions with their IDs for comparison
   const [originalAdditions, setOriginalAdditions] = useState(
@@ -505,6 +526,17 @@ export function RoomCardInput({
   // Handle bed types as a regular form field since useFieldArray doesn't work with it
   const bedTypes = form.watch("bed_types") || [];
 
+  // Track dirty state and bubble up to parent (guard against loops)
+  const { isDirty } = form.formState;
+  const lastReportedDirtyRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (!onDirtyChange) return;
+    if (lastReportedDirtyRef.current === isDirty) return;
+    lastReportedDirtyRef.current = isDirty;
+    onDirtyChange(isDirty);
+  }, [isDirty, onDirtyChange]);
+
   const updateBedType = useCallback(
     (index: number, value: string) => {
       const newBedTypes = [...bedTypes];
@@ -674,22 +706,31 @@ export function RoomCardInput({
     [form, originalAdditions]
   );
 
-  // Handle form submission
-  const handleSubmit = useCallback(
-    async (data: RoomFormValues) => {
-      startTransition(async () => {
+  // Handle form submission - open confirmation dialog first
+  const handleSubmit = useCallback((data: RoomFormValues) => {
+    setPendingFormValues(data);
+    setIsConfirmDialogOpen(true);
+  }, []);
+
+  const handleConfirmSave = useCallback(() => {
+    if (!pendingFormValues) return;
+
+    startTransition(async () => {
+      try {
         if (onCreate) {
-          onCreate(data);
+          await onCreate(pendingFormValues);
         } else if (onUpdate) {
-          onUpdate(data);
+          await onUpdate(pendingFormValues);
         } else {
           // Default behavior - show a toast
           toast.success("Room data saved successfully!");
         }
-      });
-    },
-    [onCreate, onUpdate]
-  );
+      } finally {
+        setIsConfirmDialogOpen(false);
+        setPendingFormValues(null);
+      }
+    });
+  }, [onCreate, onUpdate, pendingFormValues]);
 
   // Toggle visibility for without breakfast option
   const toggleWithoutBreakfastVisibility = useCallback(() => {
@@ -713,8 +754,6 @@ export function RoomCardInput({
   const isWithoutBreakfast = form.watch("without_breakfast");
   const isWithBreakfast = form.watch("with_breakfast");
 
-  const isNewRoom = !!onCreate && !onUpdate;
-
   const handleCancel = useCallback(() => {
     // For new rooms, remove the card
     if (isNewRoom && onCancelNewRoom) {
@@ -722,7 +761,7 @@ export function RoomCardInput({
       return;
     }
 
-    // For existing rooms, reset to original values
+    // For existing rooms, reset to original values and exit edit mode
     const additions = originalInitialAdditions.map((addition) => ({
       id: addition.id,
       name: addition.name,
@@ -799,6 +838,7 @@ export function RoomCardInput({
         originalInitialAdditions.map((addition) => addition.id) || [],
       description: originalDefaultValues?.description || "",
     });
+    setIsEditing(false);
   }, [
     form,
     isNewRoom,
@@ -834,6 +874,19 @@ export function RoomCardInput({
               />
               {onRemove && roomId && (
                 <>
+                  {!isNewRoom && !isEditing && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="inline-flex items-center gap-2"
+                      onClick={() => {
+                        setIsEditing(true);
+                        setIsCollapsed(false);
+                      }}
+                    >
+                      Edit Room
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="destructive"
@@ -885,25 +938,55 @@ export function RoomCardInput({
               )}
             </div>
           </div>
-          <div className="col-span-full grid grid-cols-1 gap-6 lg:col-span-4">
-            <FormField
-              control={form.control}
-              name="photos"
-              render={() => (
-                <FormItem>
-                  <FormControl>
-                    <ImageUpload
-                      initialImages={initialPhotos}
-                      onImagesChange={handleImageChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="col-span-full mt-6 flex flex-col lg:col-span-6 lg:mt-0">
-            <div className="flex h-full flex-col space-y-2">
+          {/* Collapse/expand toggle for existing rooms */}
+          {!isNewRoom && (
+            <div className="col-span-full flex items-center justify-between pb-2">
+              <button
+                type="button"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => setIsCollapsed((prev) => !prev)}
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="mr-1 h-4 w-4" />
+                ) : (
+                  <ChevronDown className="mr-1 h-4 w-4" />
+                )}
+                <span>{isCollapsed ? "Show room details" : "Hide room details"}</span>
+              </button>
+            </div>
+          )}
+
+          {!isCollapsed && (
+            <>
+              <div
+                className={cn(
+                  "col-span-full grid grid-cols-1 gap-6 lg:col-span-4",
+                  !isEditing && "pointer-events-none opacity-60"
+                )}
+              >
+                <FormField
+                  control={form.control}
+                  name="photos"
+                  render={() => (
+                    <FormItem>
+                      <FormControl>
+                        <ImageUpload
+                          initialImages={initialPhotos}
+                          onImagesChange={handleImageChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div
+                className={cn(
+                  "col-span-full mt-6 flex flex-col lg:col-span-6 lg:mt-0",
+                  !isEditing && "pointer-events-none opacity-60"
+                )}
+              >
+                <div className="flex h-full flex-col space-y-2">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Room Options</h3>
 
@@ -1718,63 +1801,87 @@ export function RoomCardInput({
               </div>
             </div>
           </div>
+        </>
+      )}
 
-          {/* Form Actions */}
-          <div className="col-span-full flex justify-end space-x-4 pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsCancelDialogOpen(true)}
-            >
-              Cancel
-            </Button>
-            <Dialog
-              open={isCancelDialogOpen}
-              onOpenChange={setIsCancelDialogOpen}
-            >
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {isNewRoom ? "Discard New Room Type" : "Discard Changes"}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {isNewRoom
-                      ? "Are you sure you want to cancel and remove this new room type? All unsaved data for this room will be lost."
-                      : "Are you sure you want to cancel your changes to this room type? All unsaved changes will be lost."}
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="flex flex-row justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsCancelDialogOpen(false)}
-                  >
-                    Go back
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => {
-                      handleCancel();
-                      setIsCancelDialogOpen(false);
-                    }}
-                  >
-                    Yes, discard
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? (
-                <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Saving...
-                </>
-              ) : (
-                "Save Room"
-              )}
-            </Button>
-          </div>
+      {/* Form Actions */}
+      <div className="col-span-full flex justify-end space-x-4 pt-6">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={!isEditing}
+          onClick={() => setIsCancelDialogOpen(true)}
+        >
+          Cancel
+        </Button>
+        <Dialog
+          open={isCancelDialogOpen}
+          onOpenChange={setIsCancelDialogOpen}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {isNewRoom ? "Discard New Room Type" : "Discard Changes"}
+              </DialogTitle>
+              <DialogDescription>
+                {isNewRoom
+                  ? "Are you sure you want to cancel and remove this new room type? All unsaved data for this room will be lost."
+                  : "Are you sure you want to cancel your changes to this room type? All unsaved changes will be lost."}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-row justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCancelDialogOpen(false)}
+              >
+                Go back
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  handleCancel();
+                  setIsCancelDialogOpen(false);
+                }}
+              >
+                Yes, discard
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <Button type="submit" disabled={isPending || !isEditing}>
+          {isPending ? (
+            <>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Saving...
+            </>
+          ) : (
+            "Save Room"
+          )}
+        </Button>
+      </div>
+      <ConfirmationDialog
+        open={isConfirmDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsConfirmDialogOpen(false);
+            setPendingFormValues(null);
+          }
+        }}
+        onConfirm={handleConfirmSave}
+        onCancel={() => {
+          setIsConfirmDialogOpen(false);
+          setPendingFormValues(null);
+        }}
+        isLoading={isPending}
+        title={isNewRoom ? "Create Room Type" : "Update Room Type"}
+        description={
+          isNewRoom
+            ? "Are you sure you want to create this new room type with the provided configuration?"
+            : "Are you sure you want to save the changes to this room type?"
+        }
+      />
         </Card>
       </form>
     </Form>

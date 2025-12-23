@@ -10,7 +10,7 @@ import {
   RoomDetail,
 } from "@/app/(dashboard)/hotel-listing/types";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { RoomCardInput, RoomFormValues } from "../create/room-card-input";
@@ -26,6 +26,10 @@ const RoomForm = ({
   // State to manage the list of rooms
   const [roomList, setRoomList] = useState<RoomDetail[]>(rooms || []);
   const [newRoomCounter, setNewRoomCounter] = useState(0);
+  const [dirtyMap, setDirtyMap] = useState<Record<string, boolean>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastAddedRoomId, setLastAddedRoomId] = useState<number | null>(null);
+  const roomRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const addNewRoom = () => {
     // Create a new empty room object with a temporary ID
@@ -44,8 +48,9 @@ const RoomForm = ({
       booking_limit_per_booking: null,
     };
 
-    setRoomList([...roomList, newRoom]);
-    setNewRoomCounter(newRoomCounter + 1);
+    setRoomList((prev) => [...prev, newRoom]);
+    setNewRoomCounter((prev) => prev + 1);
+    setLastAddedRoomId(newRoom.id);
   };
 
   const onCreate = async (data: RoomFormValues) => {
@@ -234,9 +239,50 @@ const RoomForm = ({
       }
     };
 
+  // Aggregate dirty state from all room cards
+  useEffect(() => {
+    const anyDirty = Object.values(dirtyMap).some(Boolean);
+    setHasUnsavedChanges(anyDirty);
+
+    if (typeof window !== "undefined") {
+      (window as any).__hotelRoomsDirty = anyDirty;
+    }
+  }, [dirtyMap]);
+
+  // Warn on browser/tab close or full reload
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    if (hasUnsavedChanges) {
+      window.addEventListener("beforeunload", beforeUnloadHandler);
+    }
+
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
+    };
+  }, [hasUnsavedChanges]);
+
   useEffect(() => {
     setRoomList(rooms || []);
   }, [rooms]);
+
+  // Scroll to the last added room card when it appears
+  useEffect(() => {
+    if (lastAddedRoomId === null) return;
+
+    const key = String(lastAddedRoomId);
+    const node = roomRefs.current[key];
+
+    if (node) {
+      node.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [lastAddedRoomId, roomList]);
 
   return (
     <section className="space-y-8">
@@ -259,39 +305,71 @@ const RoomForm = ({
             room.photos?.length || 0
           }-${room.additional?.length || 0}-${room.room_size}`;
 
+          const commonProps = {
+            roomId: String(room.id),
+            initialPhotos: room.photos || [],
+            initialAdditions: room.additional || [],
+            defaultValues: {
+              name: room.name,
+              without_breakfast: room.without_breakfast,
+              with_breakfast: room.with_breakfast,
+              room_size: room.room_size,
+              max_occupancy: room.max_occupancy,
+              bed_types: room.bed_types,
+              is_smoking_room: room.is_smoking_room,
+              booking_limit_per_booking:
+                room.booking_limit_per_booking ?? null,
+              description: room.description,
+              other_preferences: (
+                (room as { other_preferences?: OtherPreference[] })
+                  .other_preferences ?? []
+              ).map((pref: OtherPreference) => ({
+                id: pref.id,
+                name: pref.name,
+              })),
+            },
+          };
+
           return (
-            <RoomCardInput
+            <div
               key={roomKey}
-              roomId={String(room.id)}
-              initialPhotos={room.photos || []}
-              initialAdditions={room.additional || []}
-              defaultValues={{
-                name: room.name,
-                without_breakfast: room.without_breakfast,
-                with_breakfast: room.with_breakfast,
-                room_size: room.room_size,
-                max_occupancy: room.max_occupancy,
-                bed_types: room.bed_types,
-                is_smoking_room: room.is_smoking_room,
-                booking_limit_per_booking: room.booking_limit_per_booking ?? null,
-                description: room.description,
-                other_preferences: (
-                  (room as { other_preferences?: OtherPreference[] })
-                    .other_preferences ?? []
-                ).map((pref: OtherPreference) => ({
-                  id: pref.id,
-                  name: pref.name,
-                })),
+              ref={(el) => {
+                roomRefs.current[String(room.id)] = el;
               }}
-              {
-                ...(room.id > 0
-                  ? { onUpdate: createUpdateHandler(String(room.id)), onRemove } // For existing rooms (positive IDs from database)
-                  : {
-                      onCreate,
-                      onCancelNewRoom: () => handleCancelNewRoom(room.id),
-                    }) // For new rooms (negative temporary IDs)
-              }
-            />
+            >
+              <RoomCardInput
+                {...commonProps}
+                {
+                  ...(room.id > 0
+                    ? {
+                        onUpdate: createUpdateHandler(String(room.id)),
+                        onRemove,
+                        onDirtyChange: (isDirty) =>
+                          setDirtyMap((prev) => {
+                            const key = String(room.id);
+                            if (prev[key] === isDirty) return prev;
+                            return {
+                              ...prev,
+                              [key]: isDirty,
+                            };
+                          }),
+                      } // For existing rooms (positive IDs from database)
+                    : {
+                        onCreate,
+                        onCancelNewRoom: () => handleCancelNewRoom(room.id),
+                        onDirtyChange: (isDirty) =>
+                          setDirtyMap((prev) => {
+                            const key = `temp-${room.id}`;
+                            if (prev[key] === isDirty) return prev;
+                            return {
+                              ...prev,
+                              [key]: isDirty,
+                            };
+                          }),
+                      }) // For new rooms (negative temporary IDs)
+                }
+              />
+            </div>
           );
         })}
       </div>

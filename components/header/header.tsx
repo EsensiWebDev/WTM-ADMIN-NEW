@@ -68,7 +68,7 @@ const menuItems: MenuItem[] = [
     name: "Hotel Listing",
     href: "#link",
     childs: [
-      { name: "Add Hotel Listing", href: "/hotel-listing" },
+          { name: "Hotel Listing", href: "/hotel-listing" },
       { name: "Room Availability", href: "/hotel-listing/room-availability" },
     ],
   },
@@ -102,7 +102,7 @@ export const HeroHeader = () => {
         className="bg-primary fixed z-20 w-full border-b backdrop-blur-3xl"
       >
         <div className="px-6 transition-all duration-300">
-          <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
+          <div className="relative flex flex-wrap lg:flex-nowrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
             <div className="flex w-full items-center justify-between gap-12 lg:w-auto">
               <Link
                 href="/"
@@ -128,7 +128,7 @@ export const HeroHeader = () => {
 
               {/* Menu Desktop  */}
               <div className="hidden lg:block">
-                <ul className="flex gap-8 text-sm">
+                <ul className="flex flex-wrap items-center gap-4 xl:gap-8 text-sm">
                   {menuItems.map((item, index) => {
                     if (item.childs) {
                       return (

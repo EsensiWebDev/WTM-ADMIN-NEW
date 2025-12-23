@@ -22,6 +22,8 @@ interface ConfirmationDialogProps {
   confirmDisabled?: boolean;
   icon?: LucideIcon;
   iconClassName?: string;
+  confirmButtonText?: string;
+  confirmButtonVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 }
 
 /**
@@ -39,6 +41,8 @@ export function ConfirmationDialog({
   confirmDisabled,
   icon: Icon = AlertTriangle,
   iconClassName,
+  confirmButtonText = "Apply Changes",
+  confirmButtonVariant = "default",
 }: ConfirmationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,11 +68,15 @@ export function ConfirmationDialog({
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
             Cancel
           </Button>
-          <Button onClick={onConfirm} disabled={isLoading || confirmDisabled}>
+          <Button
+            variant={confirmButtonVariant}
+            onClick={onConfirm}
+            disabled={isLoading || confirmDisabled}
+          >
             {isLoading && (
               <Loader className="mr-2 size-4 animate-spin" aria-hidden="true" />
             )}
-            Apply Changes
+            {confirmButtonText}
           </Button>
         </DialogFooter>
       </DialogContent>

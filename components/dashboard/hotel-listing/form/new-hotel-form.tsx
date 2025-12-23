@@ -20,7 +20,7 @@ import {
 } from "@tabler/icons-react";
 import { Loader, MapPin, PlusCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -59,18 +59,63 @@ export const createHotelFormSchema = z.object({
         .refine((val) => val.trim().length > 0, "Facility name cannot be empty")
     )
     .min(1, "At least one facility is required"),
-  social_medias: z.array(
-    z.object({
-      link: z.string().min(1, "Link is required"),
-      platform: z.string().min(1, "Platform is required"),
-    })
-  ),
+  social_medias: z
+    .array(
+      z.object({
+        platform: z.enum(["instagram", "tiktok", "website"], {
+          required_error: "Platform is required",
+        }),
+        // Store raw string, validate with custom logic so instagram/tiktok can be optional
+        link: z.string().trim(),
+      })
+    )
+    .superRefine((socials, ctx) => {
+      // Require website entry with non-empty link
+      const websiteIndex = socials.findIndex(
+        (s) => s.platform === "website"
+      );
+      if (
+        websiteIndex === -1 ||
+        !socials[websiteIndex].link ||
+        socials[websiteIndex].link.trim().length === 0
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Website link is required",
+          path: [
+            websiteIndex === -1 ? socials.length : websiteIndex,
+            "link",
+          ],
+        });
+      }
+
+      // Validate any non-empty link as a proper URL
+      socials.forEach((social, index) => {
+        const value = social.link?.trim();
+        if (!value) {
+          // Empty is allowed for non-website platforms
+          return;
+        }
+
+        try {
+          // eslint-disable-next-line no-new
+          new URL(value);
+        } catch {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Please enter a valid URL",
+            path: [index, "link"],
+          });
+        }
+      });
+    }),
 });
 
 export type CreateHotelFormValues = z.infer<typeof createHotelFormSchema>;
 
 const NewHotelForm = () => {
   const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const form = useForm<CreateHotelFormValues>({
@@ -169,41 +214,58 @@ const NewHotelForm = () => {
   // Handle form submission
   const onSubmit = useCallback(
     async (data: CreateHotelFormValues) => {
+      // Prevent duplicate submissions
+      if (isSubmitting || isPending) {
+        return;
+      }
+
+      setIsSubmitting(true);
       startTransition(async () => {
-        // Prepare FormData object
-        const formData = new FormData();
+        try {
+          // Prepare FormData object
+          const formData = new FormData();
 
-        formData.append("name", data.name);
-        data.photos.forEach((photo) => {
-          formData.append("photos", photo);
-        });
-        formData.append("sub_district", data.sub_district);
-        formData.append("district", data.district);
-        formData.append("province", data.province);
-        formData.append("email", data.email);
-        if (data.description) formData.append("description", data.description);
-        if (data.rating) formData.append("rating", String(data.rating));
-        formData.append("nearby_places", JSON.stringify(data.nearby_places));
-        data.facilities?.forEach((facility) => {
-          formData.append("facilities", facility);
-        });
-        formData.append("social_medias", JSON.stringify(data.social_medias));
+          formData.append("name", data.name);
+          data.photos.forEach((photo) => {
+            formData.append("photos", photo);
+          });
+          formData.append("sub_district", data.sub_district);
+          formData.append("district", data.district);
+          formData.append("province", data.province);
+          formData.append("email", data.email);
+          if (data.description) formData.append("description", data.description);
+          if (data.rating) formData.append("rating", String(data.rating));
+          formData.append("nearby_places", JSON.stringify(data.nearby_places));
+          data.facilities?.forEach((facility) => {
+            formData.append("facilities", facility);
+          });
+          formData.append("social_medias", JSON.stringify(data.social_medias));
 
-        const result = await createHotelNew(formData);
-        if (!result.success) {
+          const result = await createHotelNew(formData);
+          if (!result.success) {
+            toast.error(
+              result.message || "An unexpected error occurred. Please try again."
+            );
+            return;
+          }
+
+          form.reset();
+          if (result.data)
+            router.push(`/hotel-listing/${result.data.hotel_id}/edit`);
+          toast.success(result.message || "Hotel created successfully!");
+        } catch (error) {
+          console.error("Error creating hotel:", error);
           toast.error(
-            result.message || "An unexpected error occurred. Please try again."
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred. Please try again."
           );
-          return;
+        } finally {
+          setIsSubmitting(false);
         }
-
-        form.reset();
-        if (result.data)
-          router.push(`/hotel-listing/${result.data.hotel_id}/edit`);
-        toast.success(result.message || "Hotel created successfully!");
       });
     },
-    [form]
+    [form, isSubmitting, isPending, router]
   );
 
   return (
@@ -221,8 +283,8 @@ const NewHotelForm = () => {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isPending}>
-                  {isPending ? (
+                <Button type="submit" disabled={isPending || isSubmitting}>
+                  {isPending || isSubmitting ? (
                     <>
                       <Loader className="mr-2 h-4 w-4 animate-spin" />
                       Creating...
@@ -395,6 +457,10 @@ const NewHotelForm = () => {
                 <h3 className="text-md font-semibold">
                   Social Media & Website
                 </h3>
+                <p className="text-xs text-muted-foreground">
+                  Website link is required. Social media links are optional, but if filled,
+                  they must be valid URLs (for example, https://instagram.com/your-hotel).
+                </p>
                 <div className="flex items-center gap-2">
                   <div className="bg-primary rounded-full p-1">
                     <IconBrandInstagramFilled className="h-5 w-5 text-white" />
@@ -439,6 +505,26 @@ const NewHotelForm = () => {
                             }}
                           />
                         </FormControl>
+                        {/* Instagram validation error */}
+                        {(() => {
+                          const socialErrors =
+                            form.formState.errors.social_medias as
+                              | { link?: { message?: string } }[]
+                              | undefined;
+                          const instagramIndex =
+                            field.value?.findIndex(
+                              (social) => social.platform === "instagram"
+                            ) ?? -1;
+                          const instagramError =
+                            instagramIndex >= 0
+                              ? socialErrors?.[instagramIndex]?.link
+                              : undefined;
+                          return instagramError ? (
+                            <p className="text-destructive text-sm mt-1">
+                              {instagramError.message}
+                            </p>
+                          ) : null;
+                        })()}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -484,6 +570,26 @@ const NewHotelForm = () => {
                             }}
                           />
                         </FormControl>
+                        {/* TikTok validation error */}
+                        {(() => {
+                          const socialErrors =
+                            form.formState.errors.social_medias as
+                              | { link?: { message?: string } }[]
+                              | undefined;
+                          const tiktokIndex =
+                            field.value?.findIndex(
+                              (social) => social.platform === "tiktok"
+                            ) ?? -1;
+                          const tiktokError =
+                            tiktokIndex >= 0
+                              ? socialErrors?.[tiktokIndex]?.link
+                              : undefined;
+                          return tiktokError ? (
+                            <p className="text-destructive text-sm mt-1">
+                              {tiktokError.message}
+                            </p>
+                          ) : null;
+                        })()}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -531,6 +637,26 @@ const NewHotelForm = () => {
                             }}
                           />
                         </FormControl>
+                        {/* Website validation error */}
+                        {(() => {
+                          const socialErrors =
+                            form.formState.errors.social_medias as
+                              | { link?: { message?: string } }[]
+                              | undefined;
+                          const websiteIndex =
+                            field.value?.findIndex(
+                              (social) => social.platform === "website"
+                            ) ?? -1;
+                          const websiteError =
+                            websiteIndex >= 0
+                              ? socialErrors?.[websiteIndex]?.link
+                              : undefined;
+                          return websiteError ? (
+                            <p className="text-destructive text-sm mt-1">
+                              {websiteError.message}
+                            </p>
+                          ) : null;
+                        })()}
                         <FormMessage />
                       </FormItem>
                     )}

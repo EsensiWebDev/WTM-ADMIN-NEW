@@ -1,8 +1,6 @@
 import EditHotelForm from "@/components/dashboard/hotel-listing/form/edit-hotel-form";
 import RoomForm from "@/components/dashboard/hotel-listing/form/room-form";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
+import BackToHotelListingButton from "@/components/dashboard/hotel-listing/back-to-hotel-listing-button";
 import { Suspense } from "react";
 import { getHotelDetails } from "../../fetch";
 
@@ -36,12 +34,7 @@ const EditHotelPage = async ({
 
   return (
     <div className="space-y-8">
-      <Button variant={"ghost"} asChild>
-        <Link href={"/hotel-listing"}>
-          <ChevronLeft />
-          Back
-        </Link>
-      </Button>
+      <BackToHotelListingButton />
 
       {status !== 200 && <p>Error fetching hotel data</p>}
       {status === 200 && (
