@@ -561,8 +561,11 @@ export function RoomCardInput({
   const removeBedType = useCallback(
     (index: number) => {
       const newBedTypes = bedTypes.filter((_, i) => i !== index);
-      // Ensure at least one bed type input remains
-      form.setValue("bed_types", newBedTypes.length > 0 ? newBedTypes : [""]);
+      form.setValue("bed_types", newBedTypes);
+      // Show helper error when all bed types are removed
+      if (newBedTypes.length === 0) {
+        setBedTypeInputError("At least one bed type is required");
+      }
     },
     [bedTypes, form]
   );
@@ -571,7 +574,11 @@ export function RoomCardInput({
     if (bedTypeName !== undefined) {
       const trimmedName = bedTypeName.trim();
       if (trimmedName) {
-        const newBedTypes = [...bedTypes, trimmedName];
+        // Remove any empty/whitespace-only entries before adding the new one
+        const cleanedExisting = bedTypes.filter(
+          (bt) => bt.trim().length > 0
+        );
+        const newBedTypes = [...cleanedExisting, trimmedName];
         form.setValue("bed_types", newBedTypes);
         setBedTypeInputError("");
         return true;
@@ -580,9 +587,9 @@ export function RoomCardInput({
         return false;
       }
     } else {
-      const newBedTypes = [...bedTypes, ""];
-      form.setValue("bed_types", newBedTypes);
-      return true;
+      // No value provided (shouldn't normally happen) – surface a friendly error
+      setBedTypeInputError("Bed type cannot be empty");
+      return false;
     }
   }, [bedTypes, form]);
 
