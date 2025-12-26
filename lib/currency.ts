@@ -142,13 +142,13 @@ export function useFormattedCurrencyInput(
  * 
  * @param value - The numeric value to format
  * @param currencyCode - The currency code (e.g., 'USD', 'IDR', 'EUR')
- * @param currencySymbol - The currency symbol (e.g., '$', 'Rp', '€')
+ * @param currencySymbol - The currency symbol (e.g., '$', 'IDR', '€')
  * @param locale - The locale to use for formatting (default: 'id-ID')
  * @param options - Additional Intl.NumberFormat options
  * @returns Formatted string with currency symbol
  * 
  * @example
- * formatCurrencyWithSymbol(50000, 'IDR', 'Rp') // Returns "Rp 50.000"
+ * formatCurrencyWithSymbol(50000, 'IDR', 'IDR') // Returns "IDR 50.000"
  * formatCurrencyWithSymbol(100, 'USD', '$') // Returns "$100"
  */
 export function formatCurrencyWithSymbol(
@@ -213,8 +213,8 @@ export function getSymbolPosition(currencyCode: string): "before" | "after" {
  * @example
  * formatMultiCurrencyPrices(
  *   { IDR: 1600000, USD: 100 },
- *   [{ code: 'IDR', symbol: 'Rp' }, { code: 'USD', symbol: '$' }]
- * ) // Returns "Rp 1.600.000 / $100"
+ *   [{ code: 'IDR', symbol: 'IDR' }, { code: 'USD', symbol: '$' }]
+ * ) // Returns "IDR 1.600.000 / $100"
  */
 export function formatMultiCurrencyPrices(
   prices: Record<string, number>,

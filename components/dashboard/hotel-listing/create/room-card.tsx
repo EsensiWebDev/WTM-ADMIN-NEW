@@ -96,15 +96,15 @@ function RoomOptions({ options }: { options: RoomOption[] }) {
                 {option.originalPrice ? (
                   <>
                     <p className="text-xs text-gray-500 line-through">
-                      Rp {option.originalPrice.toLocaleString("id-ID")}
+                      IDR {option.originalPrice.toLocaleString("id-ID")}
                     </p>
                     <p className="text-lg font-bold">
-                      Rp {option.price.toLocaleString("id-ID")}
+                      IDR {option.price.toLocaleString("id-ID")}
                     </p>
                   </>
                 ) : (
                   <p className="text-lg font-bold">
-                    Rp {option.price.toLocaleString("id-ID")}
+                    IDR {option.price.toLocaleString("id-ID")}
                   </p>
                 )}
               </div>
